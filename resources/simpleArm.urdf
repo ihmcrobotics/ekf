@@ -1,0 +1,83 @@
+<robot name="simpleArm">
+  <link name="base">
+    <inertial>
+      <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0"/>
+      <mass value="50.0"/>
+<!-- in direction of cylinder:  1.0 / 2.0  * m * (r^2)             -->
+<!-- perpendicular to cylinder: 1.0 / 12.0 * m * (3.0 * r^2 + h^2) -->
+      <inertia ixx="1.292" ixy="0.0" ixz="0.0" iyy="1.292" iyz="0.0" izz="2.25"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <cylinder length="0.2" radius="0.3"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="arm_1">
+    <inertial>
+      <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.0858" ixy="0.0" ixz="0.0" iyy="0.0858" iyz="0.0" izz="0.005"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <cylinder length="1.0" radius="0.1"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="arm_2">
+    <inertial>
+      <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.0858" ixy="0.0" ixz="0.0" iyy="0.0858" iyz="0.0" izz="0.005"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <cylinder length="1.0" radius="0.1"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="arm_3">
+    <inertial>
+      <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.0858" ixy="0.0" ixz="0.0" iyy="0.0858" iyz="0.0" izz="0.005"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>
+      <geometry>
+        <cylinder length="1.0" radius="0.1"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="base_arm_1" type="revolute">
+    <origin xyz="0.0 0.0 0.2"/>
+    <axis xyz="0.0 0.0 1.0"/>
+    <parent link="base"/>
+    <child link="arm_1"/>
+    <limit effort="10000" velocity="10000"/>
+  </joint>
+
+  <joint name="arm_1_arm_2" type="revolute">
+    <origin xyz="0.0 0.0 1.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <parent link="arm_1"/>
+    <child link="arm_2"/>
+    <limit effort="10000" velocity="10000"/>
+  </joint>
+
+  <joint name="arm_2_arm_3" type="revolute">
+    <origin xyz="0.0 0.0 1.0" rpy="0.0 0.0 0.0"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <parent link="arm_2"/>
+    <child link="arm_3"/>
+    <limit effort="10000" velocity="10000"/>
+  </joint>
+</robot>
