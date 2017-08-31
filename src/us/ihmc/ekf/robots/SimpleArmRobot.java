@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import us.ihmc.ekf.interfaces.FullRobotModel;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
@@ -32,11 +33,12 @@ public class SimpleArmRobot
    private static final String[] resourceDirectories = {""};
    private static final String file = robotName + ".sdf";
 
+   private static final RobotDescription robotDescription = getRobotDescription();
+
    private final FloatingRootJointRobot robot;
 
    public SimpleArmRobot()
    {
-      RobotDescription robotDescription = getRobotDescription();
       robot = new FloatingRootJointRobot(robotDescription);
       setupGroundContactModel(robot);
 
@@ -51,9 +53,14 @@ public class SimpleArmRobot
       }
    }
 
-   public Robot getRobot()
+   public FloatingRootJointRobot getRobot()
    {
       return robot;
+   }
+
+   public FullRobotModel createFullRobotModel()
+   {
+      return new FullRobotModel(robotDescription);
    }
 
    private static RobotDescription getRobotDescription()
