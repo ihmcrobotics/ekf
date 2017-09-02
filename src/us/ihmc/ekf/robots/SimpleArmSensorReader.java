@@ -8,6 +8,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.JointPositionSensor;
 import us.ihmc.ekf.filter.Sensor;
+import us.ihmc.ekf.interfaces.FullRobotModel;
 import us.ihmc.ekf.interfaces.RobotSensorReader;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.Joint;
@@ -18,29 +19,30 @@ public class SimpleArmSensorReader implements RobotSensorReader
    private final List<Sensor> allSensors = new ArrayList<>();
    private final List<ImmutablePair<PinJoint, JointPositionSensor>> jointPositionSensors = new ArrayList<>();
 
-   public SimpleArmSensorReader(FloatingRootJointRobot robot)
+   public SimpleArmSensorReader(FloatingRootJointRobot robot, FullRobotModel fullRobotModel)
    {
-      addJointPositionSensorsForChildren(robot.getRootJoint(), jointPositionSensors);
+      addJointPositionSensorsForChildren(robot.getRootJoint(), fullRobotModel, jointPositionSensors);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
    }
 
-   private static void addJointPositionSensorsForChildren(Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors)
+   private static void addJointPositionSensorsForChildren(Joint joint, FullRobotModel fullRobotModel, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors)
    {
       for (Joint child : joint.getChildrenJoints())
       {
          if (child instanceof PinJoint)
          {
             PinJoint pinJoint = (PinJoint) child;
-            JointPositionSensor sensor = new JointPositionSensor();
+            String jointName = pinJoint.getName();
+            JointPositionSensor sensor = new JointPositionSensor(jointName, fullRobotModel);
             sensors.add(new ImmutablePair<>(pinJoint, sensor));
-            PrintTools.info("Created joint position sensor for '" + pinJoint.getName() + "'");
+            PrintTools.info("Created joint position sensor for '" + jointName + "'");
          }
          else
          {
             PrintTools.warn("Can not add joint position sensor for joint of type " + joint.getClass().getSimpleName());
          }
 
-         addJointPositionSensorsForChildren(child, sensors);
+         addJointPositionSensorsForChildren(child, fullRobotModel, sensors);
       }
    }
 

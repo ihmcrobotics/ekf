@@ -2,15 +2,28 @@ package us.ihmc.ekf.filter;
 
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.ekf.interfaces.FullRobotModel;
+
 public class JointPositionSensor extends Sensor
 {
    private static final int measurementSize = 1;
 
-   private final DenseMatrix64F measurment = new DenseMatrix64F(measurementSize, 1);
+   private final DenseMatrix64F measurement = new DenseMatrix64F(measurementSize, 1);
+   private final DenseMatrix64F measurementJacobianRobotPart;
+
+   public JointPositionSensor(String jointName, FullRobotModel fullRobotModel)
+   {
+      RobotState robotStateForIndexing = new RobotState(fullRobotModel);
+      int jointPositionIndex = robotStateForIndexing.findJointPositionIndex(jointName);
+      int robotStateSize = robotStateForIndexing.getSize();
+
+      measurementJacobianRobotPart = new DenseMatrix64F(measurementSize, robotStateSize);
+      measurementJacobianRobotPart.set(jointPositionIndex, 1.0);
+   }
 
    public void setJointPositionMeasurement(double jointPosition)
    {
-      measurment.set(0, jointPosition);
+      measurement.set(0, jointPosition);
    }
 
    @Override
@@ -22,6 +35,18 @@ public class JointPositionSensor extends Sensor
    @Override
    public DenseMatrix64F getMeasurement()
    {
-      return measurment;
+      return measurement;
+   }
+
+   @Override
+   public DenseMatrix64F getMeasurementJacobianRobotPart()
+   {
+      return measurementJacobianRobotPart;
+   }
+
+   @Override
+   public DenseMatrix64F getMeasurementJacobianSensorPart()
+   {
+      return null;
    }
 }

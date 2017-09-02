@@ -7,7 +7,8 @@ import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 
 public class SimpleArmSimulation
 {
-   private static final double dt = 0.001;
+   private static final double simulationDT = 0.001;
+   private static final int ticksPerEstimatorTick = 4;
    private final SimulationConstructionSet scs;
 
    public SimpleArmSimulation()
@@ -16,13 +17,14 @@ public class SimpleArmSimulation
       FloatingRootJointRobot robot = simpleArmRobot.getRobot();
       FullRobotModel fullRobotModel = simpleArmRobot.createFullRobotModel();
 
-      SimpleArmSensorReader sensorReader = new SimpleArmSensorReader(robot);
-      EstimatorController estimatorController = new EstimatorController(sensorReader, fullRobotModel);
+      double estimatorDT = simulationDT * ticksPerEstimatorTick;
+      SimpleArmSensorReader sensorReader = new SimpleArmSensorReader(robot, fullRobotModel);
+      EstimatorController estimatorController = new EstimatorController(sensorReader, fullRobotModel, estimatorDT);
 
-      robot.setController(estimatorController);
+      robot.setController(estimatorController, ticksPerEstimatorTick);
 
       scs = new SimulationConstructionSet(robot);
-      scs.setDT(dt, 1);
+      scs.setDT(simulationDT, 1);
       scs.startOnAThread();
       scs.simulate(4.0);
    }

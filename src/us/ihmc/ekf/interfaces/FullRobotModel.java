@@ -11,6 +11,7 @@ import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.PinJointDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -23,6 +24,7 @@ public class FullRobotModel
    private final RigidBody elevator;
    private final RigidBody rootBody;
    private final SixDoFJoint rootJoint;
+   private final InverseDynamicsJoint[] bodyJointsInOrder;
 
    public FullRobotModel(RobotDescription robotDescription)
    {
@@ -48,6 +50,8 @@ public class FullRobotModel
       PrintTools.info("Creating full robot model with root joint '" + rootJointName + "' and root link '" + rootLinkName + "'");
 
       addJointsForChildren(rootJointDescription, rootBody);
+
+      bodyJointsInOrder = ScrewTools.computeSubtreeJoints(rootBody);
    }
 
    private void addJointsForChildren(JointDescription joint, RigidBody parentBody)
@@ -63,7 +67,8 @@ public class FullRobotModel
             pinJoint.getJointAxis(jointAxis);
             Vector3D offset = new Vector3D();
             pinJoint.getOffsetFromParentJoint(offset);
-            RevoluteJoint revoluteJoint = ScrewTools.addRevoluteJoint(joint.getName(), parentBody, offset, jointAxis);
+            String jointName = child.getName();
+            RevoluteJoint revoluteJoint = ScrewTools.addRevoluteJoint(jointName, parentBody, offset, jointAxis);
             revoluteJoint.setEffortLimits(-pinJoint.getEffortLimit(), pinJoint.getEffortLimit());
             revoluteJoint.setVelocityLimit(-pinJoint.getVelocityLimit(), pinJoint.getVelocityLimit());
             if (pinJoint.containsLimitStops())
@@ -88,5 +93,10 @@ public class FullRobotModel
             throw new RuntimeException("Can only handle pin joints. Got " + child.getClass().getSimpleName());
          }
       }
+   }
+
+   public InverseDynamicsJoint[] getBodyJointsInOrder()
+   {
+      return bodyJointsInOrder;
    }
 }
