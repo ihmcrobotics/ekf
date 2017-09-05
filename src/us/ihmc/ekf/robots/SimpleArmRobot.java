@@ -26,8 +26,8 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class SimpleArmRobot
 {
-   private static final boolean drawInertias = true;
-   private static final boolean drawJointCoordinates = true;
+   private static final boolean drawInertias = false;
+   private static final boolean drawJointCoordinates = false;
 
    private static final String robotName = "simpleArm";
    private static final String[] resourceDirectories = {""};

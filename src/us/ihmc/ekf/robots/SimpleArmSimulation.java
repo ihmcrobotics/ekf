@@ -20,11 +20,13 @@ public class SimpleArmSimulation
       double estimatorDT = simulationDT * ticksPerEstimatorTick;
       SimpleArmSensorReader sensorReader = new SimpleArmSensorReader(robot, fullRobotModel);
       EstimatorController estimatorController = new EstimatorController(sensorReader, fullRobotModel, estimatorDT);
-      SimpleArmVisualizer visualizer = new SimpleArmVisualizer(fullRobotModel);
       robot.setController(estimatorController, ticksPerEstimatorTick);
 
+      SimpleArmController motionController = new SimpleArmController(robot);
+      robot.setController(motionController);
+
       scs = new SimulationConstructionSet(robot);
-      scs.addRobot(visualizer.getRobot());
+      scs.addRobot(new SimpleArmVisualizer(fullRobotModel).getRobot());
       scs.setDT(simulationDT, 1);
       scs.startOnAThread();
       scs.simulate(4.0);
