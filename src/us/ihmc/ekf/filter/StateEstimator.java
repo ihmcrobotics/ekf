@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.ejml.data.DenseMatrix64F;
 
 public class StateEstimator
 {
@@ -25,10 +24,6 @@ public class StateEstimator
          int sensorStateIndex = state.addState(sensor.getSensorStateSize());
          sensorList.add(new ImmutablePair<>(new MutableInt(sensorStateIndex), sensor));
       }
-
-      DenseMatrix64F test = new DenseMatrix64F(robotState.getSize(), 1);
-      test.set(5, 0.3);
-      state.setSubState(robotStateIndex, test);
    }
 
    public void compute()
