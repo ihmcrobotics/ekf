@@ -13,7 +13,7 @@ public class JointPositionSensor extends Sensor
 
    public JointPositionSensor(String jointName, FullRobotModel fullRobotModel)
    {
-      RobotState robotStateForIndexing = new RobotState(fullRobotModel);
+      RobotState robotStateForIndexing = new RobotState(fullRobotModel, Double.NaN);
       int jointPositionIndex = robotStateForIndexing.findJointPositionIndex(jointName);
       int robotStateSize = robotStateForIndexing.getSize();
 

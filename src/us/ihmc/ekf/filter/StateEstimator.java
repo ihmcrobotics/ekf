@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.ejml.data.DenseMatrix64F;
 
 public class StateEstimator
 {
@@ -14,11 +15,8 @@ public class StateEstimator
    private final RobotState robotState;
    private final int robotStateIndex;
 
-   private final double dt;
-
-   public StateEstimator(List<Sensor> sensors, RobotState robotState, double dt)
+   public StateEstimator(List<Sensor> sensors, RobotState robotState)
    {
-      this.dt = dt;
       this.robotState = robotState;
       robotStateIndex = state.addState(robotState.getSize());
 
@@ -27,6 +25,10 @@ public class StateEstimator
          int sensorStateIndex = state.addState(sensor.getSensorStateSize());
          sensorList.add(new ImmutablePair<>(new MutableInt(sensorStateIndex), sensor));
       }
+
+      DenseMatrix64F test = new DenseMatrix64F(robotState.getSize(), 1);
+      test.set(5, 0.3);
+      state.setSubState(robotStateIndex, test);
    }
 
    public void compute()
@@ -42,8 +44,8 @@ public class StateEstimator
 
       // predict the state evolution assuming zero acceleration
       robotState.set(state.getSubState(robotStateIndex));
-      robotState.predict(dt);
-      state.setSubState(robotStateIndex, robotState);
+      robotState.predict();
+      state.setSubState(robotStateIndex, robotState.getStateVector());
 
       // use the sensors to correct the state estimate
       // TODO

@@ -31,7 +31,7 @@ public class EstimatorStateTest
       assertTrue(subStateCopy.get(3) == 18.0);
       assertTrue(subStateCopy.get(6) == 9.0);
 
-      assertTrue(state.get(3 + 5) == 18.0);
-      assertTrue(state.get(6 + 5) == 9.0);
+      assertTrue(state.getStateVector().get(3 + 5) == 18.0);
+      assertTrue(state.getStateVector().get(6 + 5) == 9.0);
    }
 }

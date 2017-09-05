@@ -63,7 +63,7 @@ public class SimpleArmRobot
       return new FullRobotModel(robotDescription);
    }
 
-   private static RobotDescription getRobotDescription()
+   public static RobotDescription getRobotDescription()
    {
       InputStream sdfFile = SimpleArmRobot.class.getClassLoader().getResourceAsStream(file);
       JaxbSDFLoader loader = DRCRobotSDFLoader.loadDRCRobot(resourceDirectories, sdfFile, null);
