@@ -49,4 +49,9 @@ public class StateEstimator
       // TODO
    }
 
+   public RobotState getRobotState()
+   {
+      return robotState;
+   }
+
 }

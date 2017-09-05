@@ -7,6 +7,10 @@ import org.apache.commons.lang.mutable.MutableInt;
 import org.ejml.data.DenseMatrix64F;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -56,6 +60,8 @@ public class RobotState extends DenseMatrix64F
 
       int robotStateSize = 7 + 6 + 6 + 3 * numberOfJoints + 3;
       reshape(robotStateSize, 1);
+
+      jointPositions = new double[numberOfJoints];
    }
 
    @Override
@@ -115,7 +121,32 @@ public class RobotState extends DenseMatrix64F
 
    public void predict(double dt)
    {
-      // TODO Auto-generated method stub
+   }
 
+   private final Point3D rootPosition = new Point3D();
+   public Tuple3DReadOnly getRootPosition()
+   {
+      int startIndex = getStartIndex(SubState.ROOT_POSITION);
+      rootPosition.set(startIndex, this);
+      return rootPosition;
+   }
+
+   private final Quaternion rootOrientation = new Quaternion();
+   public QuaternionReadOnly getRootOrientation()
+   {
+      int startIndex = getStartIndex(SubState.ROOT_ORIENTATION);
+      rootOrientation.set(startIndex, this);
+      return rootOrientation;
+   }
+
+   private final double[] jointPositions;
+   public double[] getJointPositions()
+   {
+      int startIndex = getStartIndex(SubState.JOINT_POSITIONS);
+      for (int jointIdx = 0; jointIdx < numberOfJoints; jointIdx++)
+      {
+         jointPositions[jointIdx] = get(startIndex++);
+      }
+      return jointPositions;
    }
 }

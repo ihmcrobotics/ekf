@@ -11,7 +11,7 @@ import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.PinJointDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -24,7 +24,7 @@ public class FullRobotModel
    private final RigidBody elevator;
    private final RigidBody rootBody;
    private final SixDoFJoint rootJoint;
-   private final InverseDynamicsJoint[] bodyJointsInOrder;
+   private final OneDoFJoint[] bodyJointsInOrder;
 
    public FullRobotModel(RobotDescription robotDescription)
    {
@@ -51,7 +51,7 @@ public class FullRobotModel
 
       addJointsForChildren(rootJointDescription, rootBody);
 
-      bodyJointsInOrder = ScrewTools.computeSubtreeJoints(rootBody);
+      bodyJointsInOrder = ScrewTools.filterJoints(ScrewTools.computeSubtreeJoints(rootBody), OneDoFJoint.class);
    }
 
    private void addJointsForChildren(JointDescription joint, RigidBody parentBody)
@@ -95,8 +95,13 @@ public class FullRobotModel
       }
    }
 
-   public InverseDynamicsJoint[] getBodyJointsInOrder()
+   public OneDoFJoint[] getBodyJointsInOrder()
    {
       return bodyJointsInOrder;
+   }
+
+   public SixDoFJoint getRootJoint()
+   {
+      return rootJoint;
    }
 }
