@@ -9,10 +9,11 @@ public class EstimatorController extends SimpleRobotController
    private final FullRobotModel fullRobotModel;
    private final RobotSensorReader sensorReader;
    private final StateEstimator estimator;
+   private final RobotState robotState;
 
    public EstimatorController(RobotSensorReader sensorReader, FullRobotModel fullRobotModel, double dt)
    {
-      RobotState robotState = new RobotState(fullRobotModel, dt);
+      robotState = new RobotState(fullRobotModel, dt);
       this.sensorReader = sensorReader;
       this.fullRobotModel = fullRobotModel;
       estimator = new StateEstimator(sensorReader.getSensors(), robotState);
@@ -24,6 +25,6 @@ public class EstimatorController extends SimpleRobotController
       sensorReader.read();
       estimator.compute();
 
-      RobotState.setFullRobotModelFromState(fullRobotModel, estimator.getRobotState());
+      robotState.setFullRobotModelFromState(fullRobotModel);
    }
 }

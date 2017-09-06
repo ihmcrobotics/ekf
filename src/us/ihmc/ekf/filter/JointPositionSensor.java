@@ -49,4 +49,10 @@ public class JointPositionSensor extends Sensor
    {
       return null;
    }
+
+   @Override
+   public State getSensorState()
+   {
+      return new EmptyState();
+   }
 }

@@ -3,7 +3,7 @@ package us.ihmc.ekf.filter;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-public class JointState
+public class JointState extends State
 {
    public static final int size = 3;
 
@@ -23,19 +23,55 @@ public class JointState
       A.set(1, 2, dt);
    }
 
+   public String getJointName()
+   {
+      return jointName;
+   }
+
+   @Override
+   public void setStateVector(DenseMatrix64F newState)
+   {
+      State.checkDimensions(newState, stateVector);
+      System.arraycopy(newState, 0, stateVector, 0, getSize());
+   }
+
+   @Override
+   public void getStateVector(DenseMatrix64F vectorToPack)
+   {
+      vectorToPack.set(stateVector);
+   }
+
+   @Override
+   public int getSize()
+   {
+      return size;
+   }
+
+   @Override
    public void predict()
    {
       tempStateVector.set(stateVector);
       CommonOps.mult(A, tempStateVector, stateVector);
    }
 
-   public String getJointName()
+   @Override
+   public void getAMatrix(DenseMatrix64F matrixToPack)
    {
-      return jointName;
+      matrixToPack.set(A);
    }
 
-   public DenseMatrix64F getStateVector()
+   public double getQ()
    {
-      return stateVector;
+      return stateVector.get(0);
+   }
+
+   public double getQd()
+   {
+      return stateVector.get(1);
+   }
+
+   public double getQdd()
+   {
+      return stateVector.get(2);
    }
 }
