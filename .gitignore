@@ -4,5 +4,6 @@
 .gradle/*
 .settings/*
 bin/*
+build/*
 Configurations/*
 *.class
