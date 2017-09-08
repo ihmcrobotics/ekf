@@ -1,15 +1,22 @@
-package us.ihmc.ekf.filter;
+package us.ihmc.ekf.filter.sensor;
 
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.ekf.filter.state.EmptyState;
+import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.state.State;
 import us.ihmc.ekf.interfaces.FullRobotModel;
 
 public class JointPositionSensor extends Sensor
 {
    private static final int measurementSize = 1;
+   private static final double measurementVariance = 0.01;
+
+   private final EmptyState emptyState = new EmptyState();
 
    private final DenseMatrix64F measurement = new DenseMatrix64F(measurementSize, 1);
    private final DenseMatrix64F measurementJacobianRobotPart;
+   private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
 
    public JointPositionSensor(String jointName, FullRobotModel fullRobotModel)
    {
@@ -19,6 +26,7 @@ public class JointPositionSensor extends Sensor
 
       measurementJacobianRobotPart = new DenseMatrix64F(measurementSize, robotStateSize);
       measurementJacobianRobotPart.set(jointPositionIndex, 1.0);
+      R.set(0, 0, measurementVariance);
    }
 
    public void setJointPositionMeasurement(double jointPosition)
@@ -33,26 +41,32 @@ public class JointPositionSensor extends Sensor
    }
 
    @Override
-   public DenseMatrix64F getMeasurement()
+   public void getMeasurement(DenseMatrix64F vectorToPack)
    {
-      return measurement;
+      vectorToPack.set(measurement);
    }
 
    @Override
-   public DenseMatrix64F getMeasurementJacobianRobotPart()
+   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack)
    {
-      return measurementJacobianRobotPart;
+      matrixToPack.set(measurementJacobianRobotPart);
    }
 
    @Override
-   public DenseMatrix64F getMeasurementJacobianSensorPart()
+   public void getMeasurementJacobianSensorPart(DenseMatrix64F matrixToPack)
    {
-      return null;
+      matrixToPack.reshape(0, 0);
    }
 
    @Override
    public State getSensorState()
    {
-      return new EmptyState();
+      return emptyState;
+   }
+
+   @Override
+   public void getRMatrix(DenseMatrix64F matrixToPack)
+   {
+      matrixToPack.set(R);
    }
 }

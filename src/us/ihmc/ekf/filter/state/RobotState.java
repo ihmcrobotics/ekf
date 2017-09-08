@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter;
+package us.ihmc.ekf.filter.state;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter;
+package us.ihmc.ekf.filter.state;
 
 import org.ejml.data.DenseMatrix64F;
 
@@ -21,6 +21,11 @@ public abstract class State
     * where x is the state.
     */
    public abstract void getAMatrix(DenseMatrix64F matrixToPack);
+
+   /**
+    * Get the covariance matrix of the state evolution.
+    */
+   public abstract void getQMatrix(DenseMatrix64F matrixToPack);
 
    protected static void checkDimensions(DenseMatrix64F A, DenseMatrix64F B)
    {

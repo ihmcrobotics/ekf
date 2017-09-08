@@ -2,7 +2,7 @@ package us.ihmc.ekf.interfaces;
 
 import java.util.List;
 
-import us.ihmc.ekf.filter.Sensor;
+import us.ihmc.ekf.filter.sensor.Sensor;
 
 public interface RobotSensorReader
 {

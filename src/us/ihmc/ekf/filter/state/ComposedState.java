@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter;
+package us.ihmc.ekf.filter.state;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +21,16 @@ public class ComposedState extends State
       return stateIndex;
    }
 
+   public int getStartIndex(int stateIndex)
+   {
+      return subStateList.get(stateIndex).getLeft().intValue();
+   }
+
    @Override
    public void getStateVector(DenseMatrix64F vectorToPack)
    {
+      vectorToPack.reshape(getSize(), 1);
+
       for (int i = 0; i < subStateList.size(); i++)
       {
          ImmutablePair<MutableInt, State> pair = subStateList.get(i);
@@ -84,6 +91,23 @@ public class ComposedState extends State
          State subState = pair.getRight();
 
          subState.getAMatrix(tempMatrix);
+         CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
+      }
+   }
+
+   @Override
+   public void getQMatrix(DenseMatrix64F matrixToPack)
+   {
+      matrixToPack.reshape(getSize(), getSize());
+      CommonOps.fill(matrixToPack, 0.0);
+
+      for (int i = 0; i < subStateList.size(); i++)
+      {
+         ImmutablePair<MutableInt, State> pair = subStateList.get(i);
+         int startIndex = pair.getLeft().intValue();
+         State subState = pair.getRight();
+
+         subState.getQMatrix(tempMatrix);
          CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
       }
    }

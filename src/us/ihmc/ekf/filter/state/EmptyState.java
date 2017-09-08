@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter;
+package us.ihmc.ekf.filter.state;
 
 import org.ejml.data.DenseMatrix64F;
 
@@ -28,6 +28,12 @@ public class EmptyState extends State
 
    @Override
    public void getAMatrix(DenseMatrix64F matrixToPack)
+   {
+      matrixToPack.reshape(0, 0);
+   }
+
+   @Override
+   public void getQMatrix(DenseMatrix64F matrixToPack)
    {
       matrixToPack.reshape(0, 0);
    }

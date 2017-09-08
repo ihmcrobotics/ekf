@@ -6,8 +6,8 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import us.ihmc.commons.PrintTools;
-import us.ihmc.ekf.filter.JointPositionSensor;
-import us.ihmc.ekf.filter.Sensor;
+import us.ihmc.ekf.filter.sensor.JointPositionSensor;
+import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.interfaces.FullRobotModel;
 import us.ihmc.ekf.interfaces.RobotSensorReader;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;

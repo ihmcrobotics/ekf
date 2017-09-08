@@ -1,7 +1,7 @@
 package us.ihmc.ekf.interfaces;
 
-import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.StateEstimator;
+import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 
 public class EstimatorController extends SimpleRobotController
