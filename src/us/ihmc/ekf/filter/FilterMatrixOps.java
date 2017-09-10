@@ -171,7 +171,7 @@ public class FilterMatrixOps
    {
       DenseMatrix64F identity = tempLocal1.get();
       setIdentity(identity, pPrior.getNumRows());
-      DenseMatrix64F temp = tempLocal1.get();
+      DenseMatrix64F temp = tempLocal2.get();
 
       temp.reshape(pPrior.getNumRows(), pPrior.getNumRows());
       CommonOps.mult(K, H, temp);
