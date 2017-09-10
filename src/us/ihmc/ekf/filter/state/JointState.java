@@ -7,9 +7,7 @@ public class JointState extends State
 {
    public static final int size = 3;
 
-   public static final double positionVariance = 1.0;
-   public static final double velocityVariance = 1.0;
-   public static final double acceleraionVariance = 1.0;
+   public static final double acceleraionVariance = 100.0;
 
    private final String jointName;
 
@@ -28,9 +26,7 @@ public class JointState extends State
       A.set(1, 2, dt);
 
       CommonOps.fill(Q, 0.0);
-      Q.set(0, 0, positionVariance);
-      Q.set(1, 1, velocityVariance);
-      Q.set(2, 2, acceleraionVariance);
+      Q.set(2, 2, acceleraionVariance * acceleraionVariance);
    }
 
    public String getJointName()

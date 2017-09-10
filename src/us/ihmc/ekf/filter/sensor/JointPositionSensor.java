@@ -10,7 +10,7 @@ import us.ihmc.ekf.interfaces.FullRobotModel;
 public class JointPositionSensor extends Sensor
 {
    private static final int measurementSize = 1;
-   private static final double measurementVariance = 0.01;
+   private static final double measurementVariance = 0.1;
 
    private final EmptyState emptyState = new EmptyState();
 
@@ -26,7 +26,7 @@ public class JointPositionSensor extends Sensor
 
       measurementJacobianRobotPart = new DenseMatrix64F(measurementSize, robotStateSize);
       measurementJacobianRobotPart.set(jointPositionIndex, 1.0);
-      R.set(0, 0, measurementVariance);
+      R.set(0, 0, measurementVariance * measurementVariance);
    }
 
    public void setJointPositionMeasurement(double jointPosition)
