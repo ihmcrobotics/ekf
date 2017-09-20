@@ -9,13 +9,17 @@ import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.ComposedState;
 import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.robotics.time.ExecutionTimer;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class StateEstimator
 {
    private final ComposedState state;
    private final ComposedSensor sensor;
 
-   public StateEstimator(List<Sensor> sensors, RobotState robotState)
+   private final ExecutionTimer timer;
+
+   public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
    {
       this.state = new ComposedState();
       this.sensor = new ComposedSensor(sensors, robotState.getSize());
@@ -24,6 +28,8 @@ public class StateEstimator
       state.addState(sensor.getSensorState());
 
       FilterMatrixOps.setIdentity(Pposterior, state.getSize());
+
+      timer = new ExecutionTimer(getClass().getSimpleName(), registry);
    }
 
    private final DenseMatrix64F A = new DenseMatrix64F(0, 0);
@@ -40,6 +46,8 @@ public class StateEstimator
 
    public void compute()
    {
+      timer.startMeasurement();
+
       // State prediction.
       state.predict();
       state.getStateVector(Xprior);
@@ -67,5 +75,7 @@ public class StateEstimator
 
       // Update the state after the update.
       state.setStateVector(Xposterior);
+
+      timer.stopMeasurement();
    }
 }
