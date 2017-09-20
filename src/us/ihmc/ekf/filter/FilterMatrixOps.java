@@ -45,6 +45,9 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to a square identity matrix of the given size.
+    *
+    * @param matrix (modified)
+    * @param size is the the desired number of rows and columns for the matrix
     */
    public static void setIdentity(DenseMatrix64F matrix, int size)
    {
@@ -57,7 +60,7 @@ public class FilterMatrixOps
     * result = A * B * A'</br>
     * Note, that B must be square.
     */
-   public static void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
+   private static void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
    {
       DenseMatrix64F temp = tempLocal1.get();
 
@@ -72,7 +75,7 @@ public class FilterMatrixOps
     * Sets the provided matrix to</br>
     * result = A * B * A' + C
     */
-   public static void computeABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   private static void computeABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
    {
       computeABAtrans(result, A, B);
       CommonOps.add(result, C, result);
@@ -82,8 +85,10 @@ public class FilterMatrixOps
     * Sets the provided matrix to</br>
     * result = inverse(A)</br>
     * Will return whether the inversion succeeded.
+    *
+    * @return whether the inversion succeeded
     */
-   public static boolean invertMatrix(DenseMatrix64F result, DenseMatrix64F A)
+   private static boolean invertMatrix(DenseMatrix64F result, DenseMatrix64F A)
    {
       LinearSolver<DenseMatrix64F> solver = solverLocal.get();
       DenseMatrix64F temp = tempLocal1.get();
@@ -104,8 +109,10 @@ public class FilterMatrixOps
     * Sets the provided matrix to</br>
     * result = inverse(A * B * A' + C)</br>
     * Will return whether the inversion succeeded.
+    *
+    * @return whether the inversion succeeded
     */
-   public static boolean computeInverseOfABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   private static boolean computeInverseOfABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
    {
       DenseMatrix64F temp = tempLocal2.get();
       computeABAtransPlusC(temp, A, B, C);
@@ -114,11 +121,28 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to</br>
+    * result = A * Pposterior * A' + Q
+    *
+    * @param result (modified)
+    * @param A is the matrix that describes the linearized state evolution: x(k+1) = A * x(k)
+    * @param Pposterior is the previous error covariance
+    * @param Q is the covariance matrix of the state evolution
+    */
+   public static void predictErrorCovariance(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F Pposterior, DenseMatrix64F Q)
+   {
+      computeABAtransPlusC(result, A, Pposterior, Q);
+   }
+
+   /**
+    * Sets the provided matrix to</br>
     * result = P * H * inverse(H * P * H' + R)</br>
-    * Will return whether the inversion succeeded.</br>
-    *  - P is the error covariance</br>
-    *  - H is the measurement jacobian</br>
-    *  - R is the measurement covariance
+    * Will return whether the inversion succeeded.
+    *
+    * @return whether the inversion succeeded
+    * @param result (modified)
+    * @param P is the error covariance
+    * @param H is the measurement jacobian
+    * @param R is the measurement covariance
     */
    public static boolean computeKalmanGain(DenseMatrix64F result, DenseMatrix64F P, DenseMatrix64F H, DenseMatrix64F R)
    {
@@ -140,11 +164,13 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to</br>
-    * result = xPrior + K * (z - H * xPrior)</br>
-    *  - K is the kalman gain</br>
-    *  - z is the measurement</br>
-    *  - H is the measurement jacobian</br>
-    *  - xPrior is the state before the measurement update
+    * result = xPrior + K * (z - H * xPrior)
+    *
+    * @param result (modified)
+    * @param K is the kalman gain
+    * @param z is the measurement
+    * @param H is the measurement jacobian
+    * @param xPrior is the state before the measurement update
     */
    public static void updateState(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F z, DenseMatrix64F H, DenseMatrix64F xPrior)
    {
@@ -162,10 +188,12 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to</br>
-    * result = (identity - K * H) * pPrior</br>
-    *  - K is the kalman gain</br>
-    *  - H is the measurement jacobian</br>
-    *  - pPrior is the error covariance before the update
+    * result = (identity - K * H) * pPrior
+    *
+    * @param result (modified)
+    * @param K is the kalman gain
+    * @param H is the measurement jacobian
+    * @param pPrior is the error covariance before the update
     */
    public static void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F pPrior)
    {

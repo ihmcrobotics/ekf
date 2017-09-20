@@ -47,8 +47,7 @@ public class StateEstimator
       // Get linearized model and predict error covariance.
       state.getAMatrix(A);
       state.getQMatrix(Q);
-
-      FilterMatrixOps.computeABAtransPlusC(Pprior, A, Pposterior, Q);
+      FilterMatrixOps.predictErrorCovariance(Pprior, A, Pposterior, Q);
 
       // Compute the kalman gain.
       sensor.assembleFullJacobian(H);
