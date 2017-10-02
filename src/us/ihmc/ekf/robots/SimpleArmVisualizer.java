@@ -1,16 +1,12 @@
 package us.ihmc.ekf.robots;
 
 import java.awt.Color;
-import java.util.ArrayList;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
-import us.ihmc.graphicsDescription.instructions.CylinderGraphics3DInstruction;
-import us.ihmc.graphicsDescription.instructions.Graphics3DPrimitiveInstruction;
-import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
@@ -28,9 +24,8 @@ public class SimpleArmVisualizer extends SimpleRobotController
    public SimpleArmVisualizer(FullRobotModel fullRobotModel)
    {
       this.fullRobotModel = fullRobotModel;
-      RobotDescription robotDescription = SimpleArmRobot.getRobotDescription();
+      RobotDescription robotDescription = SimpleArmRobot.getRobotDescription(ghostApperance);
       robotDescription.setName("ghost");
-      recursivelyModyfyGraphics(robotDescription.getChildrenJoints().get(0));
       robot = new FloatingRootJointRobot(robotDescription);
       robot.setDynamic(false);
       robot.setController(this);
@@ -66,23 +61,5 @@ public class SimpleArmVisualizer extends SimpleRobotController
    public FloatingRootJointRobot getRobot()
    {
       return robot;
-   }
-
-   private static void recursivelyModyfyGraphics(JointDescription joint)
-   {
-      ArrayList<Graphics3DPrimitiveInstruction> graphics3dInstructions = joint.getLink().getLinkGraphics().getGraphics3DInstructions();
-      for (Graphics3DPrimitiveInstruction primitive : graphics3dInstructions)
-      {
-         if (primitive instanceof CylinderGraphics3DInstruction)
-         {
-            CylinderGraphics3DInstruction modelInstruction = (CylinderGraphics3DInstruction) primitive;
-            modelInstruction.setAppearance(ghostApperance);
-         }
-      }
-
-      for (JointDescription child : joint.getChildrenJoints())
-      {
-         recursivelyModyfyGraphics(child);
-      }
    }
 }

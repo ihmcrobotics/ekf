@@ -131,6 +131,49 @@
           </cylinder>
         </geometry>
       </visual>
+      <visual name='arm_3_fixed_joint_lump__imu_link_visual_1'>
+        <pose frame=''>0 0 1 0 -0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.1</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <script>
+            <uri>__default__</uri>
+            <name>__default__</name>
+          </script>
+        </material>
+      </visual>
+      <gravity>1</gravity>
+      <velocity_decay/>
+      <sensor name='imu' type='imu'>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type='gaussian'/>
+            </x>
+            <y>
+              <noise type='gaussian'/>
+            </y>
+            <z>
+              <noise type='gaussian'/>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type='gaussian'/>
+            </x>
+            <y>
+              <noise type='gaussian'/>
+            </y>
+            <z>
+              <noise type='gaussian'/>
+            </z>
+          </linear_acceleration>
+        </imu>
+        <pose frame=''>0 0 1 0 -0 0</pose>
+      </sensor>
     </link>
     <joint name='arm_2_arm_3' type='revolute'>
       <child>arm_3</child>

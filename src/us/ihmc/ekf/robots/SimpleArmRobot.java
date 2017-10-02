@@ -1,5 +1,6 @@
 package us.ihmc.ekf.robots;
 
+import java.awt.Color;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,16 +8,22 @@ import java.util.HashSet;
 import java.util.List;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
+import us.ihmc.graphicsDescription.instructions.Graphics3DInstruction;
+import us.ihmc.graphicsDescription.instructions.Graphics3DPrimitiveInstruction;
 import us.ihmc.modelFileLoaders.SdfLoader.DRCRobotSDFLoader;
 import us.ihmc.modelFileLoaders.SdfLoader.GeneralizedSDFRobotModel;
 import us.ihmc.modelFileLoaders.SdfLoader.JaxbSDFLoader;
 import us.ihmc.modelFileLoaders.SdfLoader.RobotDescriptionFromSDFLoader;
 import us.ihmc.robotics.partNames.ContactPointDefinitionHolder;
+import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
+import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.Link;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
@@ -26,14 +33,17 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class SimpleArmRobot
 {
+   private static final YoAppearanceRGBColor robotApperance = new YoAppearanceRGBColor(Color.BLACK, 0.0);
+
    private static final boolean drawInertias = false;
+   private static final boolean drawIMUs = false;
    private static final boolean drawJointCoordinates = false;
 
    private static final String robotName = "simpleArm";
    private static final String[] resourceDirectories = {""};
    private static final String file = robotName + ".sdf";
 
-   private static final RobotDescription robotDescription = getRobotDescription();
+   private static final RobotDescription robotDescription = getRobotDescription(robotApperance);
 
    private final FloatingRootJointRobot robot;
 
@@ -45,6 +55,11 @@ public class SimpleArmRobot
       if (drawInertias)
       {
          addIntertialEllipsoids(robot);
+      }
+
+      if (drawIMUs)
+      {
+         addIMUFrames(robot);
       }
 
       if (drawJointCoordinates)
@@ -63,14 +78,34 @@ public class SimpleArmRobot
       return new FullRobotModel(robotDescription);
    }
 
-   public static RobotDescription getRobotDescription()
+   public static RobotDescription getRobotDescription(AppearanceDefinition apperance)
    {
       InputStream sdfFile = SimpleArmRobot.class.getClassLoader().getResourceAsStream(file);
       JaxbSDFLoader loader = DRCRobotSDFLoader.loadDRCRobot(resourceDirectories, sdfFile, null);
       GeneralizedSDFRobotModel generalizedSDFRobotModel = loader.getGeneralizedSDFRobotModel(robotName);
       RobotDescriptionFromSDFLoader descriptionLoader = new RobotDescriptionFromSDFLoader();
       ContactPointDefinitionHolder contacts = new SimpleArmContactPoints();
-      return descriptionLoader.loadRobotDescriptionFromSDF(generalizedSDFRobotModel, null, contacts, false);
+      RobotDescription description = descriptionLoader.loadRobotDescriptionFromSDF(generalizedSDFRobotModel, null, contacts, false);
+      recursivelyModyfyGraphics(description.getChildrenJoints().get(0), apperance);
+      return description;
+   }
+
+   private static void recursivelyModyfyGraphics(JointDescription joint, AppearanceDefinition apperance)
+   {
+      ArrayList<Graphics3DPrimitiveInstruction> graphics3dInstructions = joint.getLink().getLinkGraphics().getGraphics3DInstructions();
+      for (Graphics3DPrimitiveInstruction primitive : graphics3dInstructions)
+      {
+         if (primitive instanceof Graphics3DInstruction)
+         {
+            Graphics3DInstruction modelInstruction = (Graphics3DInstruction) primitive;
+            modelInstruction.setAppearance(apperance);
+         }
+      }
+
+      for (JointDescription child : joint.getChildrenJoints())
+      {
+         recursivelyModyfyGraphics(child, apperance);
+      }
    }
 
    private static void setupGroundContactModel(Robot robot)
@@ -101,6 +136,27 @@ public class SimpleArmRobot
          appearance.setTransparency(0.6);
          link.addEllipsoidFromMassProperties(appearance);
          link.addCoordinateSystemToCOM(0.1);
+      }
+   }
+
+   private static void addIMUFrames(FloatingRootJointRobot robot)
+   {
+      ArrayList<IMUMount> imuMounts = new ArrayList<>();
+      robot.getIMUMounts(imuMounts);
+
+      for (IMUMount imuMount : imuMounts)
+      {
+         Link imuLink = imuMount.getParentJoint().getLink();
+         if (imuLink.getLinkGraphics() == null)
+            imuLink.setLinkGraphics(new Graphics3DObject());
+
+         Graphics3DObject linkGraphics = imuLink.getLinkGraphics();
+         linkGraphics.identity();
+         RigidBodyTransform mountToJoint = new RigidBodyTransform();
+         imuMount.getTransformFromMountToJoint(mountToJoint);
+         linkGraphics.transform(mountToJoint);
+         linkGraphics.addCoordinateSystem(0.3);
+         linkGraphics.identity();
       }
    }
 
