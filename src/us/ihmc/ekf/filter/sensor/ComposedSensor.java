@@ -3,7 +3,7 @@ package us.ihmc.ekf.filter.sensor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
