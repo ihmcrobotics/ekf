@@ -16,9 +16,10 @@ A good introductory paper for Kalman filters can be found [here](https://www.cs.
 
 ### Supported Sensors
  - Joint Position
+ - Angular Velocity
  - (soon) Linear Acceleration
- - (soon) Angular Velocity
  
 ### Supported States
  - Revolute Joint (position, velocity, acceleration)
+ - (soon) Sensor Bias State
  - (soon) Floating Joint
