@@ -7,15 +7,18 @@ import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.robotDescription.FloatingJointDescription;
+import us.ihmc.robotics.robotDescription.IMUSensorDescription;
 import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.PinJointDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
+import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
+import us.ihmc.robotics.sensors.IMUDefinition;
 
 public class FullRobotModel
 {
@@ -25,6 +28,8 @@ public class FullRobotModel
    private final RigidBody rootBody;
    private final SixDoFJoint rootJoint;
    private final OneDoFJoint[] bodyJointsInOrder;
+
+   private final ArrayList<IMUDefinition> imuDefinitions = new ArrayList<IMUDefinition>();
 
    public FullRobotModel(RobotDescription robotDescription)
    {
@@ -87,12 +92,28 @@ public class FullRobotModel
             RigidBody rigidBody = ScrewTools.addRigidBody(linkName, revoluteJoint, inertia, mass, comOffset);
 
             addJointsForChildren(child, rigidBody);
+            addSensorDefinitions(revoluteJoint, child);
          }
          else
          {
             throw new RuntimeException("Can only handle pin joints. Got " + child.getClass().getSimpleName());
          }
       }
+   }
+
+   private void addSensorDefinitions(InverseDynamicsJoint joint, JointDescription jointDescription)
+   {
+      for (IMUSensorDescription imuSensor : jointDescription.getIMUSensors())
+      {
+         PrintTools.info("Adding IMU " + imuSensor.getName());
+         IMUDefinition imuDefinition = new IMUDefinition(imuSensor.getName(), joint.getSuccessor(), imuSensor.getTransformToJoint());
+         imuDefinitions.add(imuDefinition);
+      }
+   }
+
+   public ArrayList<IMUDefinition> getImuDefinitions()
+   {
+      return imuDefinitions;
    }
 
    public OneDoFJoint[] getBodyJointsInOrder()
@@ -103,5 +124,10 @@ public class FullRobotModel
    public SixDoFJoint getRootJoint()
    {
       return rootJoint;
+   }
+
+   public RigidBody getElevator()
+   {
+      return elevator;
    }
 }

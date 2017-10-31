@@ -49,6 +49,11 @@ public class RobotState extends ComposedState
       return jointIndecesByName.get(jointName).intValue();
    }
 
+   public int findJointVelocityIndex(String jointName)
+   {
+      return jointIndecesByName.get(jointName).intValue() + 1;
+   }
+
    public int getNumberOfJoints()
    {
       return numberOfJoints;
