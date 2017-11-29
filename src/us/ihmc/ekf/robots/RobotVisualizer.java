@@ -14,17 +14,17 @@ import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotControl
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 
-public class SimpleArmVisualizer extends SimpleRobotController
+public class RobotVisualizer extends SimpleRobotController
 {
    private static final YoAppearanceRGBColor ghostApperance = new YoAppearanceRGBColor(Color.BLUE, 0.75);
 
    private final FullRobotModel fullRobotModel;
    private final FloatingRootJointRobot robot;
 
-   public SimpleArmVisualizer(FullRobotModel fullRobotModel)
+   public RobotVisualizer(String robotName, FullRobotModel fullRobotModel)
    {
       this.fullRobotModel = fullRobotModel;
-      RobotDescription robotDescription = SimpleArmRobot.getRobotDescription(ghostApperance);
+      RobotDescription robotDescription = RobotTools.getRobotDescription(robotName, ghostApperance, null);
       robotDescription.setName("ghost");
       robot = new FloatingRootJointRobot(robotDescription);
       robot.setDynamic(false);

@@ -1,4 +1,4 @@
-package us.ihmc.ekf.robots;
+package us.ihmc.ekf.robots.simpleArm;
 
 import java.util.ArrayList;
 import java.util.List;

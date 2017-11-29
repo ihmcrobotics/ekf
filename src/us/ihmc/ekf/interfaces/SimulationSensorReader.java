@@ -1,4 +1,4 @@
-package us.ihmc.ekf.robots;
+package us.ihmc.ekf.interfaces;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,6 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.sensor.AngularVelocitySensor;
 import us.ihmc.ekf.filter.sensor.JointPositionSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
-import us.ihmc.ekf.interfaces.FullRobotModel;
-import us.ihmc.ekf.interfaces.RobotSensorReader;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
@@ -18,13 +16,13 @@ import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.PinJoint;
 
-public class SimpleArmSensorReader implements RobotSensorReader
+public class SimulationSensorReader implements RobotSensorReader
 {
    private final List<Sensor> allSensors = new ArrayList<>();
    private final List<ImmutablePair<PinJoint, JointPositionSensor>> jointPositionSensors = new ArrayList<>();
    private final List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors = new ArrayList<>();
 
-   public SimpleArmSensorReader(FloatingRootJointRobot robot, FullRobotModel fullRobotModel)
+   public SimulationSensorReader(FloatingRootJointRobot robot, FullRobotModel fullRobotModel)
    {
       addJointPositionSensorsForChildren(robot.getRootJoint(), fullRobotModel, jointPositionSensors);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));

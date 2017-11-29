@@ -1,0 +1,56 @@
+<sdf version='1.6'>
+  <model name='flyingBox'>
+    <link name='base'>
+      <pose frame=''>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose frame=''>0 0 0.05 0 -0 0</pose>
+        <mass>1</mass>
+        <inertia>
+          <ixx>0.00167</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00417</iyy>
+          <iyz>0</iyz>
+          <izz>0.00417</izz>
+        </inertia>
+      </inertial>
+      <visual name='base_visual'>
+        <pose frame=''>0 0 0.05 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>0.2 0.1 0.1</size>
+          </box>
+        </geometry>
+      </visual>
+      <gravity>1</gravity>
+      <velocity_decay/>
+      <sensor name='imu' type='imu'>
+        <imu>
+          <angular_velocity>
+            <x>
+              <noise type='gaussian'/>
+            </x>
+            <y>
+              <noise type='gaussian'/>
+            </y>
+            <z>
+              <noise type='gaussian'/>
+            </z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x>
+              <noise type='gaussian'/>
+            </x>
+            <y>
+              <noise type='gaussian'/>
+            </y>
+            <z>
+              <noise type='gaussian'/>
+            </z>
+          </linear_acceleration>
+        </imu>
+        <pose frame=''>0 0 0.05 0 -0 0</pose>
+      </sensor>
+    </link>
+  </model>
+</sdf>
