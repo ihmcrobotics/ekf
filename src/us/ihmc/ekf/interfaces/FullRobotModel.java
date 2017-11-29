@@ -54,6 +54,7 @@ public class FullRobotModel
 
       PrintTools.info("Creating full robot model with root joint '" + rootJointName + "' and root link '" + rootLinkName + "'");
 
+      addSensorDefinitions(rootJoint, rootJointDescription);
       addJointsForChildren(rootJointDescription, rootBody);
 
       bodyJointsInOrder = ScrewTools.filterJoints(ScrewTools.computeSubtreeJoints(rootBody), OneDoFJoint.class);
