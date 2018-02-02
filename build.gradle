@@ -32,10 +32,10 @@ repositories {
 
 dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.6'
-    compile group: 'us.ihmc', name: 'ihmc-yovariables', version: '0.2.4'
+    compile group: 'us.ihmc', name: 'euclid-core', version: '0.4.13'
+    compile group: 'us.ihmc', name: 'ihmc-yovariables', version: '0.2.7'
 
-    compile group: 'us.ihmc', name: 'ihmc-commons', version: '0.11.0-alpha'
+    compile group: 'us.ihmc', name: 'ihmc-commons', version: snapshotVersion
     compile group: 'us.ihmc', name: 'ihmc-communication', version: snapshotVersion
     compile group: 'us.ihmc', name: 'ihmc-humanoid-robotics', version: snapshotVersion
     compile group: 'us.ihmc', name: 'ihmc-whole-body-controller', version: snapshotVersion
