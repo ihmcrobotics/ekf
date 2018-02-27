@@ -29,6 +29,7 @@ public class RobotVisualizer extends SimpleRobotController
       robot = new FloatingRootJointRobot(robotDescription);
       robot.setDynamic(false);
       robot.setController(this);
+      doControl();
    }
 
    private final Point3D tempPoint = new Point3D();
