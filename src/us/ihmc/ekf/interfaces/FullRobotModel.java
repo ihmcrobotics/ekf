@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.robotDescription.FloatingJointDescription;
 import us.ihmc.robotics.robotDescription.IMUSensorDescription;
@@ -18,7 +20,10 @@ import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
+import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.IMUDefinition;
+import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
+import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 
 public class FullRobotModel
 {
@@ -110,6 +115,37 @@ public class FullRobotModel
          IMUDefinition imuDefinition = new IMUDefinition(imuSensor.getName(), joint.getSuccessor(), imuSensor.getTransformToJoint());
          imuDefinitions.add(imuDefinition);
       }
+   }
+
+   public void initialize(FloatingRootJointRobot robot)
+   {
+      RigidBodyTransform rootToWorld = new RigidBodyTransform();
+      robot.getRootJointToWorldTransform(rootToWorld);
+      rootToWorld.normalizeRotationPart();
+      rootJoint.setPositionAndRotation(rootToWorld);
+
+      OneDegreeOfFreedomJoint[] robotOneDofJoints = robot.getOneDegreeOfFreedomJoints();
+      for (int jointIdx = 0; jointIdx < robotOneDofJoints.length; jointIdx++)
+      {
+         // TODO: Replace this with a better matching of joints e.g. name based.
+         OneDoFJoint oneDoFJoint = bodyJointsInOrder[robotOneDofJoints.length - 1 - jointIdx];
+         OneDegreeOfFreedomJoint oneDegreeOfFreedomJoint = robotOneDofJoints[jointIdx];
+         if (!oneDoFJoint.getName().equals(oneDegreeOfFreedomJoint.getName()))
+         {
+            throw new RuntimeException("Joint ordering got messed up: " + oneDoFJoint.getName() + " is not " + oneDegreeOfFreedomJoint.getName());
+         }
+         oneDoFJoint.setQ(oneDegreeOfFreedomJoint.getQ());
+         oneDoFJoint.setQd(oneDegreeOfFreedomJoint.getQD());
+      }
+
+      rootJoint.getPredecessor().updateFramesRecursively();
+      ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
+      ReferenceFrame pelvisFrame = rootJoint.getFrameAfterJoint();
+      FrameVector3D linearVelocity = robot.getRootJointVelocity();
+      linearVelocity.changeFrame(pelvisFrame);
+      FrameVector3D angularVelocity = robot.getRootJointAngularVelocityInRootJointFrame(pelvisFrame);
+      Twist bodyTwist = new Twist(pelvisFrame, elevatorFrame, pelvisFrame, linearVelocity, angularVelocity);
+      rootJoint.setJointTwist(bodyTwist);
    }
 
    public ArrayList<IMUDefinition> getImuDefinitions()

@@ -4,7 +4,9 @@ import java.awt.Color;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
 import us.ihmc.ekf.robots.RobotTools;
+import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.robotics.partNames.ContactPointDefinitionHolder;
 import us.ihmc.robotics.robotDescription.RobotDescription;
@@ -44,9 +46,15 @@ public class FlyingBoxRobot
          RobotTools.addJointAxis(robot);
       }
 
+      Quaternion rotation = new Quaternion();
+      rotation.appendYawRotation(Math.PI / 2.0);
+      rotation.appendPitchRotation(Math.PI / 2.0);
+
       robot.getRootJoint().setPosition(0.0, 0.4, 1.0);
       robot.getRootJoint().setVelocity(0.8, 0.0, 0.5);
+      robot.getRootJoint().setRotation(new RotationMatrix(rotation));
       robot.getRootJoint().setAngularVelocityInBody(new Vector3D(0.2, -0.1, 1.4));
+      robot.update();
    }
 
    public FloatingRootJointRobot getRobot()

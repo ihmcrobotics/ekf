@@ -42,6 +42,11 @@ public class SimpleArmRobot
       {
          RobotTools.addJointAxis(robot);
       }
+
+      robot.getOneDegreeOfFreedomJoints()[0].setQ(Math.PI / 4.0);
+      robot.getOneDegreeOfFreedomJoints()[1].setQ(Math.PI / 2.0);
+      robot.getOneDegreeOfFreedomJoints()[2].setQ(Math.PI / 4.0);
+      robot.update();
    }
 
    public FloatingRootJointRobot getRobot()

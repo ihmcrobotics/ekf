@@ -18,6 +18,7 @@ public class FlyingBoxSimulation
       FlyingBoxRobot flyingBoxRobot = new FlyingBoxRobot();
       FloatingRootJointRobot robot = flyingBoxRobot.getRobot();
       FullRobotModel fullRobotModel = flyingBoxRobot.createFullRobotModel();
+      fullRobotModel.initialize(robot);
 
       double estimatorDT = simulationDT * ticksPerEstimatorTick;
       SimulationSensorReader sensorReader = new SimulationSensorReader(robot, fullRobotModel);

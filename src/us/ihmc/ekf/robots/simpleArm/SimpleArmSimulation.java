@@ -18,6 +18,7 @@ public class SimpleArmSimulation
       SimpleArmRobot simpleArmRobot = new SimpleArmRobot();
       FloatingRootJointRobot robot = simpleArmRobot.getRobot();
       FullRobotModel fullRobotModel = simpleArmRobot.createFullRobotModel();
+      fullRobotModel.initialize(robot);
 
       double estimatorDT = simulationDT * ticksPerEstimatorTick;
       SimulationSensorReader sensorReader = new SimulationSensorReader(robot, fullRobotModel);
