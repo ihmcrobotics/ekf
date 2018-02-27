@@ -11,12 +11,14 @@ import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.ekf.interfaces.FullRobotModel;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.screwTheory.GeometricJacobian;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.IMUDefinition;
 
 public class AngularVelocitySensor extends Sensor
@@ -33,11 +35,11 @@ public class AngularVelocitySensor extends Sensor
 
    private final int robotStateSize;
    private final List<MutableInt> jointVelocityIndices = new ArrayList<>();
+   private final int angularVelocityStartIndex;
 
    public AngularVelocitySensor(IMUDefinition imuDefinition, FullRobotModel fullRobotModel)
    {
-      // TODO: for now assume non-moving base
-      RigidBody base = fullRobotModel.getRootJoint().getSuccessor();
+      RigidBody base = fullRobotModel.getRootJoint().getPredecessor();
       RigidBody imuBody = imuDefinition.getRigidBody();
       ReferenceFrame imuFrame = imuDefinition.getIMUFrame();
       robotJacobian = new GeometricJacobian(base, imuBody, imuFrame);
@@ -50,6 +52,7 @@ public class AngularVelocitySensor extends Sensor
          int jointVelocityIndex = robotStateForIndexing.findJointVelocityIndex(joint.getName());
          jointVelocityIndices.add(new MutableInt(jointVelocityIndex));
       }
+      angularVelocityStartIndex = robotStateForIndexing.findAngularVelocityIndex();
 
       CommonOps.setIdentity(R);
       CommonOps.scale(measurementVariance * measurementVariance, R);
@@ -82,14 +85,14 @@ public class AngularVelocitySensor extends Sensor
 
       robotJacobian.compute();
       DenseMatrix64F jacobianMatrix = robotJacobian.getJacobianMatrix();
+      CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, matrixToPack, 0, angularVelocityStartIndex);
 
-      for (int jointIndexInJacobian = 0; jointIndexInJacobian < jointVelocityIndices.size(); jointIndexInJacobian++)
+      for (int jointIndex = 0; jointIndex < jointVelocityIndices.size(); jointIndex++)
       {
-         int jointVelocityIndex = jointVelocityIndices.get(jointIndexInJacobian).getValue();
+         int jointVelocityIndex = jointVelocityIndices.get(jointIndex).getValue();
+         int jointIndexInJacobian = jointIndex + Twist.SIZE;
          CommonOps.extract(jacobianMatrix, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointVelocityIndex);
       }
-
-      matrixToPack.set(matrixToPack);
    }
 
    @Override
@@ -106,6 +109,8 @@ public class AngularVelocitySensor extends Sensor
 
    public void setAngularVelocityMeasurement(Vector3D measurement)
    {
-      measurement.get(this.measurement);
+      FrameVector3D angularVelocityInBase = new FrameVector3D(robotJacobian.getJacobianFrame(), measurement);
+      angularVelocityInBase.changeFrame(robotJacobian.getBaseFrame());
+      angularVelocityInBase.get(this.measurement);
    }
 }
