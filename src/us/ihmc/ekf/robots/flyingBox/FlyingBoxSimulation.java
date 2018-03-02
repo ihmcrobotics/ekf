@@ -29,7 +29,7 @@ public class FlyingBoxSimulation
       scs.addRobot(new RobotVisualizer(FlyingBoxRobot.robotName, fullRobotModel).getRobot());
       scs.setDT(simulationDT, 1);
       scs.startOnAThread();
-      scs.simulate(4.0);
+      scs.simulate(2.0);
    }
 
    public static void main(String[] args)
