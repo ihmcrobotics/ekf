@@ -56,13 +56,21 @@ public class OrientationState extends State
       double omegaY = stateVector.get(5) + halfDt * stateVector.get(8);
       double omegaZ = stateVector.get(6) + halfDt * stateVector.get(9);
       double velocityNorm = Math.sqrt(omegaX * omegaX + omegaY * omegaY + omegaZ * omegaZ);
-      double sinHalfAngle = Math.sin(halfDt * velocityNorm) / velocityNorm;
-      double cosHalfAngle = Math.cos(halfDt * velocityNorm);
-      double xPre = sinHalfAngle * omegaX;
-      double yPre = sinHalfAngle * omegaY;
-      double zPre = sinHalfAngle * omegaZ;
-      double sPre = cosHalfAngle;
-      packPreMultiplicationMatrix(xPre, yPre, zPre, sPre, tempMatrix);
+      if (velocityNorm < 1.0e-8)
+      {
+         tempMatrix.reshape(4, 4);
+         CommonOps.setIdentity(tempMatrix);
+      }
+      else
+      {
+         double sinHalfAngle = Math.sin(halfDt * velocityNorm) / velocityNorm;
+         double cosHalfAngle = Math.cos(halfDt * velocityNorm);
+         double xPre = sinHalfAngle * omegaX;
+         double yPre = sinHalfAngle * omegaY;
+         double zPre = sinHalfAngle * omegaZ;
+         double sPre = cosHalfAngle;
+         packPreMultiplicationMatrix(xPre, yPre, zPre, sPre, tempMatrix);
+      }
       CommonOps.insert(tempMatrix, A, 0, 0);
    }
 
