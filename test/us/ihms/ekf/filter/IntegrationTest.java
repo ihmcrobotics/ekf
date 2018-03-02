@@ -22,8 +22,8 @@ public class IntegrationTest
       for (int i = 0; i < 1000; i++)
       {
          double dt = random.nextDouble();
-         Quaternion orientationA = EuclidCoreRandomTools.generateRandomQuaternion(random);
-         Vector3D angularVelocity = EuclidCoreRandomTools.generateRandomVector3D(random);
+         Quaternion orientationA = EuclidCoreRandomTools.nextQuaternion(random);
+         Vector3D angularVelocity = EuclidCoreRandomTools.nextVector3D(random);
 
          // Reference computed from tools classes:
          Quaternion tempQuaternion = new Quaternion();
@@ -50,7 +50,7 @@ public class IntegrationTest
          Quaternion result = new Quaternion(orientationA);
          result.preMultiply(rotation);
 
-         EuclidCoreTestTools.assertQuaternionEqualsSmart(expectedResult, result, 1.0E-10);
+         EuclidCoreTestTools.assertQuaternionGeometricallyEquals(expectedResult, result, 1.0E-10);
       }
    }
 
@@ -61,8 +61,8 @@ public class IntegrationTest
 
       for (int i = 0; i < 1000; i++)
       {
-         Quaternion orientationA = EuclidCoreRandomTools.generateRandomQuaternion(random);
-         Quaternion orientationB = EuclidCoreRandomTools.generateRandomQuaternion(random);
+         Quaternion orientationA = EuclidCoreRandomTools.nextQuaternion(random);
+         Quaternion orientationB = EuclidCoreRandomTools.nextQuaternion(random);
 
          Quaternion expectedResult = new Quaternion(orientationA);
          expectedResult.multiply(orientationB);
@@ -75,7 +75,7 @@ public class IntegrationTest
          CommonOps.mult(multiplicationMatrix, orientationBMatrix, resultMatrix);
 
          Quaternion result = new Quaternion(resultMatrix);
-         EuclidCoreTestTools.assertQuaternionEqualsSmart(expectedResult, result, 1.0E-10);
+         EuclidCoreTestTools.assertQuaternionGeometricallyEquals(expectedResult, result, 1.0E-10);
       }
    }
 

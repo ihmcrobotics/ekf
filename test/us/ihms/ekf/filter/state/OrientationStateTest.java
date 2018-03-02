@@ -23,9 +23,9 @@ public class OrientationStateTest
       int nummericSteps = 100;
 
       Random random = new Random(8473733829L);
-      Quaternion startOrientation = EuclidCoreRandomTools.generateRandomQuaternion(random);
-      Vector3D startVelocity = EuclidCoreRandomTools.generateRandomRotationVector(random);
-      Vector3D acceleration = EuclidCoreRandomTools.generateRandomRotationVector(random);
+      Quaternion startOrientation = EuclidCoreRandomTools.nextQuaternion(random);
+      Vector3D startVelocity = EuclidCoreRandomTools.nextRotationVector(random);
+      Vector3D acceleration = EuclidCoreRandomTools.nextRotationVector(random);
 
       // Numerically integrate quantities:
       double nummericStep = integrationTime / nummericSteps;
@@ -58,7 +58,7 @@ public class OrientationStateTest
       orientationState.getVelocity(finalVelocity);
       orientationState.getAcceleration(finalAcceleration);
 
-      EuclidCoreTestTools.assertQuaternionEqualsSmart(orientation, finalOrientation, 1.0e-5);
+      EuclidCoreTestTools.assertQuaternionGeometricallyEquals(orientation, finalOrientation, 1.0e-5);
       EuclidCoreTestTools.assertTuple3DEquals(velocity, finalVelocity, 1.0e-10);
       EuclidCoreTestTools.assertTuple3DEquals(acceleration, finalAcceleration, Double.MIN_VALUE);
    }
@@ -70,8 +70,8 @@ public class OrientationStateTest
 
       for (int i = 0; i < 1000; i++)
       {
-         Quaternion orientationA = EuclidCoreRandomTools.generateRandomQuaternion(random);
-         Quaternion orientationB = EuclidCoreRandomTools.generateRandomQuaternion(random);
+         Quaternion orientationA = EuclidCoreRandomTools.nextQuaternion(random);
+         Quaternion orientationB = EuclidCoreRandomTools.nextQuaternion(random);
 
          Quaternion expectedResult = new Quaternion(orientationA);
          expectedResult.multiply(orientationB);
@@ -84,7 +84,7 @@ public class OrientationStateTest
          CommonOps.mult(multiplicationMatrix, orientationBMatrix, resultMatrix);
 
          Quaternion result = new Quaternion(resultMatrix);
-         EuclidCoreTestTools.assertQuaternionEqualsSmart(expectedResult, result, 1.0E-10);
+         EuclidCoreTestTools.assertQuaternionGeometricallyEquals(expectedResult, result, 1.0E-10);
       }
    }
 }
