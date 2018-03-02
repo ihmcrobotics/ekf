@@ -56,11 +56,11 @@ public class SimulationSensorReader implements RobotSensorReader
          {
             PinJoint pinJoint = (PinJoint) child;
             String jointName = pinJoint.getName();
-            if ("arm_1_arm_2".equals(jointName))
-            {
-               PrintTools.info("No joint position sensor for '" + jointName + "'. It is broken I guess.");
-            }
-            else
+//            if ("arm_1_arm_2".equals(jointName))
+//            {
+//               PrintTools.info("No joint position sensor for '" + jointName + "'. It is broken I guess.");
+//            }
+//            else
             {
                JointPositionSensor sensor = new JointPositionSensor(jointName, fullRobotModel);
                sensors.add(new ImmutablePair<>(pinJoint, sensor));
