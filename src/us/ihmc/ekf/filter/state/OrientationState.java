@@ -3,9 +3,10 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.referenceFrame.FrameQuaternion;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 
 public class OrientationState extends State
@@ -105,8 +106,9 @@ public class OrientationState extends State
       matrixToPack.set(Q);
    }
 
-   public void getOrientation(Quaternion orientationToPack)
+   public void getOrientation(FrameQuaternion orientationToPack)
    {
+      orientationToPack.setToZero(ReferenceFrame.getWorldFrame());
       double qx = stateVector.get(0);
       double qy = stateVector.get(1);
       double qz = stateVector.get(2);
@@ -115,15 +117,17 @@ public class OrientationState extends State
       orientationToPack.normalizeAndLimitToPi();
    }
 
-   public void getVelocity(Vector3D velocityToPack)
+   public void getVelocity(FrameVector3D velocityToPack)
    {
+      velocityToPack.setToZero(ReferenceFrame.getWorldFrame());
       velocityToPack.setX(stateVector.get(4));
       velocityToPack.setY(stateVector.get(5));
       velocityToPack.setZ(stateVector.get(6));
    }
 
-   public void getAcceleration(Vector3D accelerationToPack)
+   public void getAcceleration(FrameVector3D accelerationToPack)
    {
+      accelerationToPack.setToZero(ReferenceFrame.getWorldFrame());
       accelerationToPack.setX(stateVector.get(7));
       accelerationToPack.setY(stateVector.get(8));
       accelerationToPack.setZ(stateVector.get(9));

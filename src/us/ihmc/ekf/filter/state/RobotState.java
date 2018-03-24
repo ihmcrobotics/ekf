@@ -8,12 +8,11 @@ import java.util.Map;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.euclid.tuple4D.Quaternion;
-import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -22,19 +21,15 @@ import us.ihmc.robotics.screwTheory.Twist;
 
 public class RobotState extends ComposedState
 {
-   public enum SubState
-   {
-      ORIENTATION,
-      JOINT_STATES
-   }
-
    private final int numberOfJoints;
 
+   private final PositionState positionState;
    private final OrientationState orientationState;
    private final List<JointState> jointStates = new ArrayList<>();
 
    private final Map<String, MutableInt> jointIndecesByName = new HashMap<>();
    private final int orientationStateIndex;
+   private final int positionStateIndex;
 
    public RobotState(FullRobotModel fullRobotModel, double dt)
    {
@@ -46,14 +41,35 @@ public class RobotState extends ComposedState
       }
       numberOfJoints = revoluteJoints.length;
 
+      // The position state maintains:
+      // Position of the root w.r.t. elevator in world frame
+      // Linear Velocity of the root w.r.t. elevator in world frame
+      // Linear Acceleration
+      positionStateIndex = getSize();
+      positionState = new PositionState(dt);
+      addState(positionState);
+
+      // The orientation state maintains:
+      // Orientation of the root w.r.t elevator in world frame
+      // Angular Velocity of the root w.r.t. elevator expressed in world frame
+      // Angular Acceleration
       orientationStateIndex = getSize();
       orientationState = new OrientationState(dt);
       addState(orientationState);
 
-      fullRobotModel.getRootJoint().getFrameBeforeJoint().update();
-      QuaternionReadOnly initialOrientation = fullRobotModel.getRootJoint().getRotationForReading();
-      Vector3DReadOnly initialAngularVelocity = fullRobotModel.getRootJoint().getAngularVelocityForReading();
-      orientationState.initialize(initialOrientation, initialAngularVelocity);
+      SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
+      rootJoint.updateFramesRecursively();
+
+      Twist rootTwist = new Twist();
+      rootJoint.getJointTwist(rootTwist);
+      FrameVector3D angularVelocity = new FrameVector3D();
+      rootTwist.getAngularPart(angularVelocity);
+      angularVelocity.changeFrame(ReferenceFrame.getWorldFrame());
+      orientationState.initialize(rootJoint.getRotationForReading(), angularVelocity);
+      FrameVector3D linearVelocity = new FrameVector3D();
+      rootTwist.getLinearPart(linearVelocity);
+      linearVelocity.changeFrame(ReferenceFrame.getWorldFrame());
+      positionState.initialize(rootJoint.getTranslationForReading(), linearVelocity);
 
       for (OneDoFJoint joint : robotJoints)
       {
@@ -75,9 +91,29 @@ public class RobotState extends ComposedState
       return jointIndecesByName.get(jointName).intValue() + 1;
    }
 
+   public int findJointAccelerationIndex(String jointName)
+   {
+      return jointIndecesByName.get(jointName).intValue() + 2;
+   }
+
    public int findAngularVelocityIndex()
    {
       return orientationStateIndex + 4;
+   }
+
+   public int findAngularAccelerationIndex()
+   {
+      return orientationStateIndex + 7;
+   }
+
+   public int findLinearVelocityIndex()
+   {
+      return positionStateIndex + 3;
+   }
+
+   public int findLinearAccelerationIndex()
+   {
+      return positionStateIndex + 6;
    }
 
    public int getNumberOfJoints()
@@ -85,8 +121,11 @@ public class RobotState extends ComposedState
       return numberOfJoints;
    }
 
-   private final Quaternion tempQuaternion = new Quaternion();
-   private final Vector3D tempAngularVelocity = new Vector3D();
+   private final FrameQuaternion tempQuaternion = new FrameQuaternion();
+   private final FrameVector3D tempAngularVelocity = new FrameVector3D();
+   private final FramePoint3D tempPosition = new FramePoint3D();
+   private final FrameVector3D tempLinearVelocity = new FrameVector3D();
+   private final RigidBodyTransform rootTransform = new RigidBodyTransform();
 
    public void setFullRobotModelFromState(FullRobotModel fullRobotModel)
    {
@@ -95,14 +134,14 @@ public class RobotState extends ComposedState
       ReferenceFrame rootFrame = rootJoint.getFrameAfterJoint();
 
       orientationState.getOrientation(tempQuaternion);
-      rootJoint.setRotation(tempQuaternion);
+      positionState.getPosition(tempPosition);
+      rootTransform.set(tempQuaternion, tempPosition);
+      rootJoint.setPositionAndRotation(rootTransform);
 
       orientationState.getVelocity(tempAngularVelocity);
-      FrameVector3D linearVelocity = new FrameVector3D(elevatorFrame);
-      FrameVector3D angularVelocity = new FrameVector3D(elevatorFrame, tempAngularVelocity);
-      linearVelocity.changeFrame(rootFrame);
-      angularVelocity.changeFrame(rootFrame);
-      Twist bodyTwist = new Twist(rootFrame, elevatorFrame, rootFrame, linearVelocity, angularVelocity);
+      positionState.getVelocity(tempLinearVelocity);
+      Twist bodyTwist = new Twist(rootFrame, elevatorFrame, tempLinearVelocity, tempAngularVelocity);
+      bodyTwist.changeFrame(rootFrame);
       rootJoint.setJointTwist(bodyTwist);
 
       OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();

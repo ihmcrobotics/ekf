@@ -3,14 +3,16 @@ package us.ihmc.ekf.robots;
 import java.awt.Color;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
+import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
+import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 
@@ -32,22 +34,25 @@ public class RobotVisualizer extends SimpleRobotController
       doControl();
    }
 
-   private final Point3D tempPoint = new Point3D();
-   private final Vector3D tempVector = new Vector3D();
-   private final Quaternion tempQuaternion = new Quaternion();
+   private final RigidBodyTransform rootTransform = new RigidBodyTransform();
+   private final Twist rootTwist = new Twist();
+   private final FrameVector3D angularVelocity = new FrameVector3D();
+   private final FrameVector3D linearVelocity = new FrameVector3D();
 
    @Override
    public void doControl()
    {
       SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
-      rootJoint.getTranslation(tempPoint);
-      robot.setPositionInWorld(tempPoint);
-      rootJoint.getRotation(tempQuaternion);
-      robot.setOrientation(tempQuaternion);
-      rootJoint.getLinearVelocity(tempVector);
-      robot.setLinearVelocity(tempVector);
-      rootJoint.getAngularVelocity(tempVector);
-      robot.setAngularVelocity(tempVector);
+      FloatingJoint robotRootJoint = robot.getRootJoint();
+      rootJoint.getJointTransform3D(rootTransform);
+      robotRootJoint.setRotationAndTranslation(rootTransform);
+
+      rootJoint.getJointTwist(rootTwist);
+      rootTwist.getAngularPart(angularVelocity);
+      rootTwist.getLinearPart(linearVelocity);
+      linearVelocity.changeFrame(ReferenceFrame.getWorldFrame());
+      robotRootJoint.setAngularVelocityInBody(angularVelocity);
+      robotRootJoint.setVelocity(linearVelocity);
 
       OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
       for (int jointIdx = 0; jointIdx < bodyJoints.length; jointIdx++)

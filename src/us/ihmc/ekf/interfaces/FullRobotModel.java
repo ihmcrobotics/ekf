@@ -22,6 +22,7 @@ import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.IMUDefinition;
+import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 
@@ -119,8 +120,9 @@ public class FullRobotModel
 
    public void initialize(FloatingRootJointRobot robot)
    {
+      FloatingJoint robotRootJoint = robot.getRootJoint();
       RigidBodyTransform rootToWorld = new RigidBodyTransform();
-      robot.getRootJointToWorldTransform(rootToWorld);
+      robotRootJoint.getTransformToWorld(rootToWorld);
       rootToWorld.normalizeRotationPart();
       rootJoint.setPositionAndRotation(rootToWorld);
 
@@ -141,9 +143,11 @@ public class FullRobotModel
       rootJoint.getPredecessor().updateFramesRecursively();
       ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
       ReferenceFrame pelvisFrame = rootJoint.getFrameAfterJoint();
-      FrameVector3D linearVelocity = robot.getRootJointVelocity();
+
+      FrameVector3D linearVelocity = new FrameVector3D();
+      robotRootJoint.getVelocity(linearVelocity);
       linearVelocity.changeFrame(pelvisFrame);
-      FrameVector3D angularVelocity = robot.getRootJointAngularVelocityInRootJointFrame(pelvisFrame);
+      FrameVector3D angularVelocity = new FrameVector3D(pelvisFrame, robotRootJoint.getAngularVelocityInBody());
       Twist bodyTwist = new Twist(pelvisFrame, elevatorFrame, pelvisFrame, linearVelocity, angularVelocity);
       rootJoint.setJointTwist(bodyTwist);
    }

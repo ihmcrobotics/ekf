@@ -8,6 +8,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import us.ihmc.ekf.filter.state.OrientationState;
+import us.ihmc.euclid.referenceFrame.FrameQuaternion;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -43,9 +45,9 @@ public class OrientationStateTest
 
       Assert.assertEquals(integrationTime, time, 1e-10);
 
-      Quaternion finalOrientation = new Quaternion();
-      Vector3D finalVelocity = new Vector3D();
-      Vector3D finalAcceleration = new Vector3D();
+      FrameQuaternion finalOrientation = new FrameQuaternion();
+      FrameVector3D finalVelocity = new FrameVector3D();
+      FrameVector3D finalAcceleration = new FrameVector3D();
       DenseMatrix64F state = new DenseMatrix64F(10, 1);
       startOrientation.get(0, state);
       startVelocity.get(4, state);
