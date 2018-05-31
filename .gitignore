@@ -9,3 +9,4 @@ Configurations/*
 *.class
 /.gradle/
 /bin/
+/build/
