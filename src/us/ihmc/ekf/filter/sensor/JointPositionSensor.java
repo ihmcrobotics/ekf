@@ -2,6 +2,7 @@ package us.ihmc.ekf.filter.sensor;
 
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -10,7 +11,6 @@ import us.ihmc.ekf.interfaces.FullRobotModel;
 public class JointPositionSensor extends Sensor
 {
    private static final int measurementSize = 1;
-   private static final double measurementVariance = 0.1;
 
    private final EmptyState emptyState = new EmptyState();
 
@@ -26,7 +26,7 @@ public class JointPositionSensor extends Sensor
 
       measurementJacobianRobotPart = new DenseMatrix64F(measurementSize, robotStateSize);
       measurementJacobianRobotPart.set(jointPositionIndex, 1.0);
-      R.set(0, 0, measurementVariance * measurementVariance);
+      R.set(0, 0, Parameters.jointPositionSensorCovariance);
    }
 
    public void setJointPositionMeasurement(double jointPosition)

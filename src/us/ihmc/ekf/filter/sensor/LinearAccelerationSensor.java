@@ -7,6 +7,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -24,7 +25,6 @@ import us.ihmc.robotics.sensors.IMUDefinition;
 public class LinearAccelerationSensor extends Sensor
 {
    private static final int measurementSize = 3;
-   private static final double measurementVariance = 0.5;
 
    private final EmptyState emptyState = new EmptyState();
 
@@ -68,7 +68,7 @@ public class LinearAccelerationSensor extends Sensor
       linearAccelerationStartIndex = robotStateForIndexing.findLinearAccelerationIndex();
 
       CommonOps.setIdentity(R);
-      CommonOps.scale(measurementVariance * measurementVariance, R);
+      CommonOps.scale(Parameters.linearAccelerationSensorCovariance, R);
    }
 
    @Override

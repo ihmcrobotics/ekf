@@ -3,11 +3,11 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.Parameters;
+
 public class JointState extends State
 {
    public static final int size = 3;
-
-   public static final double acceleraionVariance = 100.0;
 
    private final String jointName;
 
@@ -26,7 +26,7 @@ public class JointState extends State
       A.set(1, 2, dt);
 
       CommonOps.fill(Q, 0.0);
-      Q.set(2, 2, acceleraionVariance * acceleraionVariance);
+      Q.set(2, 2, Parameters.jointModelAccelerationCovariance);
    }
 
    public String getJointName()

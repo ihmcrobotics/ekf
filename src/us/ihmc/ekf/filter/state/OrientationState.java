@@ -3,6 +3,7 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -14,8 +15,6 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 public class OrientationState extends State
 {
    public static final int size = 10;
-
-   public static final double acceleraionVariance = 100.0;
 
    private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
    private final DenseMatrix64F tempStateVector = new DenseMatrix64F(size, 1);
@@ -31,9 +30,9 @@ public class OrientationState extends State
       this.rootFrame = rootFrame;
 
       CommonOps.fill(Q, 0.0);
-      Q.set(6, 6, acceleraionVariance * acceleraionVariance);
-      Q.set(7, 7, acceleraionVariance * acceleraionVariance);
-      Q.set(8, 8, acceleraionVariance * acceleraionVariance);
+      Q.set(6, 6, Parameters.orientationModelAccelerationCovariance);
+      Q.set(7, 7, Parameters.orientationModelAccelerationCovariance);
+      Q.set(8, 8, Parameters.orientationModelAccelerationCovariance);
    }
 
    public void initialize(QuaternionReadOnly initialOrientation, Vector3DReadOnly initialVelocity)

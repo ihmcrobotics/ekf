@@ -3,6 +3,7 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -30,9 +31,9 @@ public class PositionState extends State
       this.rootFrame = rootFrame;
 
       CommonOps.fill(Q, 0.0);
-      Q.set(6, 6, acceleraionVariance * acceleraionVariance);
-      Q.set(7, 7, acceleraionVariance * acceleraionVariance);
-      Q.set(8, 8, acceleraionVariance * acceleraionVariance);
+      Q.set(6, 6, Parameters.positionModelAccelerationCovariance);
+      Q.set(7, 7, Parameters.positionModelAccelerationCovariance);
+      Q.set(8, 8, Parameters.positionModelAccelerationCovariance);
    }
 
    public void initialize(Tuple3DReadOnly initialPosition, Vector3DReadOnly initialVelocity)
@@ -76,14 +77,15 @@ public class PositionState extends State
       matrixToPack.set(A);
    }
 
+   private final RigidBodyTransform rootToWorldTransform = new RigidBodyTransform();
+   private final DenseMatrix64F rootToWorldRotation = new DenseMatrix64F(3, 3);
+
    private void computeA()
    {
       //     | I   dt * R_root_world   0.5 * dt^2 * R_root_world |
       // A = | 0   I                   dt * I                    |
       //     | 0   0                   I                         |
 
-      RigidBodyTransform rootToWorldTransform = new RigidBodyTransform();
-      DenseMatrix64F rootToWorldRotation = new DenseMatrix64F(3, 3);
       rootFrame.getTransformToDesiredFrame(rootToWorldTransform, ReferenceFrame.getWorldFrame());
       rootToWorldTransform.getRotationMatrix().get(rootToWorldRotation);
 
