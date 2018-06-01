@@ -18,7 +18,6 @@ import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
 import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.SpatialAccelerationVector;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.IMUDefinition;
 
@@ -31,7 +30,6 @@ public class LinearAccelerationSensor extends Sensor
 
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
-   private final SpatialAccelerationVector convectiveTerm = new SpatialAccelerationVector();
 
    private final FrameVector3D measurement = new FrameVector3D();
    private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
@@ -85,30 +83,27 @@ public class LinearAccelerationSensor extends Sensor
       return measurementSize;
    }
 
+   private final FrameVector3D adjustedMeasurement = new FrameVector3D();
+   private final DenseMatrix64F convectiveTerm = new DenseMatrix64F(6, 1);
+   private final Vector3D linearConvectiveTerm = new Vector3D();
+
    @Override
    public void getMeasurement(DenseMatrix64F vectorToPack)
    {
+      // The measurement needs to be corrected by subtracting gravity and removing the convective term
+      adjustedMeasurement.setIncludingFrame(measurement);
+      adjustedMeasurement.changeFrame(ReferenceFrame.getWorldFrame());
+      adjustedMeasurement.subZ(9.81);
+      adjustedMeasurement.changeFrame(imuFrame);
+
+      // TODO: there is probably something wrong here.
       robotJacobian.computeConvectiveTerm();
       robotJacobian.getConvectiveTerm(convectiveTerm);
-
-      // Clean this up and make sure it is right!
-      Twist imuTwist = new Twist();
-      FrameVector3D corriolisAcceleration = new FrameVector3D();
-      robotJacobian.getEndEffector().getBodyFixedFrame().getTwistRelativeToOther(robotJacobian.getBaseFrame(), imuTwist);
-      imuTwist.changeFrame(imuFrame);
-      imuTwist.changeBodyFrameNoRelativeTwist(imuFrame);
-      convectiveTerm.changeBodyFrameNoRelativeAcceleration(imuFrame);
-      convectiveTerm.changeFrame(robotJacobian.getBaseFrame(), imuTwist, imuTwist);
-      convectiveTerm.getLinearPart(corriolisAcceleration);
-
-      FrameVector3D measurement = new FrameVector3D();
-      measurement.setIncludingFrame(this.measurement);
-      measurement.changeFrame(robotJacobian.getBaseFrame());
-      measurement.sub(corriolisAcceleration);
-      measurement.addZ(-9.81);
+      linearConvectiveTerm.set(3, convectiveTerm);
+      adjustedMeasurement.sub(linearConvectiveTerm);
 
       vectorToPack.reshape(measurementSize, 1);
-      measurement.get(vectorToPack);
+      adjustedMeasurement.get(vectorToPack);
    }
 
    @Override
@@ -147,5 +142,4 @@ public class LinearAccelerationSensor extends Sensor
    {
       this.measurement.setIncludingFrame(imuFrame, measurement);
    }
-
 }
