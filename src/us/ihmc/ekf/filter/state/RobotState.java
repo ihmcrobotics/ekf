@@ -21,8 +21,6 @@ import us.ihmc.robotics.screwTheory.Twist;
 
 public class RobotState extends ComposedState
 {
-   private final int numberOfJoints;
-
    private final PositionState positionState;
    private final OrientationState orientationState;
    private final List<JointState> jointStates = new ArrayList<>();
@@ -41,7 +39,6 @@ public class RobotState extends ComposedState
       {
          throw new RuntimeException("Can only handle revolute joints in a robot.");
       }
-      numberOfJoints = revoluteJoints.length;
 
       // The orientation state maintains:
       // Orientation of the root w.r.t elevator in world frame
@@ -110,16 +107,12 @@ public class RobotState extends ComposedState
       return positionStateIndex + 6;
    }
 
-   public int getNumberOfJoints()
-   {
-      return numberOfJoints;
-   }
-
    private final FrameQuaternion tempQuaternion = new FrameQuaternion();
    private final FrameVector3D tempAngularVelocity = new FrameVector3D();
    private final FramePoint3D tempPosition = new FramePoint3D();
    private final FrameVector3D tempLinearVelocity = new FrameVector3D();
    private final RigidBodyTransform rootTransform = new RigidBodyTransform();
+   private final Twist rootTwist = new Twist();
 
    public void setFullRobotModelFromState(FullRobotModel fullRobotModel)
    {
@@ -134,19 +127,19 @@ public class RobotState extends ComposedState
 
       orientationState.getVelocity(tempAngularVelocity);
       positionState.getVelocity(tempLinearVelocity);
-      Twist bodyTwist = new Twist(rootFrame, elevatorFrame, tempLinearVelocity, tempAngularVelocity);
-      rootJoint.setJointTwist(bodyTwist);
+      rootTwist.set(rootFrame, elevatorFrame, rootFrame, tempLinearVelocity, tempAngularVelocity);
+      rootJoint.setJointTwist(rootTwist);
 
       OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
 
-      for (int i = 0; i < numberOfJoints; i++)
+      for (int i = 0; i < bodyJoints.length; i++)
       {
          JointState jointState = jointStates.get(i);
          OneDoFJoint joint = bodyJoints[i];
 
          if (!joint.getName().equals(jointState.getJointName()))
          {
-            throw new RuntimeException("The ordering got messed up.");
+            throw new RuntimeException("The joint ordering got messed up.");
          }
 
          joint.setQ(jointState.getQ());

@@ -29,13 +29,13 @@ public class SimulationSensorReader implements RobotSensorReader
       addJointPositionSensorsForChildren(robot.getRootJoint(), fullRobotModel, jointPositionSensors);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
 
-      fullRobotModel.getImuDefinitions().stream()
-                    .forEach(imu -> addIMUSensor(imu, robot, fullRobotModel, angularVelocitySensors, linearAccelerationSensors));
+      fullRobotModel.getImuDefinitions().stream().forEach(imu -> addIMUSensor(imu, robot, fullRobotModel, angularVelocitySensors, linearAccelerationSensors));
       angularVelocitySensors.stream().forEach(s -> allSensors.add(s.getRight()));
       linearAccelerationSensors.stream().forEach(s -> allSensors.add(s.getRight()));
    }
 
-   private static void addIMUSensor(IMUDefinition imu, FloatingRootJointRobot robot, FullRobotModel fullRobotModel,                                    List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors,
+   private static void addIMUSensor(IMUDefinition imu, FloatingRootJointRobot robot, FullRobotModel fullRobotModel,
+                                    List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors,
                                     List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors)
    {
       String imuName = imu.getName();
@@ -64,9 +64,9 @@ public class SimulationSensorReader implements RobotSensorReader
          {
             PinJoint pinJoint = (PinJoint) child;
             String jointName = pinJoint.getName();
-           JointPositionSensor sensor = new JointPositionSensor(jointName, fullRobotModel);
-           sensors.add(new ImmutablePair<>(pinJoint, sensor));
-           PrintTools.info("Created joint position sensor for '" + jointName + "'");
+            JointPositionSensor sensor = new JointPositionSensor(jointName, fullRobotModel);
+            sensors.add(new ImmutablePair<>(pinJoint, sensor));
+            PrintTools.info("Created joint position sensor for '" + jointName + "'");
          }
          else
          {
