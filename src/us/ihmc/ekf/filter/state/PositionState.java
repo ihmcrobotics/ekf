@@ -6,6 +6,7 @@ import org.ejml.ops.CommonOps;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
@@ -20,18 +21,13 @@ public class PositionState extends State
    private final DenseMatrix64F A = new DenseMatrix64F(size, size);
    private final DenseMatrix64F Q = new DenseMatrix64F(size, size);
 
-   public PositionState(double dt)
+   private final double dt;
+   private final ReferenceFrame rootFrame;
+
+   public PositionState(double dt, ReferenceFrame rootFrame)
    {
-      CommonOps.setIdentity(A);
-      A.set(0, 3, dt);
-      A.set(1, 4, dt);
-      A.set(2, 5, dt);
-      A.set(0, 6, 0.5 * dt * dt);
-      A.set(1, 7, 0.5 * dt * dt);
-      A.set(2, 8, 0.5 * dt * dt);
-      A.set(3, 6, dt);
-      A.set(4, 7, dt);
-      A.set(5, 8, dt);
+      this.dt = dt;
+      this.rootFrame = rootFrame;
 
       CommonOps.fill(Q, 0.0);
       Q.set(6, 6, acceleraionVariance * acceleraionVariance);
@@ -41,8 +37,10 @@ public class PositionState extends State
 
    public void initialize(Tuple3DReadOnly initialPosition, Vector3DReadOnly initialVelocity)
    {
+      CommonOps.fill(stateVector, 0.0);
       initialPosition.get(0, stateVector);
       initialVelocity.get(3, stateVector);
+      computeA();
    }
 
    @Override
@@ -50,6 +48,7 @@ public class PositionState extends State
    {
       State.checkDimensions(newState, stateVector);
       System.arraycopy(newState.data, 0, stateVector.data, 0, getSize());
+      computeA();
    }
 
    @Override
@@ -77,6 +76,28 @@ public class PositionState extends State
       matrixToPack.set(A);
    }
 
+   private void computeA()
+   {
+      //     | I   dt * R_root_world   0.5 * dt^2 * R_root_world |
+      // A = | 0   I                   dt * I                    |
+      //     | 0   0                   I                         |
+
+      RigidBodyTransform rootToWorldTransform = new RigidBodyTransform();
+      DenseMatrix64F rootToWorldRotation = new DenseMatrix64F(3, 3);
+      rootFrame.getTransformToDesiredFrame(rootToWorldTransform, ReferenceFrame.getWorldFrame());
+      rootToWorldTransform.getRotationMatrix().get(rootToWorldRotation);
+
+      CommonOps.setIdentity(A);
+      CommonOps.scale(dt, rootToWorldRotation);
+      CommonOps.insert(rootToWorldRotation, A, 0, 3);
+      CommonOps.scale(0.5 * dt, rootToWorldRotation);
+      CommonOps.insert(rootToWorldRotation, A, 0, 6);
+
+      A.set(3, 6, dt);
+      A.set(4, 7, dt);
+      A.set(5, 8, dt);
+   }
+
    @Override
    public void getQMatrix(DenseMatrix64F matrixToPack)
    {
@@ -93,9 +114,17 @@ public class PositionState extends State
 
    public void getVelocity(FrameVector3D velocityToPack)
    {
-      velocityToPack.setToZero(ReferenceFrame.getWorldFrame());
+      velocityToPack.setToZero(rootFrame);
       velocityToPack.setX(stateVector.get(3));
       velocityToPack.setY(stateVector.get(4));
       velocityToPack.setZ(stateVector.get(5));
+   }
+
+   public void getAcceleration(FrameVector3D accelerationToPack)
+   {
+      accelerationToPack.setToZero(rootFrame);
+      accelerationToPack.setX(stateVector.get(6));
+      accelerationToPack.setY(stateVector.get(7));
+      accelerationToPack.setZ(stateVector.get(8));
    }
 }

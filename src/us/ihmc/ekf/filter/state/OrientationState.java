@@ -6,6 +6,8 @@ import org.ejml.ops.CommonOps;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 
@@ -21,15 +23,12 @@ public class OrientationState extends State
    private final DenseMatrix64F Q = new DenseMatrix64F(size, size);
 
    private final double dt;
+   private final ReferenceFrame rootFrame;
 
-   public OrientationState(double dt)
+   public OrientationState(double dt, ReferenceFrame rootFrame)
    {
       this.dt = dt;
-
-      CommonOps.setIdentity(A);
-      A.set(4, 7, dt);
-      A.set(5, 8, dt);
-      A.set(6, 9, dt);
+      this.rootFrame = rootFrame;
 
       CommonOps.fill(Q, 0.0);
       Q.set(6, 6, acceleraionVariance * acceleraionVariance);
@@ -39,40 +38,18 @@ public class OrientationState extends State
 
    public void initialize(QuaternionReadOnly initialOrientation, Vector3DReadOnly initialVelocity)
    {
+      CommonOps.fill(stateVector, 0.0);
       initialOrientation.get(0, stateVector);
       initialVelocity.get(4, stateVector);
+      computeA();
    }
-
-   private final DenseMatrix64F tempMatrix = new DenseMatrix64F(4, 4);
 
    @Override
    public void setStateVector(DenseMatrix64F newState)
    {
       State.checkDimensions(newState, stateVector);
       System.arraycopy(newState.data, 0, stateVector.data, 0, getSize());
-
-      // Linearize the state evolution with simplified handling of acceleration:
-      double halfDt = dt / 2.0;
-      double omegaX = stateVector.get(4) + halfDt * stateVector.get(7);
-      double omegaY = stateVector.get(5) + halfDt * stateVector.get(8);
-      double omegaZ = stateVector.get(6) + halfDt * stateVector.get(9);
-      double velocityNorm = Math.sqrt(omegaX * omegaX + omegaY * omegaY + omegaZ * omegaZ);
-      if (velocityNorm < 1.0e-8)
-      {
-         tempMatrix.reshape(4, 4);
-         CommonOps.setIdentity(tempMatrix);
-      }
-      else
-      {
-         double sinHalfAngle = Math.sin(halfDt * velocityNorm) / velocityNorm;
-         double cosHalfAngle = Math.cos(halfDt * velocityNorm);
-         double xPre = sinHalfAngle * omegaX;
-         double yPre = sinHalfAngle * omegaY;
-         double zPre = sinHalfAngle * omegaZ;
-         double sPre = cosHalfAngle;
-         packPreMultiplicationMatrix(xPre, yPre, zPre, sPre, tempMatrix);
-      }
-      CommonOps.insert(tempMatrix, A, 0, 0);
+      computeA();
    }
 
    @Override
@@ -100,6 +77,50 @@ public class OrientationState extends State
       matrixToPack.set(A);
    }
 
+   private final RigidBodyTransform rootToWorldTransform = new RigidBodyTransform();
+   private final Vector3D velocity = new Vector3D();
+   private final Vector3D acceleration = new Vector3D();
+   private final DenseMatrix64F tempMatrix = new DenseMatrix64F(4, 4);
+
+   private void computeA()
+   {
+      CommonOps.setIdentity(A);
+
+      // Transform the velocity and acceleration to world frame:
+      rootFrame.getTransformToDesiredFrame(rootToWorldTransform, ReferenceFrame.getWorldFrame());
+      velocity.set(4, stateVector);
+      acceleration.set(7, stateVector);
+      velocity.applyTransform(rootToWorldTransform);
+      acceleration.applyTransform(rootToWorldTransform);
+
+      // Linearize the state evolution with simplified handling of acceleration:
+      double halfDt = dt / 2.0;
+      double omegaX = velocity.getX() + halfDt * acceleration.getX();
+      double omegaY = velocity.getY() + halfDt * acceleration.getY();
+      double omegaZ = velocity.getZ() + halfDt * acceleration.getZ();
+      double velocityNorm = Math.sqrt(omegaX * omegaX + omegaY * omegaY + omegaZ * omegaZ);
+      if (velocityNorm < 1.0e-8)
+      {
+         tempMatrix.reshape(4, 4);
+         CommonOps.setIdentity(tempMatrix);
+      }
+      else
+      {
+         double sinHalfAngle = Math.sin(halfDt * velocityNorm) / velocityNorm;
+         double cosHalfAngle = Math.cos(halfDt * velocityNorm);
+         double xPre = sinHalfAngle * omegaX;
+         double yPre = sinHalfAngle * omegaY;
+         double zPre = sinHalfAngle * omegaZ;
+         double sPre = cosHalfAngle;
+         packPreMultiplicationMatrix(xPre, yPre, zPre, sPre, tempMatrix);
+      }
+      CommonOps.insert(tempMatrix, A, 0, 0);
+
+      A.set(4, 7, dt);
+      A.set(5, 8, dt);
+      A.set(6, 9, dt);
+   }
+
    @Override
    public void getQMatrix(DenseMatrix64F matrixToPack)
    {
@@ -119,7 +140,7 @@ public class OrientationState extends State
 
    public void getVelocity(FrameVector3D velocityToPack)
    {
-      velocityToPack.setToZero(ReferenceFrame.getWorldFrame());
+      velocityToPack.setToZero(rootFrame);
       velocityToPack.setX(stateVector.get(4));
       velocityToPack.setY(stateVector.get(5));
       velocityToPack.setZ(stateVector.get(6));
@@ -127,7 +148,7 @@ public class OrientationState extends State
 
    public void getAcceleration(FrameVector3D accelerationToPack)
    {
-      accelerationToPack.setToZero(ReferenceFrame.getWorldFrame());
+      accelerationToPack.setToZero(rootFrame);
       accelerationToPack.setX(stateVector.get(7));
       accelerationToPack.setY(stateVector.get(8));
       accelerationToPack.setZ(stateVector.get(9));
