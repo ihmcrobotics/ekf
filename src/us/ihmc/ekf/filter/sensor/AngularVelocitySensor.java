@@ -83,10 +83,6 @@ public class AngularVelocitySensor extends Sensor
    @Override
    public void getMeasurement(DenseMatrix64F vectorToPack)
    {
-      FrameVector3D measurement = new FrameVector3D();
-      measurement.setIncludingFrame(this.measurement);
-      measurement.changeFrame(robotJacobian.getBaseFrame());
-
       vectorToPack.reshape(measurementSize, 1);
       measurement.get(vectorToPack);
    }
