@@ -21,7 +21,7 @@ public class FlyingBoxSimulation
       fullRobotModel.initialize(robot);
 
       double estimatorDT = simulationDT * ticksPerEstimatorTick;
-      SimulationSensorReader sensorReader = new SimulationSensorReader(robot, fullRobotModel);
+      SimulationSensorReader sensorReader = new SimulationSensorReader(robot, fullRobotModel, estimatorDT);
       EstimatorController estimatorController = new EstimatorController(sensorReader, fullRobotModel, estimatorDT);
       robot.setController(estimatorController, ticksPerEstimatorTick);
 

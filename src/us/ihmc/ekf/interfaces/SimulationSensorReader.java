@@ -24,17 +24,18 @@ public class SimulationSensorReader implements RobotSensorReader
    private final List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors = new ArrayList<>();
    private final List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors = new ArrayList<>();
 
-   public SimulationSensorReader(FloatingRootJointRobot robot, FullRobotModel fullRobotModel)
+   public SimulationSensorReader(FloatingRootJointRobot robot, FullRobotModel fullRobotModel, double dt)
    {
       addJointPositionSensorsForChildren(robot.getRootJoint(), fullRobotModel, jointPositionSensors);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
 
-      fullRobotModel.getImuDefinitions().stream().forEach(imu -> addIMUSensor(imu, robot, fullRobotModel, angularVelocitySensors, linearAccelerationSensors));
+      fullRobotModel.getImuDefinitions().stream()
+                    .forEach(imu -> addIMUSensor(dt, imu, robot, fullRobotModel, angularVelocitySensors, linearAccelerationSensors));
       angularVelocitySensors.stream().forEach(s -> allSensors.add(s.getRight()));
       linearAccelerationSensors.stream().forEach(s -> allSensors.add(s.getRight()));
    }
 
-   private static void addIMUSensor(IMUDefinition imu, FloatingRootJointRobot robot, FullRobotModel fullRobotModel,
+   private static void addIMUSensor(double dt, IMUDefinition imu, FloatingRootJointRobot robot, FullRobotModel fullRobotModel,
                                     List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors,
                                     List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors)
    {
@@ -49,7 +50,7 @@ public class SimulationSensorReader implements RobotSensorReader
       AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(imu, fullRobotModel);
       angularVelocitySensors.add(new ImmutablePair<IMUMount, AngularVelocitySensor>(imuMount, angularVelocitySensor));
 
-      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(imu, fullRobotModel);
+      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(dt, imu, fullRobotModel);
       linearAccelerationSensors.add(new ImmutablePair<>(imuMount, linearAccelerationSensor));
 
       PrintTools.info("Created IMU Sensor '" + imuName + "'");
