@@ -62,7 +62,9 @@ public class StateEstimator
       sensor.getRMatrix(R);
       if (!FilterMatrixOps.computeKalmanGain(K, Pprior, H, R))
       {
-         PrintTools.info("Inversion failed.");
+         PrintTools.info("Inversion failed integrating only.");
+         timer.stopMeasurement();
+         return;
       }
 
       // Compute the residual or the measurement error.
