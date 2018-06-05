@@ -30,9 +30,9 @@ public class OrientationState extends State
       this.rootFrame = rootFrame;
 
       CommonOps.fill(Q, 0.0);
-      Q.set(6, 6, Parameters.orientationModelAccelerationCovariance);
       Q.set(7, 7, Parameters.orientationModelAccelerationCovariance);
       Q.set(8, 8, Parameters.orientationModelAccelerationCovariance);
+      Q.set(9, 9, Parameters.orientationModelAccelerationCovariance);
    }
 
    public void initialize(QuaternionReadOnly initialOrientation, Vector3DReadOnly initialVelocity)
