@@ -10,7 +10,7 @@ import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 public class SimpleArmSimulation
 {
    private static final double simulationDT = 0.001;
-   private static final int ticksPerEstimatorTick = 4;
+   private static final int ticksPerEstimatorTick = 1;
    private final SimulationConstructionSet scs;
 
    public SimpleArmSimulation()
