@@ -109,6 +109,17 @@ public class LinearAccelerationSensor extends Sensor
       adjustedMeasurement.subZ(9.81);
       adjustedMeasurement.changeFrame(imuFrame);
 
+      // TODO: clean up the velocity cross product and possibly move this into the measurement jacobian
+      Twist imuTwist = robotJacobian.getEndEffector().getBodyFixedFrame().getTwistOfFrame();
+      imuTwist.changeFrame(imuFrame);
+      FrameVector3D imuAngularVelocity = new FrameVector3D();
+      FrameVector3D imuLinearVelocity = new FrameVector3D();
+      imuTwist.getAngularPart(imuAngularVelocity);
+      imuTwist.getLinearPart(imuLinearVelocity);
+      FrameVector3D crossProduct = new FrameVector3D(imuLinearVelocity.getReferenceFrame());
+      crossProduct.cross(imuAngularVelocity, imuLinearVelocity);
+      adjustedMeasurement.sub(crossProduct);
+
       vectorToPack.reshape(measurementSize, 1);
       adjustedMeasurement.get(vectorToPack);
    }
