@@ -92,8 +92,10 @@ public class PositionState extends State
       CommonOps.setIdentity(A);
       CommonOps.scale(dt, rootToWorldRotation);
       CommonOps.insert(rootToWorldRotation, A, 0, 3);
-      CommonOps.scale(0.5 * dt, rootToWorldRotation);
-      CommonOps.insert(rootToWorldRotation, A, 0, 6);
+
+      // TODO: the following is wrong as it does not consider the velocity cross product term.
+//      CommonOps.scale(0.5 * dt, rootToWorldRotation);
+//      CommonOps.insert(rootToWorldRotation, A, 0, 6);
 
       A.set(3, 6, dt);
       A.set(4, 7, dt);
