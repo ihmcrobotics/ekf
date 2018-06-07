@@ -12,10 +12,10 @@ import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.sensors.IMUDefinition;
-import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.PinJoint;
+import us.ihmc.simulationconstructionset.RobotFromDescription;
 
 public class SimulationSensorReader implements RobotSensorReader
 {
@@ -24,9 +24,9 @@ public class SimulationSensorReader implements RobotSensorReader
    private final List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors = new ArrayList<>();
    private final List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors = new ArrayList<>();
 
-   public SimulationSensorReader(FloatingRootJointRobot robot, FullRobotModel fullRobotModel, double dt)
+   public SimulationSensorReader(RobotFromDescription robot, FullRobotModel fullRobotModel, double dt)
    {
-      addJointPositionSensorsForChildren(robot.getRootJoint(), fullRobotModel, jointPositionSensors);
+      addJointPositionSensorsRecursive(robot.getRootJoints().get(0), fullRobotModel, jointPositionSensors);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
 
       fullRobotModel.getImuDefinitions().stream()
@@ -35,7 +35,7 @@ public class SimulationSensorReader implements RobotSensorReader
       linearAccelerationSensors.stream().forEach(s -> allSensors.add(s.getRight()));
    }
 
-   private static void addIMUSensor(double dt, IMUDefinition imu, FloatingRootJointRobot robot, FullRobotModel fullRobotModel,
+   private static void addIMUSensor(double dt, IMUDefinition imu, RobotFromDescription robot, FullRobotModel fullRobotModel,
                                     List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors,
                                     List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors)
    {
@@ -56,25 +56,24 @@ public class SimulationSensorReader implements RobotSensorReader
       PrintTools.info("Created IMU Sensor '" + imuName + "'");
    }
 
-   private static void addJointPositionSensorsForChildren(Joint joint, FullRobotModel fullRobotModel,
-                                                          List<ImmutablePair<PinJoint, JointPositionSensor>> sensors)
+   private static void addJointPositionSensorsRecursive(Joint joint, FullRobotModel fullRobotModel, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors)
    {
+      if (joint instanceof PinJoint)
+      {
+         PinJoint pinJoint = (PinJoint) joint;
+         String jointName = pinJoint.getName();
+         JointPositionSensor sensor = new JointPositionSensor(jointName, fullRobotModel);
+         sensors.add(new ImmutablePair<>(pinJoint, sensor));
+         PrintTools.info("Created joint position sensor for '" + jointName + "'");
+      }
+      else
+      {
+         PrintTools.warn("Can not add joint position sensor for joint of type " + joint.getClass().getSimpleName());
+      }
+
       for (Joint child : joint.getChildrenJoints())
       {
-         if (child instanceof PinJoint)
-         {
-            PinJoint pinJoint = (PinJoint) child;
-            String jointName = pinJoint.getName();
-            JointPositionSensor sensor = new JointPositionSensor(jointName, fullRobotModel);
-            sensors.add(new ImmutablePair<>(pinJoint, sensor));
-            PrintTools.info("Created joint position sensor for '" + jointName + "'");
-         }
-         else
-         {
-            PrintTools.warn("Can not add joint position sensor for joint of type " + joint.getClass().getSimpleName());
-         }
-
-         addJointPositionSensorsForChildren(child, fullRobotModel, sensors);
+         addJointPositionSensorsRecursive(child, fullRobotModel, sensors);
       }
    }
 

@@ -28,6 +28,8 @@ public class LinearAccelerationSensor extends Sensor
 
    private final EmptyState emptyState = new EmptyState();
 
+   private final boolean isFloating;
+
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
 
@@ -79,10 +81,22 @@ public class LinearAccelerationSensor extends Sensor
             jointAccelerationIndices.add(new MutableInt(jointAccelerationIndex));
          }
       }
-      angularAccelerationStartIndex = robotStateForIndexing.findAngularAccelerationIndex();
-      linearAccelerationStartIndex = robotStateForIndexing.findLinearAccelerationIndex();
-      angularVelocityStartIndex = robotStateForIndexing.findAngularVelocityIndex();
-      linearVelocityStartIndex = robotStateForIndexing.findLinearVelocityIndex();
+
+      isFloating = robotStateForIndexing.isFloating();
+      if (isFloating)
+      {
+         angularAccelerationStartIndex = robotStateForIndexing.findAngularAccelerationIndex();
+         linearAccelerationStartIndex = robotStateForIndexing.findLinearAccelerationIndex();
+         angularVelocityStartIndex = robotStateForIndexing.findAngularVelocityIndex();
+         linearVelocityStartIndex = robotStateForIndexing.findLinearVelocityIndex();
+      }
+      else
+      {
+         angularAccelerationStartIndex = -1;
+         linearAccelerationStartIndex = -1;
+         angularVelocityStartIndex = -1;
+         linearVelocityStartIndex = -1;
+      }
 
       CommonOps.setIdentity(R);
       CommonOps.scale(Parameters.linearAccelerationSensorCovariance, R);
@@ -134,12 +148,17 @@ public class LinearAccelerationSensor extends Sensor
       robotJacobian.getJacobianMatrix(jacobianMatrix);
 
       // z = J * x = J_dot_r * qDot + J_r * qDDot
-      CommonOps.extract(jacobianMatrix, 3, 6, 0, 3, matrixToPack, 0, angularAccelerationStartIndex);
-      CommonOps.extract(jacobianMatrix, 3, 6, 3, 6, matrixToPack, 0, linearAccelerationStartIndex);
+      int jointOffset = 0;
+      if (isFloating)
+      {
+         CommonOps.extract(jacobianMatrix, 3, 6, 0, 3, matrixToPack, 0, angularAccelerationStartIndex);
+         CommonOps.extract(jacobianMatrix, 3, 6, 3, 6, matrixToPack, 0, linearAccelerationStartIndex);
+         jointOffset = Twist.SIZE;
+      }
       for (int jointIndex = 0; jointIndex < jointAccelerationIndices.size(); jointIndex++)
       {
          int jointAccelerationIndex = jointAccelerationIndices.get(jointIndex).getValue();
-         int jointIndexInJacobian = jointIndex + Twist.SIZE;
+         int jointIndexInJacobian = jointIndex + jointOffset;
          CommonOps.extract(jacobianMatrix, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointAccelerationIndex);
       }
 
@@ -160,12 +179,15 @@ public class LinearAccelerationSensor extends Sensor
       // Here we are doing a numerical computation of J_dot_r = (J_r - J_r_prev) / dt
       CommonOps.subtract(jacobianMatrix, previousJacobianMatrix, jacobianDot);
       CommonOps.scale(1.0 / dt, jacobianDot);
-      CommonOps.extract(jacobianDot, 3, 6, 0, 3, matrixToPack, 0, angularVelocityStartIndex);
-      CommonOps.extract(jacobianDot, 3, 6, 3, 6, matrixToPack, 0, linearVelocityStartIndex);
+      if (isFloating)
+      {
+         CommonOps.extract(jacobianDot, 3, 6, 0, 3, matrixToPack, 0, angularVelocityStartIndex);
+         CommonOps.extract(jacobianDot, 3, 6, 3, 6, matrixToPack, 0, linearVelocityStartIndex);
+      }
       for (int jointIndex = 0; jointIndex < jointVelocityIndices.size(); jointIndex++)
       {
          int jointVelocityIndex = jointVelocityIndices.get(jointIndex).getValue();
-         int jointIndexInJacobian = jointIndex + Twist.SIZE;
+         int jointIndexInJacobian = jointIndex + jointOffset;
          CommonOps.extract(jacobianDot, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointVelocityIndex);
       }
 

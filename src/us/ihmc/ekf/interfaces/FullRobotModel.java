@@ -25,13 +25,13 @@ import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
+import us.ihmc.simulationconstructionset.RobotFromDescription;
 
 public class FullRobotModel
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private final RigidBody elevator;
-   private final RigidBody rootBody;
    private final SixDoFJoint rootJoint;
    private final OneDoFJoint[] bodyJointsInOrder;
 
@@ -40,71 +40,86 @@ public class FullRobotModel
    public FullRobotModel(RobotDescription robotDescription)
    {
       ArrayList<JointDescription> rootJoints = robotDescription.getRootJoints();
-      if (rootJoints.size() != 1 || !(rootJoints.get(0) instanceof FloatingJointDescription))
+      if (rootJoints.size() != 1)
       {
-         throw new RuntimeException("Expecting single floating root joint.");
+         throw new RuntimeException("Expecting single root joint.");
       }
 
       elevator = new RigidBody("elevator", worldFrame);
+      RigidBody rootBody;
 
-      FloatingJointDescription rootJointDescription = (FloatingJointDescription) rootJoints.get(0);
+      JointDescription rootJointDescription = rootJoints.get(0);
       String rootJointName = rootJointDescription.getName();
-      rootJoint = new SixDoFJoint(rootJointName, elevator);
 
-      LinkDescription rootLinkDescription = rootJointDescription.getLink();
-      String rootLinkName = rootLinkDescription.getName();
-      Matrix3D rootLinkInertia = rootLinkDescription.getMomentOfInertiaCopy();
-      double rootLinkMass = rootLinkDescription.getMass();
-      Vector3D rootLinkCoM = rootLinkDescription.getCenterOfMassOffset();
-      rootBody = ScrewTools.addRigidBody(rootLinkName, rootJoint, rootLinkInertia, rootLinkMass, rootLinkCoM);
+      boolean isFloating = rootJoints.get(0) instanceof FloatingJointDescription;
+      if (isFloating)
+      {
+         rootJoint = new SixDoFJoint(rootJointName, elevator);
+         LinkDescription rootLinkDescription = rootJointDescription.getLink();
+         String rootLinkName = rootLinkDescription.getName();
+         Matrix3D rootLinkInertia = rootLinkDescription.getMomentOfInertiaCopy();
+         double rootLinkMass = rootLinkDescription.getMass();
+         Vector3D rootLinkCoM = rootLinkDescription.getCenterOfMassOffset();
+         rootBody = ScrewTools.addRigidBody(rootLinkName, rootJoint, rootLinkInertia, rootLinkMass, rootLinkCoM);
+         addSensorDefinitions(rootJoint, rootJointDescription);
 
-      PrintTools.info("Creating full robot model with root joint '" + rootJointName + "' and root link '" + rootLinkName + "'");
+         for (JointDescription child : rootJointDescription.getChildrenJoints())
+         {
+            addRevoluteJointRecursive(child, rootBody);
+         }
+      }
+      else
+      {
+         rootBody = elevator;
+         rootJoint = null;
 
-      addSensorDefinitions(rootJoint, rootJointDescription);
-      addJointsForChildren(rootJointDescription, rootBody);
+         addRevoluteJointRecursive(rootJointDescription, rootBody);
+      }
 
-      bodyJointsInOrder = ScrewTools.filterJoints(ScrewTools.computeSubtreeJoints(rootBody), OneDoFJoint.class);
+      PrintTools.info("Created full robot model with root joint of type '" + rootJointName + "'");
+      bodyJointsInOrder = ScrewTools.filterJoints(ScrewTools.computeSupportAndSubtreeJoints(rootBody), OneDoFJoint.class);
    }
 
-   private void addJointsForChildren(JointDescription joint, RigidBody parentBody)
+   private void addRevoluteJointRecursive(JointDescription child, RigidBody parentBody)
    {
-      for (JointDescription child : joint.getChildrenJoints())
+      if (child instanceof PinJointDescription)
       {
-         if (child instanceof PinJointDescription)
+         PinJointDescription pinJoint = (PinJointDescription) child;
+
+         // add joint to ID structure
+         Vector3D jointAxis = new Vector3D();
+         pinJoint.getJointAxis(jointAxis);
+         Vector3D offset = new Vector3D();
+         pinJoint.getOffsetFromParentJoint(offset);
+         String jointName = child.getName();
+         RevoluteJoint revoluteJoint = ScrewTools.addRevoluteJoint(jointName, parentBody, offset, jointAxis);
+         revoluteJoint.setEffortLimits(-pinJoint.getEffortLimit(), pinJoint.getEffortLimit());
+         revoluteJoint.setVelocityLimit(-pinJoint.getVelocityLimit(), pinJoint.getVelocityLimit());
+         if (pinJoint.containsLimitStops())
          {
-            PinJointDescription pinJoint = (PinJointDescription) child;
-
-            // add joint to ID structure
-            Vector3D jointAxis = new Vector3D();
-            pinJoint.getJointAxis(jointAxis);
-            Vector3D offset = new Vector3D();
-            pinJoint.getOffsetFromParentJoint(offset);
-            String jointName = child.getName();
-            RevoluteJoint revoluteJoint = ScrewTools.addRevoluteJoint(jointName, parentBody, offset, jointAxis);
-            revoluteJoint.setEffortLimits(-pinJoint.getEffortLimit(), pinJoint.getEffortLimit());
-            revoluteJoint.setVelocityLimit(-pinJoint.getVelocityLimit(), pinJoint.getVelocityLimit());
-            if (pinJoint.containsLimitStops())
-            {
-               double[] limitStopParameters = pinJoint.getLimitStopParameters();
-               revoluteJoint.setJointLimitLower(limitStopParameters[0]);
-               revoluteJoint.setJointLimitUpper(limitStopParameters[1]);
-            }
-
-            // add body to ID structure
-            LinkDescription childLink = pinJoint.getLink();
-            String linkName = childLink.getName();
-            Matrix3D inertia = childLink.getMomentOfInertiaCopy();
-            double mass = childLink.getMass();
-            Vector3D comOffset = new Vector3D(childLink.getCenterOfMassOffset());
-            RigidBody rigidBody = ScrewTools.addRigidBody(linkName, revoluteJoint, inertia, mass, comOffset);
-
-            addJointsForChildren(child, rigidBody);
-            addSensorDefinitions(revoluteJoint, child);
+            double[] limitStopParameters = pinJoint.getLimitStopParameters();
+            revoluteJoint.setJointLimitLower(limitStopParameters[0]);
+            revoluteJoint.setJointLimitUpper(limitStopParameters[1]);
          }
-         else
+
+         // add body to ID structure
+         LinkDescription childLink = pinJoint.getLink();
+         String linkName = childLink.getName();
+         Matrix3D inertia = childLink.getMomentOfInertiaCopy();
+         double mass = childLink.getMass();
+         Vector3D comOffset = new Vector3D(childLink.getCenterOfMassOffset());
+         RigidBody rigidBody = ScrewTools.addRigidBody(linkName, revoluteJoint, inertia, mass, comOffset);
+
+         addSensorDefinitions(revoluteJoint, child);
+
+         for (JointDescription nextChild : child.getChildrenJoints())
          {
-            throw new RuntimeException("Can only handle pin joints. Got " + child.getClass().getSimpleName());
+            addRevoluteJointRecursive(nextChild, rigidBody);
          }
+      }
+      else
+      {
+         throw new RuntimeException("Can only handle pin joints. Got " + child.getClass().getSimpleName());
       }
    }
 
@@ -118,13 +133,34 @@ public class FullRobotModel
       }
    }
 
-   public void initialize(FloatingRootJointRobot robot)
+   public void initialize(RobotFromDescription robot)
    {
-      FloatingJoint robotRootJoint = robot.getRootJoint();
-      RigidBodyTransform rootToWorld = new RigidBodyTransform();
-      robotRootJoint.getTransformToWorld(rootToWorld);
-      rootToWorld.normalizeRotationPart();
-      rootJoint.setPositionAndRotation(rootToWorld);
+      // If we have a floating base robot:
+      if (rootJoint != null)
+      {
+         if (!(robot instanceof FloatingRootJointRobot))
+         {
+            throw new RuntimeException("This is a floating joint robot. Need a FloatingRootJointRobot!");
+         }
+         FloatingRootJointRobot floatingRobot = (FloatingRootJointRobot) robot;
+
+         FloatingJoint robotRootJoint = floatingRobot.getRootJoint();
+         RigidBodyTransform rootToWorld = new RigidBodyTransform();
+         robotRootJoint.getTransformToWorld(rootToWorld);
+         rootToWorld.normalizeRotationPart();
+         rootJoint.setPositionAndRotation(rootToWorld);
+
+         rootJoint.getPredecessor().updateFramesRecursively();
+         ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
+         ReferenceFrame pelvisFrame = rootJoint.getFrameAfterJoint();
+
+         FrameVector3D linearVelocity = new FrameVector3D();
+         robotRootJoint.getVelocity(linearVelocity);
+         linearVelocity.changeFrame(pelvisFrame);
+         FrameVector3D angularVelocity = new FrameVector3D(pelvisFrame, robotRootJoint.getAngularVelocityInBody());
+         Twist bodyTwist = new Twist(pelvisFrame, elevatorFrame, pelvisFrame, linearVelocity, angularVelocity);
+         rootJoint.setJointTwist(bodyTwist);
+      }
 
       OneDegreeOfFreedomJoint[] robotOneDofJoints = robot.getOneDegreeOfFreedomJoints();
       for (int jointIdx = 0; jointIdx < robotOneDofJoints.length; jointIdx++)
@@ -139,17 +175,6 @@ public class FullRobotModel
          oneDoFJoint.setQ(oneDegreeOfFreedomJoint.getQ());
          oneDoFJoint.setQd(oneDegreeOfFreedomJoint.getQD());
       }
-
-      rootJoint.getPredecessor().updateFramesRecursively();
-      ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
-      ReferenceFrame pelvisFrame = rootJoint.getFrameAfterJoint();
-
-      FrameVector3D linearVelocity = new FrameVector3D();
-      robotRootJoint.getVelocity(linearVelocity);
-      linearVelocity.changeFrame(pelvisFrame);
-      FrameVector3D angularVelocity = new FrameVector3D(pelvisFrame, robotRootJoint.getAngularVelocityInBody());
-      Twist bodyTwist = new Twist(pelvisFrame, elevatorFrame, pelvisFrame, linearVelocity, angularVelocity);
-      rootJoint.setJointTwist(bodyTwist);
    }
 
    public ArrayList<IMUDefinition> getImuDefinitions()
@@ -170,5 +195,17 @@ public class FullRobotModel
    public RigidBody getElevator()
    {
       return elevator;
+   }
+
+   public void updateFrames()
+   {
+      if (rootJoint != null)
+      {
+         rootJoint.updateFramesRecursively();
+      }
+      else
+      {
+         bodyJointsInOrder[0].updateFramesRecursively();
+      }
    }
 }

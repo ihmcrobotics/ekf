@@ -28,6 +28,8 @@ public class AngularVelocitySensor extends Sensor
 
    private final EmptyState emptyState = new EmptyState();
 
+   private final boolean isFloating;
+
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
 
@@ -61,8 +63,18 @@ public class AngularVelocitySensor extends Sensor
             jointVelocityIndices.add(new MutableInt(jointVelocityIndex));
          }
       }
-      angularVelocityStartIndex = robotStateForIndexing.findAngularVelocityIndex();
-      linearVelocityStartIndex = robotStateForIndexing.findLinearVelocityIndex();
+
+      isFloating = robotStateForIndexing.isFloating();
+      if (isFloating)
+      {
+         angularVelocityStartIndex = robotStateForIndexing.findAngularVelocityIndex();
+         linearVelocityStartIndex = robotStateForIndexing.findLinearVelocityIndex();
+      }
+      else
+      {
+         angularVelocityStartIndex = -1;
+         linearVelocityStartIndex = -1;
+      }
 
       CommonOps.setIdentity(R);
       CommonOps.scale(Parameters.angularVelocitySensorCovariance, R);
@@ -97,12 +109,17 @@ public class AngularVelocitySensor extends Sensor
       robotJacobian.getJacobianMatrix(jacobianMatrix);
 
       // z = J * qd
-      CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, matrixToPack, 0, angularVelocityStartIndex);
-      CommonOps.extract(jacobianMatrix, 0, 3, 3, 6, matrixToPack, 0, linearVelocityStartIndex);
+      int jointOffset = 0;
+      if (isFloating)
+      {
+         CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, matrixToPack, 0, angularVelocityStartIndex);
+         CommonOps.extract(jacobianMatrix, 0, 3, 3, 6, matrixToPack, 0, linearVelocityStartIndex);
+         jointOffset = Twist.SIZE;
+      }
       for (int jointIndex = 0; jointIndex < jointVelocityIndices.size(); jointIndex++)
       {
          int jointVelocityIndex = jointVelocityIndices.get(jointIndex).getValue();
-         int jointIndexInJacobian = jointIndex + Twist.SIZE;
+         int jointIndexInJacobian = jointIndex + jointOffset;
          CommonOps.extract(jacobianMatrix, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointVelocityIndex);
       }
    }

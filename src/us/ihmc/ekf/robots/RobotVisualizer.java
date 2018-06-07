@@ -43,16 +43,19 @@ public class RobotVisualizer extends SimpleRobotController
    public void doControl()
    {
       SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
-      FloatingJoint robotRootJoint = robot.getRootJoint();
-      rootJoint.getJointTransform3D(rootTransform);
-      robotRootJoint.setRotationAndTranslation(rootTransform);
+      if (rootJoint != null)
+      {
+         FloatingJoint robotRootJoint = robot.getRootJoint();
+         rootJoint.getJointTransform3D(rootTransform);
+         robotRootJoint.setRotationAndTranslation(rootTransform);
 
-      rootJoint.getJointTwist(rootTwist);
-      rootTwist.getAngularPart(angularVelocity);
-      rootTwist.getLinearPart(linearVelocity);
-      linearVelocity.changeFrame(ReferenceFrame.getWorldFrame());
-      robotRootJoint.setAngularVelocityInBody(angularVelocity);
-      robotRootJoint.setVelocity(linearVelocity);
+         rootJoint.getJointTwist(rootTwist);
+         rootTwist.getAngularPart(angularVelocity);
+         rootTwist.getLinearPart(linearVelocity);
+         linearVelocity.changeFrame(ReferenceFrame.getWorldFrame());
+         robotRootJoint.setAngularVelocityInBody(angularVelocity);
+         robotRootJoint.setVelocity(linearVelocity);
+      }
 
       OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
       for (int jointIdx = 0; jointIdx < bodyJoints.length; jointIdx++)

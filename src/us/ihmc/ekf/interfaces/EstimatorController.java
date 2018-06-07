@@ -45,5 +45,7 @@ public class EstimatorController extends SimpleRobotController
       {
          yoState.get(stateIdx).set(stateVector.get(stateIdx));
       }
+
+      fullRobotModel.updateFrames();
    }
 }

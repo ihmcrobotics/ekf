@@ -21,46 +21,54 @@ import us.ihmc.robotics.screwTheory.Twist;
 
 public class RobotState extends ComposedState
 {
+   private final boolean isFloating;
+
    private final PositionState positionState;
    private final OrientationState orientationState;
    private final List<JointState> jointStates = new ArrayList<>();
 
    private final Map<String, MutableInt> jointIndecesByName = new HashMap<>();
-   private final int orientationStateIndex;
-   private final int positionStateIndex;
 
    public RobotState(FullRobotModel fullRobotModel, double dt)
    {
       OneDoFJoint[] robotJoints = fullRobotModel.getBodyJointsInOrder();
-      SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
-      ReferenceFrame rootFrame = rootJoint.getFrameAfterJoint();
       RevoluteJoint[] revoluteJoints = ScrewTools.filterJoints(robotJoints, RevoluteJoint.class);
       if (robotJoints.length != revoluteJoints.length)
       {
          throw new RuntimeException("Can only handle revolute joints in a robot.");
       }
 
-      // The orientation state maintains:
-      // Orientation of the root w.r.t elevator in world frame
-      // Angular Velocity of the root w.r.t. elevator expressed in root frame
-      // Angular Acceleration
-      orientationStateIndex = getSize();
-      orientationState = new OrientationState(dt, rootFrame);
-      addState(orientationState);
+      SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
+      isFloating = rootJoint != null;
+      if (isFloating)
+      {
+         ReferenceFrame rootFrame = rootJoint.getFrameAfterJoint();
 
-      // The position state maintains:
-      // Position of the root w.r.t. elevator in world frame
-      // Linear Velocity of the root w.r.t. elevator in root frame
-      // Linear Acceleration
-      positionStateIndex = getSize();
-      positionState = new PositionState(dt, rootFrame);
-      addState(positionState);
+         // The orientation state maintains:
+         // Orientation of the root w.r.t elevator in world frame
+         // Angular Velocity of the root w.r.t. elevator expressed in root frame
+         // Angular Acceleration
+         orientationState = new OrientationState(dt, rootFrame);
+         addState(orientationState);
 
-      Twist rootTwist = new Twist();
-      rootJoint.updateFramesRecursively();
-      rootJoint.getJointTwist(rootTwist);
-      orientationState.initialize(rootJoint.getRotationForReading(), rootTwist.getAngularPartCopy());
-      positionState.initialize(rootJoint.getTranslationForReading(), rootTwist.getLinearPartCopy());
+         // The position state maintains:
+         // Position of the root w.r.t. elevator in world frame
+         // Linear Velocity of the root w.r.t. elevator in root frame
+         // Linear Acceleration
+         positionState = new PositionState(dt, rootFrame);
+         addState(positionState);
+
+         Twist rootTwist = new Twist();
+         rootJoint.updateFramesRecursively();
+         rootJoint.getJointTwist(rootTwist);
+         orientationState.initialize(rootJoint.getRotationForReading(), rootTwist.getAngularPartCopy());
+         positionState.initialize(rootJoint.getTranslationForReading(), rootTwist.getLinearPartCopy());
+      }
+      else
+      {
+         orientationState = null;
+         positionState = null;
+      }
 
       for (OneDoFJoint joint : robotJoints)
       {
@@ -87,24 +95,53 @@ public class RobotState extends ComposedState
       return jointIndecesByName.get(jointName).intValue() + 2;
    }
 
+   public boolean isFloating()
+   {
+      return isFloating;
+   }
+
+   public int findOrientationIndex()
+   {
+      checkFloating();
+      return 0;
+   }
+
    public int findAngularVelocityIndex()
    {
-      return orientationStateIndex + 4;
+      checkFloating();
+      return 4;
    }
 
    public int findAngularAccelerationIndex()
    {
-      return orientationStateIndex + 7;
+      checkFloating();
+      return 7;
+   }
+
+   public int findPositionIndex()
+   {
+      checkFloating();
+      return 10;
    }
 
    public int findLinearVelocityIndex()
    {
-      return positionStateIndex + 3;
+      checkFloating();
+      return 13;
    }
 
    public int findLinearAccelerationIndex()
    {
-      return positionStateIndex + 6;
+      checkFloating();
+      return 16;
+   }
+
+   private void checkFloating()
+   {
+      if (!isFloating)
+      {
+         throw new RuntimeException("Robot is not a floating base robot. Can not get pose indices.");
+      }
    }
 
    private final FrameQuaternion tempQuaternion = new FrameQuaternion();
@@ -116,22 +153,24 @@ public class RobotState extends ComposedState
 
    public void setFullRobotModelFromState(FullRobotModel fullRobotModel)
    {
-      SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
-      ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
-      ReferenceFrame rootFrame = rootJoint.getFrameAfterJoint();
+      if (isFloating)
+      {
+         SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
+         ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
+         ReferenceFrame rootFrame = rootJoint.getFrameAfterJoint();
 
-      orientationState.getOrientation(tempQuaternion);
-      positionState.getPosition(tempPosition);
-      rootTransform.set(tempQuaternion, tempPosition);
-      rootJoint.setPositionAndRotation(rootTransform);
+         orientationState.getOrientation(tempQuaternion);
+         positionState.getPosition(tempPosition);
+         rootTransform.set(tempQuaternion, tempPosition);
+         rootJoint.setPositionAndRotation(rootTransform);
 
-      orientationState.getVelocity(tempAngularVelocity);
-      positionState.getVelocity(tempLinearVelocity);
-      rootTwist.set(rootFrame, elevatorFrame, rootFrame, tempLinearVelocity, tempAngularVelocity);
-      rootJoint.setJointTwist(rootTwist);
+         orientationState.getVelocity(tempAngularVelocity);
+         positionState.getVelocity(tempLinearVelocity);
+         rootTwist.set(rootFrame, elevatorFrame, rootFrame, tempLinearVelocity, tempAngularVelocity);
+         rootJoint.setJointTwist(rootTwist);
+      }
 
       OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
-
       for (int i = 0; i < bodyJoints.length; i++)
       {
          JointState jointState = jointStates.get(i);
@@ -145,7 +184,5 @@ public class RobotState extends ComposedState
          joint.setQ(jointState.getQ());
          joint.setQd(jointState.getQd());
       }
-
-      rootJoint.updateFramesRecursively();
    }
 }
