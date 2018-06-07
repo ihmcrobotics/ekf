@@ -26,16 +26,15 @@ public class SimulationSensorReader implements RobotSensorReader
 
    public SimulationSensorReader(RobotFromDescription robot, FullRobotModel fullRobotModel, double dt)
    {
-      addJointPositionSensorsRecursive(robot.getRootJoints().get(0), fullRobotModel, jointPositionSensors);
+      addJointPositionSensorsRecursive(robot.getRootJoints().get(0), jointPositionSensors);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
 
-      fullRobotModel.getImuDefinitions().stream()
-                    .forEach(imu -> addIMUSensor(dt, imu, robot, fullRobotModel, angularVelocitySensors, linearAccelerationSensors));
+      fullRobotModel.getImuDefinitions().stream().forEach(imu -> addIMUSensor(dt, imu, robot, angularVelocitySensors, linearAccelerationSensors));
       angularVelocitySensors.stream().forEach(s -> allSensors.add(s.getRight()));
       linearAccelerationSensors.stream().forEach(s -> allSensors.add(s.getRight()));
    }
 
-   private static void addIMUSensor(double dt, IMUDefinition imu, RobotFromDescription robot, FullRobotModel fullRobotModel,
+   private static void addIMUSensor(double dt, IMUDefinition imu, RobotFromDescription robot,
                                     List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors,
                                     List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors)
    {
@@ -47,22 +46,22 @@ public class SimulationSensorReader implements RobotSensorReader
          throw new RuntimeException("Could not find IMU '" + imuName + "' in robot.");
       }
 
-      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(imu, fullRobotModel);
+      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(imu);
       angularVelocitySensors.add(new ImmutablePair<IMUMount, AngularVelocitySensor>(imuMount, angularVelocitySensor));
 
-      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(dt, imu, fullRobotModel);
+      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(dt, imu);
       linearAccelerationSensors.add(new ImmutablePair<>(imuMount, linearAccelerationSensor));
 
       PrintTools.info("Created IMU Sensor '" + imuName + "'");
    }
 
-   private static void addJointPositionSensorsRecursive(Joint joint, FullRobotModel fullRobotModel, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors)
+   private static void addJointPositionSensorsRecursive(Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors)
    {
       if (joint instanceof PinJoint)
       {
          PinJoint pinJoint = (PinJoint) joint;
          String jointName = pinJoint.getName();
-         JointPositionSensor sensor = new JointPositionSensor(jointName, fullRobotModel);
+         JointPositionSensor sensor = new JointPositionSensor(jointName);
          sensors.add(new ImmutablePair<>(pinJoint, sensor));
          PrintTools.info("Created joint position sensor for '" + jointName + "'");
       }
@@ -73,7 +72,7 @@ public class SimulationSensorReader implements RobotSensorReader
 
       for (Joint child : joint.getChildrenJoints())
       {
-         addJointPositionSensorsRecursive(child, fullRobotModel, sensors);
+         addJointPositionSensorsRecursive(child, sensors);
       }
    }
 

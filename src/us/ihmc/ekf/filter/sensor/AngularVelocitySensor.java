@@ -1,9 +1,7 @@
 package us.ihmc.ekf.filter.sensor;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
@@ -11,14 +9,13 @@ import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
-import us.ihmc.ekf.interfaces.FullRobotModel;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
-import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.IMUDefinition;
 
@@ -28,53 +25,23 @@ public class AngularVelocitySensor extends Sensor
 
    private final EmptyState emptyState = new EmptyState();
 
-   private final boolean isFloating;
-
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
+   private final List<OneDoFJoint> oneDofJoints;
 
    private final FrameVector3D measurement = new FrameVector3D();
    private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
 
-   private final int robotStateSize;
-   private final List<MutableInt> jointVelocityIndices = new ArrayList<>();
-   private final int angularVelocityStartIndex;
-   private final int linearVelocityStartIndex;
-
    private final ReferenceFrame imuFrame;
 
-   public AngularVelocitySensor(IMUDefinition imuDefinition, FullRobotModel fullRobotModel)
+   public AngularVelocitySensor(IMUDefinition imuDefinition)
    {
       imuFrame = imuDefinition.getIMUFrame();
 
-      RigidBody elevator = fullRobotModel.getElevator();
       RigidBody imuBody = imuDefinition.getRigidBody();
-      robotJacobian.setKinematicChain(elevator, imuBody);
+      robotJacobian.setKinematicChain(ScrewTools.getRootBody(imuBody), imuBody);
       robotJacobian.setJacobianFrame(imuFrame);
-
-      RobotState robotStateForIndexing = new RobotState(fullRobotModel, Double.NaN);
-      robotStateSize = robotStateForIndexing.getSize();
-      List<InverseDynamicsJoint> joints = robotJacobian.getJointsFromBaseToEndEffector();
-      for (InverseDynamicsJoint joint : joints)
-      {
-         if (joint instanceof OneDoFJoint)
-         {
-            int jointVelocityIndex = robotStateForIndexing.findJointVelocityIndex(joint.getName());
-            jointVelocityIndices.add(new MutableInt(jointVelocityIndex));
-         }
-      }
-
-      isFloating = robotStateForIndexing.isFloating();
-      if (isFloating)
-      {
-         angularVelocityStartIndex = robotStateForIndexing.findAngularVelocityIndex();
-         linearVelocityStartIndex = robotStateForIndexing.findLinearVelocityIndex();
-      }
-      else
-      {
-         angularVelocityStartIndex = -1;
-         linearVelocityStartIndex = -1;
-      }
+      oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
 
       CommonOps.setIdentity(R);
       CommonOps.scale(Parameters.angularVelocitySensorCovariance, R);
@@ -100,9 +67,9 @@ public class AngularVelocitySensor extends Sensor
    }
 
    @Override
-   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack)
+   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack, RobotState robotState)
    {
-      matrixToPack.reshape(measurementSize, robotStateSize);
+      matrixToPack.reshape(measurementSize, robotState.getSize());
       CommonOps.fill(matrixToPack, 0.0);
 
       robotJacobian.computeJacobianMatrix();
@@ -110,15 +77,15 @@ public class AngularVelocitySensor extends Sensor
 
       // z = J * qd
       int jointOffset = 0;
-      if (isFloating)
+      if (robotState.isFloating())
       {
-         CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, matrixToPack, 0, angularVelocityStartIndex);
-         CommonOps.extract(jacobianMatrix, 0, 3, 3, 6, matrixToPack, 0, linearVelocityStartIndex);
+         CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, matrixToPack, 0, robotState.findAngularVelocityIndex());
+         CommonOps.extract(jacobianMatrix, 0, 3, 3, 6, matrixToPack, 0, robotState.findLinearVelocityIndex());
          jointOffset = Twist.SIZE;
       }
-      for (int jointIndex = 0; jointIndex < jointVelocityIndices.size(); jointIndex++)
+      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
       {
-         int jointVelocityIndex = jointVelocityIndices.get(jointIndex).getValue();
+         int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
          int jointIndexInJacobian = jointIndex + jointOffset;
          CommonOps.extract(jacobianMatrix, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointVelocityIndex);
       }

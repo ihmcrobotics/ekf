@@ -14,6 +14,8 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class StateEstimator
 {
+   private final RobotState robotState;
+
    private final ComposedState state;
    private final ComposedSensor sensor;
 
@@ -21,6 +23,7 @@ public class StateEstimator
 
    public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
    {
+      this.robotState = robotState;
       this.state = new ComposedState();
       this.sensor = new ComposedSensor(sensors, robotState.getSize());
 
@@ -58,7 +61,7 @@ public class StateEstimator
       FilterMatrixOps.predictErrorCovariance(Pprior, A, Pposterior, Q);
 
       // Compute the kalman gain.
-      sensor.assembleFullJacobian(H);
+      sensor.assembleFullJacobian(H, robotState);
       sensor.getRMatrix(R);
       if (!FilterMatrixOps.computeKalmanGain(K, Pprior, H, R))
       {

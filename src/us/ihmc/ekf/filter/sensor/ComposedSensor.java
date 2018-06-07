@@ -9,6 +9,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.state.ComposedState;
+import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
 
 public class ComposedSensor extends Sensor
@@ -76,7 +77,7 @@ public class ComposedSensor extends Sensor
    }
 
    @Override
-   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack)
+   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack, RobotState robotState)
    {
       matrixToPack.reshape(getMeasurementSize(), robotStateSize);
       CommonOps.fill(matrixToPack, 0.0);
@@ -87,7 +88,7 @@ public class ComposedSensor extends Sensor
          int startIndex = pair.getLeft().intValue();
          Sensor subSensor = pair.getRight();
 
-         subSensor.getMeasurementJacobianRobotPart(tempMatrix);
+         subSensor.getMeasurementJacobianRobotPart(tempMatrix, robotState);
          CommonOps.insert(tempMatrix, matrixToPack, startIndex, 0);
       }
    }
@@ -127,9 +128,9 @@ public class ComposedSensor extends Sensor
       }
    }
 
-   public void assembleFullJacobian(DenseMatrix64F matrixToPack)
+   public void assembleFullJacobian(DenseMatrix64F matrixToPack, RobotState robotState)
    {
-      getMeasurementJacobianRobotPart(tempRobotJacobian);
+      getMeasurementJacobianRobotPart(tempRobotJacobian, robotState);
       getMeasurementJacobianSensorPart(tempSensorJacobian);
       matrixToPack.reshape(getMeasurementSize(), robotStateSize + sensorState.getSize());
       CommonOps.insert(tempRobotJacobian, matrixToPack, 0, 0);
