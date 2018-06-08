@@ -2,7 +2,7 @@ package us.ihmc.ekf.filter;
 
 public class Parameters
 {
-   public static final double linearAccelerationSensorCovariance = 1.0E-5;
+   public static final double linearAccelerationSensorCovariance = 1.0E5;
    public static final double angularVelocitySensorCovariance = 1.0E-5;
    public static final double jointPositionSensorCovariance = 1.0E-10;
 
