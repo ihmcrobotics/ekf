@@ -74,6 +74,7 @@ public class RobotState extends ComposedState
       {
          MutableInt jointStateStartIndex = new MutableInt(getSize());
          JointState jointState = new JointState(joint.getName(), dt);
+         jointState.initialize(joint.getQ(), joint.getQd());
          addState(jointState);
          jointStates.add(jointState);
          jointIndecesByName.put(joint.getName(), jointStateStartIndex);

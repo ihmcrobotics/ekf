@@ -29,6 +29,13 @@ public class JointState extends State
       Q.set(2, 2, Parameters.jointModelAccelerationCovariance);
    }
 
+   public void initialize(double initialPosition, double initialVelocity)
+   {
+      stateVector.set(0, initialPosition);
+      stateVector.set(1, initialVelocity);
+      stateVector.set(2, 0.0);
+   }
+
    public String getJointName()
    {
       return jointName;

@@ -11,7 +11,7 @@ import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 
 public class SimpleArmRobot
 {
-   public static final String robotName = "simpleArm";
+   public static final String robotName = "simpleArmDualIMU";
 
    private static final YoAppearanceRGBColor robotApperance = new YoAppearanceRGBColor(Color.BLACK, 0.0);
    private static final boolean drawInertias = false;
