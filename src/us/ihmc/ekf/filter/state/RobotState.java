@@ -8,9 +8,6 @@ import java.util.Map;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
@@ -22,11 +19,11 @@ import us.ihmc.robotics.screwTheory.Twist;
 public class RobotState extends ComposedState
 {
    private final boolean isFloating;
+   private final RigidBodyTransform rootTransform;
+   private final Twist rootTwist;
 
-   private final PositionState positionState;
-   private final OrientationState orientationState;
+   private final PoseState poseState;
    private final List<JointState> jointStates = new ArrayList<>();
-
    private final Map<String, MutableInt> jointIndecesByName = new HashMap<>();
 
    public RobotState(FullRobotModel fullRobotModel, double dt)
@@ -42,32 +39,23 @@ public class RobotState extends ComposedState
       isFloating = rootJoint != null;
       if (isFloating)
       {
-         ReferenceFrame rootFrame = rootJoint.getFrameAfterJoint();
+         rootTransform = new RigidBodyTransform();
+         rootTwist = new Twist();
 
-         // The orientation state maintains:
-         // Orientation of the root w.r.t elevator in world frame
-         // Angular Velocity of the root w.r.t. elevator expressed in root frame
-         // Angular Acceleration
-         orientationState = new OrientationState(dt, rootFrame);
-         addState(orientationState);
+         ReferenceFrame bodyFrame = rootJoint.getFrameAfterJoint();
+         poseState = new PoseState(dt, bodyFrame);
+         addState(poseState);
 
-         // The position state maintains:
-         // Position of the root w.r.t. elevator in world frame
-         // Linear Velocity of the root w.r.t. elevator in root frame
-         // Linear Acceleration
-         positionState = new PositionState(dt, rootFrame);
-         addState(positionState);
-
-         Twist rootTwist = new Twist();
          rootJoint.updateFramesRecursively();
+         rootJoint.getJointTransform3D(rootTransform);
          rootJoint.getJointTwist(rootTwist);
-         orientationState.initialize(rootJoint.getRotationForReading(), rootTwist.getAngularPartCopy());
-         positionState.initialize(rootJoint.getTranslationForReading(), rootTwist.getLinearPartCopy());
+         poseState.initialize(rootTransform, rootTwist);
       }
       else
       {
-         orientationState = null;
-         positionState = null;
+         rootTransform = null;
+         rootTwist = null;
+         poseState = null;
       }
 
       for (OneDoFJoint joint : robotJoints)
@@ -104,37 +92,37 @@ public class RobotState extends ComposedState
    public int findOrientationIndex()
    {
       checkFloating();
-      return 0;
+      return PoseState.orientationStart;
    }
 
    public int findAngularVelocityIndex()
    {
       checkFloating();
-      return 4;
+      return PoseState.angularVelocityStart;
    }
 
    public int findAngularAccelerationIndex()
    {
       checkFloating();
-      return 7;
+      return PoseState.angularAccelerationStart;
    }
 
    public int findPositionIndex()
    {
       checkFloating();
-      return 10;
+      return PoseState.positionStart;
    }
 
    public int findLinearVelocityIndex()
    {
       checkFloating();
-      return 13;
+      return PoseState.linearVelocityStart;
    }
 
    public int findLinearAccelerationIndex()
    {
       checkFloating();
-      return 16;
+      return PoseState.linearAccelerationStart;
    }
 
    private void checkFloating()
@@ -145,29 +133,16 @@ public class RobotState extends ComposedState
       }
    }
 
-   private final FrameQuaternion tempQuaternion = new FrameQuaternion();
-   private final FrameVector3D tempAngularVelocity = new FrameVector3D();
-   private final FramePoint3D tempPosition = new FramePoint3D();
-   private final FrameVector3D tempLinearVelocity = new FrameVector3D();
-   private final RigidBodyTransform rootTransform = new RigidBodyTransform();
-   private final Twist rootTwist = new Twist();
-
    public void setFullRobotModelFromState(FullRobotModel fullRobotModel)
    {
       if (isFloating)
       {
          SixDoFJoint rootJoint = fullRobotModel.getRootJoint();
-         ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
-         ReferenceFrame rootFrame = rootJoint.getFrameAfterJoint();
 
-         orientationState.getOrientation(tempQuaternion);
-         positionState.getPosition(tempPosition);
-         rootTransform.set(tempQuaternion, tempPosition);
+         poseState.getTransform(rootTransform);
          rootJoint.setPositionAndRotation(rootTransform);
 
-         orientationState.getVelocity(tempAngularVelocity);
-         positionState.getVelocity(tempLinearVelocity);
-         rootTwist.set(rootFrame, elevatorFrame, rootFrame, tempLinearVelocity, tempAngularVelocity);
+         poseState.getTwist(rootTwist);
          rootJoint.setJointTwist(rootTwist);
       }
 
