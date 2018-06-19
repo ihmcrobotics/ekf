@@ -2,7 +2,7 @@
 
 This is my playground for developing an Extended Kalman Filter (EKF) for state estimation. It depends on the [IHMC Software](https://github.com/ihmcrobotics/ihmc-open-robotics-software) for robot control. That software packet provides a simulation environment as well as tools to compute Jacobians and other useful quantities related to rigid body systems. The goal is to create a new state estimation framework that can be integrated easily with the IHMC software.
 
-I hope to make the final filter implementation depend on more lightweight packages and make it generic, such that it can be used with other robotics applications in Java. The filter will be free of garbage generation and fast enough to run at 1kHz on an average computer.
+I hope to make the final filter implementation depend on more lightweight packages and make it generic, such that it can be used with other robotics applications in Java. The filter will be allocation free and fast enough to run at 1kHz on an average computer.
 
 ## Running the Code
 
@@ -17,9 +17,10 @@ A good introductory paper for Kalman filters can be found [here](https://www.cs.
 ### Supported Sensors
  - Joint Position
  - Angular Velocity
- - (soon) Linear Acceleration
+ - Linear Acceleration
+ - (soon) Body Velocity
  
 ### Supported States
- - Revolute Joint (position, velocity, acceleration)
+ - Revolute Joint
+ - Floating Joint
  - (soon) Sensor Bias State
- - (soon) Floating Joint
