@@ -69,6 +69,23 @@ public class RobotState extends ComposedState
       }
    }
 
+   public RobotState(List<String> jointNames, double dt)
+   {
+      isFloating = false;
+      rootTransform = null;
+      rootTwist = null;
+      poseState = null;
+
+      for (String jointName : jointNames)
+      {
+         MutableInt jointStateStartIndex = new MutableInt(getSize());
+         JointState jointState = new JointState(jointName, dt);
+         addState(jointState);
+         jointStates.add(jointState);
+         jointIndecesByName.put(jointName, jointStateStartIndex);
+      }
+   }
+
    public int findJointPositionIndex(String jointName)
    {
       return jointIndecesByName.get(jointName).intValue();
@@ -91,8 +108,9 @@ public class RobotState extends ComposedState
 
    public int findOrientationIndex()
    {
-      checkFloating();
-      return PoseState.orientationStart;
+      // Accessing this is dangerous and the values will be zero anyway.
+      // TODO: In case we start using an orientation sensor.
+      throw new RuntimeException(PoseState.class.getSimpleName() + " uses an error orientation state.");
    }
 
    public int findAngularVelocityIndex()
