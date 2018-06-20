@@ -21,6 +21,8 @@ public class StateEstimator
 
    private final ExecutionTimer timer;
 
+   private final FilterMatrixOps filterMatrixOps = new FilterMatrixOps();
+
    public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
    {
       this.robotState = robotState;
@@ -30,7 +32,7 @@ public class StateEstimator
       state.addState(robotState);
       state.addState(sensor.getSensorState());
 
-      FilterMatrixOps.setIdentity(Pposterior, state.getSize());
+      filterMatrixOps.setIdentity(Pposterior, state.getSize());
 
       timer = new ExecutionTimer(getClass().getSimpleName(), registry);
    }
@@ -58,12 +60,12 @@ public class StateEstimator
       // Get linearized model and predict error covariance.
       state.getAMatrix(A);
       state.getQMatrix(Q);
-      FilterMatrixOps.predictErrorCovariance(Pprior, A, Pposterior, Q);
+      filterMatrixOps.predictErrorCovariance(Pprior, A, Pposterior, Q);
 
       // Compute the kalman gain.
       sensor.assembleFullJacobian(H, robotState);
       sensor.getRMatrix(R);
-      if (!FilterMatrixOps.computeKalmanGain(K, Pprior, H, R))
+      if (!filterMatrixOps.computeKalmanGain(K, Pprior, H, R))
       {
          PrintTools.info("Inversion failed integrating only.");
          timer.stopMeasurement();
@@ -73,14 +75,19 @@ public class StateEstimator
       // Compute the residual or the measurement error.
       // TODO: here a non-linear measurement prediction could be used.
       sensor.getMeasurement(z);
-      FilterMatrixOps.updateState(Xposterior, K, z, H, Xprior);
+      filterMatrixOps.updateState(Xposterior, K, z, H, Xprior);
 
       // Update the error covariance.
-      FilterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
+      filterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
 
       // Update the state after the update.
       state.setStateVector(Xposterior);
 
       timer.stopMeasurement();
+   }
+
+   public void getCovariance(DenseMatrix64F covarianceToPack)
+   {
+      covarianceToPack.set(Pposterior);
    }
 }

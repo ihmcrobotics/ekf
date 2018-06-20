@@ -7,41 +7,17 @@ import org.ejml.ops.CommonOps;
 
 public class FilterMatrixOps
 {
-   private static final ThreadLocal<DenseMatrix64F> tempLocal1 = new ThreadLocal<DenseMatrix64F>()
-   {
-      @Override
-      protected DenseMatrix64F initialValue()
-      {
-         return new DenseMatrix64F(0, 0);
-      };
-   };
+   private final LinearSolver<DenseMatrix64F> solver = LinearSolverFactory.linear(0);
 
-   private static final ThreadLocal<DenseMatrix64F> tempLocal2 = new ThreadLocal<DenseMatrix64F>()
-   {
-      @Override
-      protected DenseMatrix64F initialValue()
-      {
-         return new DenseMatrix64F(0, 0);
-      };
-   };
-
-   private static final ThreadLocal<DenseMatrix64F> tempLocal3 = new ThreadLocal<DenseMatrix64F>()
-   {
-      @Override
-      protected DenseMatrix64F initialValue()
-      {
-         return new DenseMatrix64F(0, 0);
-      };
-   };
-
-   private static final ThreadLocal<LinearSolver<DenseMatrix64F>> solverLocal = new ThreadLocal<LinearSolver<DenseMatrix64F>>()
-   {
-      @Override
-      protected LinearSolver<DenseMatrix64F> initialValue()
-      {
-         return LinearSolverFactory.linear(0);
-      };
-   };
+   private final DenseMatrix64F indentityToInvert = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F BAtrans = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F ABAtransPlusC = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F inverse = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F PHtrans = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F residual = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F innovation = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F identity = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F KH = new DenseMatrix64F(0, 0);
 
    /**
     * Sets the provided matrix to a square identity matrix of the given size.
@@ -49,7 +25,7 @@ public class FilterMatrixOps
     * @param matrix (modified)
     * @param size is the the desired number of rows and columns for the matrix
     */
-   public static void setIdentity(DenseMatrix64F matrix, int size)
+   public void setIdentity(DenseMatrix64F matrix, int size)
    {
       matrix.reshape(size, size);
       CommonOps.setIdentity(matrix);
@@ -60,22 +36,20 @@ public class FilterMatrixOps
     * result = A * B * A'</br>
     * Note, that B must be square.
     */
-   private static void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
+   private void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
    {
-      DenseMatrix64F temp = tempLocal1.get();
-
-      temp.reshape(B.getNumRows(), A.getNumRows());
-      CommonOps.multTransB(B, A, temp);
+      BAtrans.reshape(B.getNumRows(), A.getNumRows());
+      CommonOps.multTransB(B, A, BAtrans);
 
       result.reshape(A.getNumRows(), A.getNumRows());
-      CommonOps.mult(A, temp, result);
+      CommonOps.mult(A, BAtrans, result);
    }
 
    /**
     * Sets the provided matrix to</br>
     * result = A * B * A' + C
     */
-   private static void computeABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   private void computeABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
    {
       computeABAtrans(result, A, B);
       CommonOps.add(result, C, result);
@@ -88,11 +62,9 @@ public class FilterMatrixOps
     *
     * @return whether the inversion succeeded
     */
-   private static boolean invertMatrix(DenseMatrix64F result, DenseMatrix64F A)
+   private boolean invertMatrix(DenseMatrix64F result, DenseMatrix64F A)
    {
-      LinearSolver<DenseMatrix64F> solver = solverLocal.get();
-      DenseMatrix64F temp = tempLocal1.get();
-      setIdentity(temp, A.getNumRows());
+      setIdentity(indentityToInvert, A.getNumRows());
 
       if (!solver.setA(A))
       {
@@ -101,7 +73,7 @@ public class FilterMatrixOps
       }
 
       result.reshape(A.getNumRows(), A.getNumCols());
-      solver.solve(temp, result);
+      solver.solve(indentityToInvert, result);
       return true;
    }
 
@@ -112,11 +84,10 @@ public class FilterMatrixOps
     *
     * @return whether the inversion succeeded
     */
-   private static boolean computeInverseOfABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   private boolean computeInverseOfABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
    {
-      DenseMatrix64F temp = tempLocal2.get();
-      computeABAtransPlusC(temp, A, B, C);
-      return invertMatrix(result, temp);
+      computeABAtransPlusC(ABAtransPlusC, A, B, C);
+      return invertMatrix(result, ABAtransPlusC);
    }
 
    /**
@@ -128,7 +99,7 @@ public class FilterMatrixOps
     * @param Pposterior is the previous error covariance
     * @param Q is the covariance matrix of the state evolution
     */
-   public static void predictErrorCovariance(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F Pposterior, DenseMatrix64F Q)
+   public void predictErrorCovariance(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F Pposterior, DenseMatrix64F Q)
    {
       computeABAtransPlusC(result, A, Pposterior, Q);
    }
@@ -144,21 +115,19 @@ public class FilterMatrixOps
     * @param H is the measurement jacobian
     * @param R is the measurement covariance
     */
-   public static boolean computeKalmanGain(DenseMatrix64F result, DenseMatrix64F P, DenseMatrix64F H, DenseMatrix64F R)
+   public boolean computeKalmanGain(DenseMatrix64F result, DenseMatrix64F P, DenseMatrix64F H, DenseMatrix64F R)
    {
-      DenseMatrix64F inv = tempLocal3.get();
-      if (!computeInverseOfABAtransPlusC(inv, H, P, R))
+      if (!computeInverseOfABAtransPlusC(inverse, H, P, R))
       {
          CommonOps.fill(result, 0.0);
          return false;
       }
 
-      DenseMatrix64F temp = tempLocal1.get();
-      temp.reshape(P.getNumRows(), H.getNumRows());
-      CommonOps.multTransB(P, H, temp);
+      PHtrans.reshape(P.getNumRows(), H.getNumRows());
+      CommonOps.multTransB(P, H, PHtrans);
 
       result.reshape(P.getNumRows(), R.getNumCols());
-      CommonOps.mult(temp, inv, result);
+      CommonOps.mult(PHtrans, inverse, result);
       return true;
    }
 
@@ -172,18 +141,15 @@ public class FilterMatrixOps
     * @param H is the measurement jacobian
     * @param xPrior is the state before the measurement update
     */
-   public static void updateState(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F z, DenseMatrix64F H, DenseMatrix64F xPrior)
+   public void updateState(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F z, DenseMatrix64F H, DenseMatrix64F xPrior)
    {
-      DenseMatrix64F tempResidual = tempLocal1.get();
-      DenseMatrix64F tempInnovation = tempLocal2.get();
-
-      tempResidual.reshape(z.getNumRows(), 1);
-      CommonOps.mult(H, xPrior, tempResidual);
-      CommonOps.subtract(z, tempResidual, tempResidual);
-      tempInnovation.reshape(xPrior.getNumRows(), 1);
-      CommonOps.mult(K, tempResidual, tempInnovation);
+      residual.reshape(z.getNumRows(), 1);
+      CommonOps.mult(H, xPrior, residual);
+      CommonOps.subtract(z, residual, residual);
+      innovation.reshape(xPrior.getNumRows(), 1);
+      CommonOps.mult(K, residual, innovation);
       result.reshape(xPrior.getNumRows(), 1);
-      CommonOps.add(xPrior, tempInnovation, result);
+      CommonOps.add(xPrior, innovation, result);
    }
 
    /**
@@ -195,16 +161,15 @@ public class FilterMatrixOps
     * @param H is the measurement jacobian
     * @param pPrior is the error covariance before the update
     */
-   public static void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F pPrior)
+   public void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F pPrior)
    {
-      DenseMatrix64F identity = tempLocal1.get();
       setIdentity(identity, pPrior.getNumRows());
-      DenseMatrix64F temp = tempLocal2.get();
 
-      temp.reshape(pPrior.getNumRows(), pPrior.getNumRows());
-      CommonOps.mult(K, H, temp);
+      KH.reshape(pPrior.getNumRows(), pPrior.getNumRows());
+      CommonOps.mult(K, H, KH);
 
-      CommonOps.subtract(identity, temp, temp);
-      CommonOps.mult(temp, pPrior, result);
+      result.reshape(pPrior.getNumRows(), pPrior.getNumRows());
+      CommonOps.subtract(identity, KH, KH);
+      CommonOps.mult(KH, pPrior, result);
    }
 }
