@@ -14,8 +14,7 @@ import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 
 public class FilterMatrixOpsTest
 {
-   // TODO: Revisit and see if this epsilon can be smaller!
-   private static final double EPSILON = 1.0e-10;
+   private static final double EPSILON = 1.0e-15;
 
    private final FilterMatrixOps filterMatrixOps = new FilterMatrixOps();
 
@@ -35,9 +34,9 @@ public class FilterMatrixOpsTest
       SimpleMatrix Psimple = new SimpleMatrix(P);
       SimpleMatrix Asimple = new SimpleMatrix(A);
       SimpleMatrix Qsimple = new SimpleMatrix(Q);
-      SimpleMatrix resultSimple = Asimple.mult(Psimple).mult(Asimple.transpose()).plus(Qsimple);
+      SimpleMatrix resultSimple = Asimple.mult(Psimple.mult(Asimple.transpose())).plus(Qsimple);
 
-      StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, EPSILON);
+      StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, 1.0e-20);
    }
 
    @Test
@@ -52,12 +51,12 @@ public class FilterMatrixOpsTest
       DenseMatrix64F R = createRandomMatrix(measurements, random, 0.0, 100.0);
       DenseMatrix64F result = new DenseMatrix64F(0, 0);
 
-      // result = P * H * inverse(H * P * H' + R)
+      // result = P * H' * inverse(H * P * H' + R)
       assertTrue(filterMatrixOps.computeKalmanGain(result, P, H, R));
       SimpleMatrix Psimple = new SimpleMatrix(P);
       SimpleMatrix Hsimple = new SimpleMatrix(H);
       SimpleMatrix Rsimple = new SimpleMatrix(R);
-      SimpleMatrix toInvert = Hsimple.mult(Psimple).mult(Hsimple.transpose()).plus(Rsimple);
+      SimpleMatrix toInvert = Hsimple.mult(Psimple.mult(Hsimple.transpose())).plus(Rsimple);
       if (toInvert.determinant() < 1.0e-2)
       {
          fail("Poorly conditioned matrix. Change random seed or skip.");

@@ -106,7 +106,7 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to</br>
-    * result = P * H * inverse(H * P * H' + R)</br>
+    * result = P * H' * inverse(H * P * H' + R)</br>
     * Will return whether the inversion succeeded.
     *
     * @return whether the inversion succeeded
