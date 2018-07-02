@@ -5,7 +5,7 @@ import java.util.List;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import us.ihmc.ekf.filter.state.EmptyState;
+import us.ihmc.ekf.filter.state.BiasState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -24,7 +24,7 @@ public class AngularVelocitySensor extends Sensor
 {
    private static final int measurementSize = 3;
 
-   private final EmptyState emptyState = new EmptyState();
+   private final BiasState biasState;
 
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
@@ -40,20 +40,23 @@ public class AngularVelocitySensor extends Sensor
 
    public AngularVelocitySensor(String bodyName, IMUDefinition imuDefinition, YoVariableRegistry registry)
    {
+      String prefix = State.stringToPrefix(bodyName) + "AngularVelocity";
+
       imuFrame = imuDefinition.getIMUFrame();
+      biasState = new BiasState(prefix, registry);
 
       RigidBody imuBody = imuDefinition.getRigidBody();
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(imuBody), imuBody);
       robotJacobian.setJacobianFrame(imuFrame);
       oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
 
-      angularVelocityCovariance = new DoubleParameter(State.stringToPrefix(bodyName) + "AngularVelocityCovariance", registry, 1.0);
+      angularVelocityCovariance = new DoubleParameter(prefix + "Covariance", registry, 1.0);
    }
 
    @Override
    public State getSensorState()
    {
-      return emptyState;
+      return biasState;
    }
 
    @Override
@@ -90,12 +93,19 @@ public class AngularVelocitySensor extends Sensor
       robotState.getStateVector(tempRobotState);
       CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
       CommonOps.subtract(measurement, residualToPack, residualToPack);
+
+      residualToPack.reshape(measurementSize, 1);
+      CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
+      residualToPack.set(0, measurement.get(0) - biasState.getBias(0) - residualToPack.get(0));
+      residualToPack.set(1, measurement.get(1) - biasState.getBias(1) - residualToPack.get(1));
+      residualToPack.set(2, measurement.get(2) - biasState.getBias(2) - residualToPack.get(2));
    }
 
    @Override
    public void getSensorJacobian(DenseMatrix64F jacobianToPack)
    {
-      jacobianToPack.reshape(0, 0);
+      jacobianToPack.reshape(biasState.getSize(), biasState.getSize());
+      CommonOps.setIdentity(jacobianToPack);
    }
 
    @Override
