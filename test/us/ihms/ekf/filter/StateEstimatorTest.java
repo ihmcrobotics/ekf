@@ -29,6 +29,7 @@ public class StateEstimatorTest
    @Test
    public void testStadyStateValues()
    {
+      YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
       Random random = new Random(358L);
       double dt = 0.001;
 
@@ -43,14 +44,13 @@ public class StateEstimatorTest
       for (int jointIdx = 0; jointIdx < jointNames.size(); jointIdx++)
       {
          String jointName = jointNames.get(jointIdx);
-         JointPositionSensor jointSensor = new JointPositionSensor(jointName);
+         JointPositionSensor jointSensor = new JointPositionSensor(jointName, registry);
          double jointPosition = EuclidCoreRandomTools.nextDouble(random);
          expectedState.set(3 * jointIdx, jointPosition);
          jointSensor.setJointPositionMeasurement(jointPosition);
          sensors.add(jointSensor);
       }
 
-      YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
       RobotState robotState = new RobotState(jointNames, dt, registry);
       StateEstimator stateEstimator = new StateEstimator(sensors, robotState, registry);
       new DefaultParameterReader().readParametersInRegistry(registry);

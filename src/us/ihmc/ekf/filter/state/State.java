@@ -41,7 +41,7 @@ public abstract class State
       }
    }
 
-   protected static String stringToPrefix(String string)
+   public static String stringToPrefix(String string)
    {
       return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, string);
    }

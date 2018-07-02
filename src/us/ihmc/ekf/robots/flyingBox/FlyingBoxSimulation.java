@@ -29,6 +29,7 @@ public class FlyingBoxSimulation
       EstimatorController estimatorController = new EstimatorController(sensorReader, fullRobotModel, estimatorDT);
       robot.setController(estimatorController, ticksPerEstimatorTick);
 
+      estimatorController.getYoVariableRegistry().addChild(sensorReader.getRegistry());
       InputStream parameterFile = getClass().getClassLoader().getResourceAsStream("parameters.xml");
       XmlParameterReader parameterReader = new XmlParameterReader(parameterFile);
       parameterReader.readParametersInRegistry(estimatorController.getYoVariableRegistry());

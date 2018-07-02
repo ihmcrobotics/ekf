@@ -5,7 +5,6 @@ import java.util.List;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -17,6 +16,9 @@ import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.IMUDefinition;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
+import us.ihmc.yoVariables.providers.DoubleProvider;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class AngularVelocitySensor extends Sensor
 {
@@ -29,13 +31,14 @@ public class AngularVelocitySensor extends Sensor
    private final List<OneDoFJoint> oneDofJoints;
 
    private final DenseMatrix64F measurement = new DenseMatrix64F(3, 1);
-   private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
 
    private final ReferenceFrame imuFrame;
 
    private final DenseMatrix64F tempRobotState = new DenseMatrix64F(1, 1);
 
-   public AngularVelocitySensor(IMUDefinition imuDefinition)
+   private final DoubleProvider angularVelocityCovariance;
+
+   public AngularVelocitySensor(String bodyName, IMUDefinition imuDefinition, YoVariableRegistry registry)
    {
       imuFrame = imuDefinition.getIMUFrame();
 
@@ -44,8 +47,7 @@ public class AngularVelocitySensor extends Sensor
       robotJacobian.setJacobianFrame(imuFrame);
       oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
 
-      CommonOps.setIdentity(R);
-      CommonOps.scale(Parameters.angularVelocitySensorCovariance, R);
+      angularVelocityCovariance = new DoubleParameter(State.stringToPrefix(bodyName) + "AngularVelocityCovariance", registry, 1.0);
    }
 
    @Override
@@ -99,7 +101,9 @@ public class AngularVelocitySensor extends Sensor
    @Override
    public void getRMatrix(DenseMatrix64F matrixToPack)
    {
-      matrixToPack.set(R);
+      matrixToPack.reshape(measurementSize, measurementSize);
+      CommonOps.setIdentity(matrixToPack);
+      CommonOps.scale(angularVelocityCovariance.getValue(), matrixToPack);
    }
 
    public void setAngularVelocityMeasurement(Vector3D measurement)

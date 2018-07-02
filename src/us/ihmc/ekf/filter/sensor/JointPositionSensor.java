@@ -3,11 +3,13 @@ package us.ihmc.ekf.filter.sensor;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.JointState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
+import us.ihmc.yoVariables.providers.DoubleProvider;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class JointPositionSensor extends Sensor
 {
@@ -16,14 +18,16 @@ public class JointPositionSensor extends Sensor
    private final EmptyState emptyState = new EmptyState();
 
    private double measurement = Double.NaN;
-   private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
 
    private final String jointName;
 
-   public JointPositionSensor(String jointName)
+   private final DoubleProvider jointPositionCovariance;
+
+   public JointPositionSensor(String jointName, YoVariableRegistry registry)
    {
       this.jointName = jointName;
-      R.set(0, 0, Parameters.jointPositionSensorCovariance);
+
+      jointPositionCovariance = new DoubleParameter(State.stringToPrefix(jointName) + "JointPositionCovariance", registry, 1.0);
    }
 
    public void setJointPositionMeasurement(double jointPosition)
@@ -64,6 +68,7 @@ public class JointPositionSensor extends Sensor
    @Override
    public void getRMatrix(DenseMatrix64F matrixToPack)
    {
-      matrixToPack.set(R);
+      matrixToPack.reshape(measurementSize, measurementSize);
+      matrixToPack.set(0, 0, jointPositionCovariance.getValue());
    }
 }

@@ -16,9 +16,12 @@ import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.PinJoint;
 import us.ihmc.simulationconstructionset.RobotFromDescription;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class SimulationSensorReader implements RobotSensorReader
 {
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+
    private final List<Sensor> allSensors = new ArrayList<>();
    private final List<ImmutablePair<PinJoint, JointPositionSensor>> jointPositionSensors = new ArrayList<>();
    private final List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors = new ArrayList<>();
@@ -26,17 +29,17 @@ public class SimulationSensorReader implements RobotSensorReader
 
    public SimulationSensorReader(RobotFromDescription robot, FullRobotModel fullRobotModel, double dt)
    {
-      addJointPositionSensorsRecursive(robot.getRootJoints().get(0), jointPositionSensors);
+      addJointPositionSensorsRecursive(robot.getRootJoints().get(0), jointPositionSensors, registry);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
 
-      fullRobotModel.getImuDefinitions().stream().forEach(imu -> addIMUSensor(dt, imu, robot, angularVelocitySensors, linearAccelerationSensors));
+      fullRobotModel.getImuDefinitions().stream().forEach(imu -> addIMUSensor(dt, imu, robot, angularVelocitySensors, linearAccelerationSensors, registry));
       angularVelocitySensors.stream().forEach(s -> allSensors.add(s.getRight()));
       linearAccelerationSensors.stream().forEach(s -> allSensors.add(s.getRight()));
    }
 
    private static void addIMUSensor(double dt, IMUDefinition imu, RobotFromDescription robot,
                                     List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors,
-                                    List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors)
+                                    List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors, YoVariableRegistry registry)
    {
       String imuName = imu.getName();
       IMUMount imuMount = robot.getIMUMount(imuName);
@@ -46,22 +49,22 @@ public class SimulationSensorReader implements RobotSensorReader
          throw new RuntimeException("Could not find IMU '" + imuName + "' in robot.");
       }
 
-      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(imu);
+      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(imuName, imu, registry);
       angularVelocitySensors.add(new ImmutablePair<IMUMount, AngularVelocitySensor>(imuMount, angularVelocitySensor));
 
-      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(dt, imu);
+      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(imuName, dt, imu, registry);
       linearAccelerationSensors.add(new ImmutablePair<>(imuMount, linearAccelerationSensor));
 
       PrintTools.info("Created IMU Sensor '" + imuName + "'");
    }
 
-   private static void addJointPositionSensorsRecursive(Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors)
+   private static void addJointPositionSensorsRecursive(Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors, YoVariableRegistry registry)
    {
       if (joint instanceof PinJoint)
       {
          PinJoint pinJoint = (PinJoint) joint;
          String jointName = pinJoint.getName();
-         JointPositionSensor sensor = new JointPositionSensor(jointName);
+         JointPositionSensor sensor = new JointPositionSensor(jointName, registry);
          sensors.add(new ImmutablePair<>(pinJoint, sensor));
          PrintTools.info("Created joint position sensor for '" + jointName + "'");
       }
@@ -72,7 +75,7 @@ public class SimulationSensorReader implements RobotSensorReader
 
       for (Joint child : joint.getChildrenJoints())
       {
-         addJointPositionSensorsRecursive(child, sensors);
+         addJointPositionSensorsRecursive(child, sensors, registry);
       }
    }
 
@@ -109,6 +112,11 @@ public class SimulationSensorReader implements RobotSensorReader
    public List<Sensor> getSensors()
    {
       return allSensors;
+   }
+
+   public YoVariableRegistry getRegistry()
+   {
+      return registry;
    }
 
 }

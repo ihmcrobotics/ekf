@@ -6,7 +6,6 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
 
-import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -20,6 +19,9 @@ import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.robotics.sensors.IMUDefinition;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
+import us.ihmc.yoVariables.providers.DoubleProvider;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class LinearAccelerationSensor extends Sensor
 {
@@ -32,7 +34,6 @@ public class LinearAccelerationSensor extends Sensor
    private final List<OneDoFJoint> oneDofJoints;
 
    private final FrameVector3D measurement = new FrameVector3D();
-   private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
 
    private final ReferenceFrame imuFrame;
 
@@ -52,7 +53,9 @@ public class LinearAccelerationSensor extends Sensor
    private final Vector3D linearImuVelocity = new Vector3D();
    private final Vector3D centrifugalAcceleration = new Vector3D();
 
-   public LinearAccelerationSensor(double dt, IMUDefinition imuDefinition)
+   private final DoubleProvider linearAccelerationCovariance;
+
+   public LinearAccelerationSensor(String bodyName, double dt, IMUDefinition imuDefinition, YoVariableRegistry registry)
    {
       this.dt = dt;
 
@@ -64,8 +67,7 @@ public class LinearAccelerationSensor extends Sensor
       oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       jacobianDot.reshape(Twist.SIZE, robotJacobian.getNumberOfDegreesOfFreedom());
 
-      CommonOps.setIdentity(R);
-      CommonOps.scale(Parameters.linearAccelerationSensorCovariance, R);
+      linearAccelerationCovariance = new DoubleParameter(State.stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
    }
 
    @Override
@@ -89,14 +91,14 @@ public class LinearAccelerationSensor extends Sensor
       robotJacobian.computeJacobianMatrix();
       robotJacobian.getJacobianMatrix(jacobianMatrix);
       int jointOffset = robotState.isFloating() ? Twist.SIZE : 0;
-      int angularVelocityIndex = robotState.findAngularVelocityIndex();
-      int linearVelocityIndex = robotState.findLinearVelocityIndex();
 
       // Extract the qd vector for to correct for the centrifugal acceleration by computing omega x v
       robotState.getStateVector(tempRobotState);
       qd.reshape(robotJacobian.getNumberOfDegreesOfFreedom(), 1);
       if (robotState.isFloating())
       {
+         int angularVelocityIndex = robotState.findAngularVelocityIndex();
+         int linearVelocityIndex = robotState.findLinearVelocityIndex();
          CommonOps.extract(tempRobotState, angularVelocityIndex, angularVelocityIndex + 3, 0, 1, qd, 0, 0);
          CommonOps.extract(tempRobotState, linearVelocityIndex, linearVelocityIndex + 3, 0, 1, qd, 3, 0);
       }
@@ -140,6 +142,8 @@ public class LinearAccelerationSensor extends Sensor
          CommonOps.scale(1.0 / dt, jacobianDot);
          if (robotState.isFloating())
          {
+            int angularVelocityIndex = robotState.findAngularVelocityIndex();
+            int linearVelocityIndex = robotState.findLinearVelocityIndex();
             CommonOps.extract(jacobianDot, 3, 6, 0, 3, jacobianToPack, 0, angularVelocityIndex);
             CommonOps.extract(jacobianDot, 3, 6, 3, 6, jacobianToPack, 0, linearVelocityIndex);
          }
@@ -176,6 +180,8 @@ public class LinearAccelerationSensor extends Sensor
       CommonOps.fill(crossProductJacobian, 0.0);
       if (robotState.isFloating())
       {
+         int angularVelocityIndex = robotState.findAngularVelocityIndex();
+         int linearVelocityIndex = robotState.findLinearVelocityIndex();
          CommonOps.extract(crossProductLinearization, 0, 3, 0, 3, crossProductJacobian, 0, angularVelocityIndex);
          CommonOps.extract(crossProductLinearization, 0, 3, 3, 6, crossProductJacobian, 0, linearVelocityIndex);
       }
@@ -198,7 +204,9 @@ public class LinearAccelerationSensor extends Sensor
    @Override
    public void getRMatrix(DenseMatrix64F matrixToPack)
    {
-      matrixToPack.set(R);
+      matrixToPack.reshape(measurementSize, measurementSize);
+      CommonOps.setIdentity(matrixToPack);
+      CommonOps.scale(linearAccelerationCovariance.getValue(), matrixToPack);
    }
 
    public void setLinearAccelerationMeasurement(Vector3D measurement)

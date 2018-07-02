@@ -32,6 +32,7 @@ public class SimpleArmSimulation
       SimpleArmController motionController = new SimpleArmController(robot);
       robot.setController(motionController);
 
+      estimatorController.getYoVariableRegistry().addChild(sensorReader.getRegistry());
       InputStream parameterFile = getClass().getClassLoader().getResourceAsStream("parameters.xml");
       XmlParameterReader parameterReader = new XmlParameterReader(parameterFile);
       parameterReader.readParametersInRegistry(estimatorController.getYoVariableRegistry());
