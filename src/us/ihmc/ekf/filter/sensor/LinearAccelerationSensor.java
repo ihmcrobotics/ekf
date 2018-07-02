@@ -191,8 +191,7 @@ public class LinearAccelerationSensor extends Sensor
          int jointIndexInJacobian = jointIndex + jointOffset;
          CommonOps.extract(crossProductLinearization, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, crossProductJacobian, 0, jointVelocityIndex);
       }
-      // TODO: figure out why it missbehaves on impact.
-//      CommonOps.add(jacobianToPack, crossProductJacobian, jacobianToPack);
+      CommonOps.add(jacobianToPack, crossProductJacobian, jacobianToPack);
    }
 
    @Override
