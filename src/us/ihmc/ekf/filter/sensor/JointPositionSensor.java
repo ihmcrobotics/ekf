@@ -5,6 +5,7 @@ import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
+import us.ihmc.ekf.filter.state.JointState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
 
@@ -14,7 +15,7 @@ public class JointPositionSensor extends Sensor
 
    private final EmptyState emptyState = new EmptyState();
 
-   private final DenseMatrix64F measurement = new DenseMatrix64F(measurementSize, 1);
+   private double measurement = Double.NaN;
    private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
 
    private final String jointName;
@@ -27,7 +28,7 @@ public class JointPositionSensor extends Sensor
 
    public void setJointPositionMeasurement(double jointPosition)
    {
-      measurement.set(0, jointPosition);
+      measurement = jointPosition;
    }
 
    @Override
@@ -37,23 +38,21 @@ public class JointPositionSensor extends Sensor
    }
 
    @Override
-   public void getMeasurement(DenseMatrix64F vectorToPack)
+   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
-      vectorToPack.set(measurement);
+      jacobianToPack.reshape(measurementSize, robotState.getSize());
+      CommonOps.fill(jacobianToPack, 0.0);
+      jacobianToPack.set(0, robotState.findJointPositionIndex(jointName), 1.0);
+
+      residualToPack.reshape(measurementSize, 1);
+      JointState jointState = robotState.getJointState(jointName);
+      residualToPack.set(0, measurement - jointState.getQ());
    }
 
    @Override
-   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack, RobotState robotState)
+   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
    {
-      matrixToPack.reshape(measurementSize, robotState.getSize());
-      CommonOps.fill(matrixToPack, 0.0);
-      matrixToPack.set(0, robotState.findJointPositionIndex(jointName), 1.0);
-   }
-
-   @Override
-   public void getMeasurementJacobianSensorPart(DenseMatrix64F matrixToPack)
-   {
-      matrixToPack.reshape(0, 0);
+      jacobianToPack.reshape(0, 0);
    }
 
    @Override

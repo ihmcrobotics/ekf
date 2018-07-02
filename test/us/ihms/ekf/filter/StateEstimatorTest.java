@@ -80,7 +80,7 @@ public class StateEstimatorTest
       DenseMatrix64F denseR = new DenseMatrix64F(0, 0);
       state.getAMatrix(denseA);
       state.getQMatrix(denseQ);
-      sensor.assembleFullJacobian(denseH, robotState);
+      sensor.assembleFullJacobian(denseH, null, robotState);
       sensor.getRMatrix(denseR);
 
       // Now assert that the covariance matches the steady state as the matrixes are not

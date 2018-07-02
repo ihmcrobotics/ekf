@@ -43,6 +43,9 @@ public class LinearAccelerationSensor extends Sensor
    private final DenseMatrix64F jacobianDot = new DenseMatrix64F(1, 1);
    private boolean hasBeenCalled = false;
 
+   private final DenseMatrix64F tempMeasurement = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
+
    public LinearAccelerationSensor(double dt, IMUDefinition imuDefinition)
    {
       this.dt = dt;
@@ -71,8 +74,7 @@ public class LinearAccelerationSensor extends Sensor
       return measurementSize;
    }
 
-   @Override
-   public void getMeasurement(DenseMatrix64F vectorToPack)
+   private void getMeasurement(DenseMatrix64F vectorToPack)
    {
       // The measurement needs to be corrected by subtracting gravity.
       adjustedMeasurement.setIncludingFrame(measurement);
@@ -96,10 +98,10 @@ public class LinearAccelerationSensor extends Sensor
    }
 
    @Override
-   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack, RobotState robotState)
+   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
-      matrixToPack.reshape(measurementSize, robotState.getSize());
-      CommonOps.fill(matrixToPack, 0.0);
+      jacobianToPack.reshape(measurementSize, robotState.getSize());
+      CommonOps.fill(jacobianToPack, 0.0);
 
       robotJacobian.computeJacobianMatrix();
       robotJacobian.getJacobianMatrix(jacobianMatrix);
@@ -108,15 +110,15 @@ public class LinearAccelerationSensor extends Sensor
       int jointOffset = 0;
       if (robotState.isFloating())
       {
-         CommonOps.extract(jacobianMatrix, 3, 6, 0, 3, matrixToPack, 0, robotState.findAngularAccelerationIndex());
-         CommonOps.extract(jacobianMatrix, 3, 6, 3, 6, matrixToPack, 0, robotState.findLinearAccelerationIndex());
+         CommonOps.extract(jacobianMatrix, 3, 6, 0, 3, jacobianToPack, 0, robotState.findAngularAccelerationIndex());
+         CommonOps.extract(jacobianMatrix, 3, 6, 3, 6, jacobianToPack, 0, robotState.findLinearAccelerationIndex());
          jointOffset = Twist.SIZE;
       }
       for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
       {
          int jointAccelerationIndex = robotState.findJointAccelerationIndex(oneDofJoints.get(jointIndex).getName());
          int jointIndexInJacobian = jointIndex + jointOffset;
-         CommonOps.extract(jacobianMatrix, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointAccelerationIndex);
+         CommonOps.extract(jacobianMatrix, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, jacobianToPack, 0, jointAccelerationIndex);
       }
 
       // The first time we are computing the jacobian we can not yet numerically differentiate. Instead we subtract the convective term from the measurement.
@@ -132,29 +134,37 @@ public class LinearAccelerationSensor extends Sensor
          previousJacobianMatrix.set(jacobianMatrix);
          return;
       }
-
-      // Here we are doing a numerical computation of J_dot_r = (J_r - J_r_prev) / dt
-      CommonOps.subtract(jacobianMatrix, previousJacobianMatrix, jacobianDot);
-      CommonOps.scale(1.0 / dt, jacobianDot);
-      if (robotState.isFloating())
+      else
       {
-         CommonOps.extract(jacobianDot, 3, 6, 0, 3, matrixToPack, 0, robotState.findAngularVelocityIndex());
-         CommonOps.extract(jacobianDot, 3, 6, 3, 6, matrixToPack, 0, robotState.findLinearVelocityIndex());
-      }
-      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
-      {
-         int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
-         int jointIndexInJacobian = jointIndex + jointOffset;
-         CommonOps.extract(jacobianDot, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointVelocityIndex);
+         // Here we are doing a numerical computation of J_dot_r = (J_r - J_r_prev) / dt
+         CommonOps.subtract(jacobianMatrix, previousJacobianMatrix, jacobianDot);
+         CommonOps.scale(1.0 / dt, jacobianDot);
+         if (robotState.isFloating())
+         {
+            CommonOps.extract(jacobianDot, 3, 6, 0, 3, jacobianToPack, 0, robotState.findAngularVelocityIndex());
+            CommonOps.extract(jacobianDot, 3, 6, 3, 6, jacobianToPack, 0, robotState.findLinearVelocityIndex());
+         }
+         for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
+         {
+            int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
+            int jointIndexInJacobian = jointIndex + jointOffset;
+            CommonOps.extract(jacobianDot, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, jacobianToPack, 0, jointVelocityIndex);
+         }
+
+         previousJacobianMatrix.set(jacobianMatrix);
       }
 
-      previousJacobianMatrix.set(jacobianMatrix);
+      residualToPack.reshape(measurementSize, 1);
+      robotState.getStateVector(tempRobotState);
+      getMeasurement(tempMeasurement);
+      CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
+      CommonOps.subtract(tempMeasurement, residualToPack, residualToPack);
    }
 
    @Override
-   public void getMeasurementJacobianSensorPart(DenseMatrix64F matrixToPack)
+   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
    {
-      matrixToPack.reshape(0, 0);
+      jacobianToPack.reshape(0, 0);
    }
 
    @Override

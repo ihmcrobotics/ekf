@@ -42,7 +42,7 @@ public class StateEstimator
    private final DenseMatrix64F H = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F R = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F K = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F z = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F residual = new DenseMatrix64F(0, 0);
 
    private final DenseMatrix64F Xprior = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F Pprior = new DenseMatrix64F(0, 0);
@@ -57,13 +57,15 @@ public class StateEstimator
       state.predict();
       state.getStateVector(Xprior);
 
-      // Get linearized model and predict error covariance.
+      // Get linearized plant model and predict error covariance.
       state.getAMatrix(A);
       state.getQMatrix(Q);
       filterMatrixOps.predictErrorCovariance(Pprior, A, Pposterior, Q);
 
-      // Compute the kalman gain.
-      sensor.assembleFullJacobian(H, robotState);
+      // From the sensor get the linearized measurement model and the measurement residual
+      sensor.assembleFullJacobian(H, residual, robotState);
+
+      // Compute the kalman gain and correct the state
       sensor.getRMatrix(R);
       if (!filterMatrixOps.computeKalmanGain(K, Pprior, H, R))
       {
@@ -71,16 +73,12 @@ public class StateEstimator
          timer.stopMeasurement();
          return;
       }
-
-      // Compute the residual or the measurement error.
-      // TODO: here a non-linear measurement prediction could be used.
-      sensor.getMeasurement(z);
-      filterMatrixOps.updateState(Xposterior, K, z, H, Xprior);
+      filterMatrixOps.updateState(Xposterior, K, residual, Xprior);
 
       // Update the error covariance.
       filterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
 
-      // Update the state after the update.
+      // Update the state data structure after the correction step.
       state.setStateVector(Xposterior);
 
       timer.stopMeasurement();

@@ -14,7 +14,6 @@ public class FilterMatrixOps
    private final DenseMatrix64F ABAtransPlusC = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F inverse = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F PHtrans = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F residual = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F innovation = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F identity = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F KH = new DenseMatrix64F(0, 0);
@@ -133,19 +132,15 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to</br>
-    * result = xPrior + K * (z - H * xPrior)
+    * result = xPrior + K * (z - h(xPrior)) = xPrior + K * residual
     *
     * @param result (modified)
     * @param K is the kalman gain
-    * @param z is the measurement
-    * @param H is the measurement jacobian
+    * @param residual is the measurement residual
     * @param xPrior is the state before the measurement update
     */
-   public void updateState(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F z, DenseMatrix64F H, DenseMatrix64F xPrior)
+   public void updateState(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F residual, DenseMatrix64F xPrior)
    {
-      residual.reshape(z.getNumRows(), 1);
-      CommonOps.mult(H, xPrior, residual);
-      CommonOps.subtract(z, residual, residual);
       innovation.reshape(xPrior.getNumRows(), 1);
       CommonOps.mult(K, residual, innovation);
       result.reshape(xPrior.getNumRows(), 1);

@@ -1,6 +1,5 @@
 package us.ihmc.ekf.filter.state;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,7 @@ public class RobotState extends ComposedState
    private final Twist rootTwist;
 
    private final PoseState poseState;
-   private final List<JointState> jointStates = new ArrayList<>();
+   private final Map<String, JointState> jointStatesByName = new HashMap<>();
    private final Map<String, MutableInt> jointIndecesByName = new HashMap<>();
 
    public RobotState(FullRobotModel fullRobotModel, double dt, YoVariableRegistry registry)
@@ -66,7 +65,7 @@ public class RobotState extends ComposedState
          JointState jointState = new JointState(joint.getName(), dt, registry);
          jointState.initialize(joint.getQ(), joint.getQd());
          addState(jointState);
-         jointStates.add(jointState);
+         jointStatesByName.put(joint.getName(), jointState);
          jointIndecesByName.put(joint.getName(), jointStateStartIndex);
       }
    }
@@ -83,9 +82,14 @@ public class RobotState extends ComposedState
          MutableInt jointStateStartIndex = new MutableInt(getSize());
          JointState jointState = new JointState(jointName, dt, registry);
          addState(jointState);
-         jointStates.add(jointState);
+         jointStatesByName.put(jointName, jointState);
          jointIndecesByName.put(jointName, jointStateStartIndex);
       }
+   }
+
+   public JointState getJointState(String jointName)
+   {
+      return jointStatesByName.get(jointName);
    }
 
    public int findJointPositionIndex(String jointName)
@@ -169,14 +173,8 @@ public class RobotState extends ComposedState
       OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
       for (int i = 0; i < bodyJoints.length; i++)
       {
-         JointState jointState = jointStates.get(i);
          OneDoFJoint joint = bodyJoints[i];
-
-         if (!joint.getName().equals(jointState.getJointName()))
-         {
-            throw new RuntimeException("The joint ordering got messed up.");
-         }
-
+         JointState jointState = jointStatesByName.get(joint.getName());
          joint.setQ(jointState.getQ());
          joint.setQd(jointState.getQd());
       }

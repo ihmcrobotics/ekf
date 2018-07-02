@@ -75,19 +75,17 @@ public class FilterMatrixOpsTest
       int measurements = 4;
       Random random = new Random(2359L);
 
-      DenseMatrix64F H = createRandomMatrix(measurements, size, random, -1.0, 1.0);
+      DenseMatrix64F residual = createRandomMatrix(measurements, 1, random, -1.0, 1.0);
       DenseMatrix64F K = createRandomMatrix(size, measurements, random, -1.0, 1.0);
       DenseMatrix64F x = createRandomMatrix(size, 1, random, -1.0, 1.0);
-      DenseMatrix64F z = createRandomMatrix(measurements, 1, random, -1.0, 1.0);
       DenseMatrix64F result = new DenseMatrix64F(0, 0);
 
-      // result = x + K * (z - H * x)
-      filterMatrixOps.updateState(result, K, z, H, x);
-      SimpleMatrix Hsimple = new SimpleMatrix(H);
+      // result = x + K * residual
+      filterMatrixOps.updateState(result, K, residual, x);
+      SimpleMatrix residualSimple = new SimpleMatrix(residual);
       SimpleMatrix Ksimple = new SimpleMatrix(K);
       SimpleMatrix xSimple = new SimpleMatrix(x);
-      SimpleMatrix zSimple = new SimpleMatrix(z);
-      SimpleMatrix resultSimple = xSimple.plus(Ksimple.mult(zSimple.minus(Hsimple.mult(xSimple))));
+      SimpleMatrix resultSimple = xSimple.plus(Ksimple.mult(residualSimple));
 
       StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, EPSILON);
    }

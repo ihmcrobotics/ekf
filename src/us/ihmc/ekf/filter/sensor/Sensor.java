@@ -11,11 +11,9 @@ public abstract class Sensor
 
    public abstract int getMeasurementSize();
 
-   public abstract void getMeasurement(DenseMatrix64F vectorToPack);
+   public abstract void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState);
 
-   public abstract void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack, RobotState robotState);
-
-   public abstract void getMeasurementJacobianSensorPart(DenseMatrix64F matrixToPack);
+   public abstract void getSensorJacobian(DenseMatrix64F jacobianToPack);
 
    /**
     * Get the covariance matrix of the measurement.

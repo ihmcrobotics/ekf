@@ -9,7 +9,6 @@ import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
@@ -29,10 +28,12 @@ public class AngularVelocitySensor extends Sensor
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
    private final List<OneDoFJoint> oneDofJoints;
 
-   private final FrameVector3D measurement = new FrameVector3D();
+   private final DenseMatrix64F measurement = new DenseMatrix64F(3, 1);
    private final DenseMatrix64F R = new DenseMatrix64F(measurementSize, measurementSize);
 
    private final ReferenceFrame imuFrame;
+
+   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(1, 1);
 
    public AngularVelocitySensor(IMUDefinition imuDefinition)
    {
@@ -60,17 +61,10 @@ public class AngularVelocitySensor extends Sensor
    }
 
    @Override
-   public void getMeasurement(DenseMatrix64F vectorToPack)
+   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
-      vectorToPack.reshape(measurementSize, 1);
-      measurement.get(vectorToPack);
-   }
-
-   @Override
-   public void getMeasurementJacobianRobotPart(DenseMatrix64F matrixToPack, RobotState robotState)
-   {
-      matrixToPack.reshape(measurementSize, robotState.getSize());
-      CommonOps.fill(matrixToPack, 0.0);
+      jacobianToPack.reshape(measurementSize, robotState.getSize());
+      CommonOps.fill(jacobianToPack, 0.0);
 
       robotJacobian.computeJacobianMatrix();
       robotJacobian.getJacobianMatrix(jacobianMatrix);
@@ -79,22 +73,27 @@ public class AngularVelocitySensor extends Sensor
       int jointOffset = 0;
       if (robotState.isFloating())
       {
-         CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, matrixToPack, 0, robotState.findAngularVelocityIndex());
-         CommonOps.extract(jacobianMatrix, 0, 3, 3, 6, matrixToPack, 0, robotState.findLinearVelocityIndex());
+         CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, jacobianToPack, 0, robotState.findAngularVelocityIndex());
+         CommonOps.extract(jacobianMatrix, 0, 3, 3, 6, jacobianToPack, 0, robotState.findLinearVelocityIndex());
          jointOffset = Twist.SIZE;
       }
       for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
       {
          int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
          int jointIndexInJacobian = jointIndex + jointOffset;
-         CommonOps.extract(jacobianMatrix, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, matrixToPack, 0, jointVelocityIndex);
+         CommonOps.extract(jacobianMatrix, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, jacobianToPack, 0, jointVelocityIndex);
       }
+
+      residualToPack.reshape(measurementSize, 1);
+      robotState.getStateVector(tempRobotState);
+      CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
+      CommonOps.subtract(measurement, residualToPack, residualToPack);
    }
 
    @Override
-   public void getMeasurementJacobianSensorPart(DenseMatrix64F matrixToPack)
+   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
    {
-      matrixToPack.reshape(0, 0);
+      jacobianToPack.reshape(0, 0);
    }
 
    @Override
@@ -105,6 +104,6 @@ public class AngularVelocitySensor extends Sensor
 
    public void setAngularVelocityMeasurement(Vector3D measurement)
    {
-      this.measurement.setIncludingFrame(imuFrame, measurement);
+      measurement.get(this.measurement);
    }
 }
