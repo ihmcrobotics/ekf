@@ -19,6 +19,8 @@ import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.yoVariables.parameters.DefaultParameterReader;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class PoseStateTest extends AbstractStateTest
 {
@@ -33,8 +35,9 @@ public class PoseStateTest extends AbstractStateTest
       Twist expectedTwist = new Twist(bodyFrame, bodyFrame.getParent(), bodyFrame);
       expectedTwist.setAngularPart(EuclidCoreRandomTools.nextVector3D(random));
       expectedTwist.setLinearPart(EuclidCoreRandomTools.nextVector3D(random));
+      YoVariableRegistry registry = new YoVariableRegistry("Test");
 
-      PoseState state = new PoseState(random.nextDouble(), bodyFrame);
+      PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, registry);
       state.initialize(expectedTransform, expectedTwist);
 
       RigidBodyTransform actualTransform = new RigidBodyTransform();
@@ -65,9 +68,10 @@ public class PoseStateTest extends AbstractStateTest
    public void testStateVector()
    {
       Random random = new Random(4922L);
+
       for (int test = 0; test < 1000; test++)
       {
-         State state = createState(random);
+         State state = createState(random, new YoVariableRegistry("Test"));
          DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
          {
@@ -103,7 +107,7 @@ public class PoseStateTest extends AbstractStateTest
 
       for (int test = 0; test < 10000; test++)
       {
-         PoseState state = new PoseState(random.nextDouble(), bodyFrame);
+         PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, new YoVariableRegistry("Test"));
 
          DenseMatrix64F initialState = new DenseMatrix64F(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
@@ -160,13 +164,11 @@ public class PoseStateTest extends AbstractStateTest
    }
 
    @Override
-   public State createState(Random random)
+   public State createState(Random random, YoVariableRegistry registry)
    {
       ReferenceFrame bodyFrame = EuclidFrameRandomTools.nextReferenceFrame(random);
-      return new PoseState(random.nextDouble(), bodyFrame);
-   }
-
-   public static void main(String[] args)
-   {
+      PoseState poseState = new PoseState("root", random.nextDouble(), bodyFrame, registry);
+      new DefaultParameterReader().readParametersInRegistry(registry);
+      return poseState;
    }
 }

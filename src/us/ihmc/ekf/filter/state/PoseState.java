@@ -3,7 +3,6 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import us.ihmc.ekf.filter.Parameters;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
@@ -18,6 +17,9 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
+import us.ihmc.yoVariables.providers.DoubleProvider;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 /**
  * An implementation of the {@link State} interface for an EKF.
@@ -69,13 +71,19 @@ public class PoseState extends State
 
    private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
 
+   private final DoubleProvider angularAccelerationCovariance;
+   private final DoubleProvider linearAccelerationCovariance;
+
    private final double dt;
    private final ReferenceFrame bodyFrame;
 
-   public PoseState(double dt, ReferenceFrame bodyFrame)
+   public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, YoVariableRegistry registry)
    {
       this.dt = dt;
       this.bodyFrame = bodyFrame;
+
+      angularAccelerationCovariance = new DoubleParameter(stringToPrefix(bodyName) + "AngularAccelerationCovariance", registry, 1.0);
+      linearAccelerationCovariance = new DoubleParameter(stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
    }
 
    public void initialize(RigidBodyTransform transform, Twist twist)
@@ -192,13 +200,13 @@ public class PoseState extends State
       matrixToPack.reshape(size, size);
       CommonOps.fill(matrixToPack, 0.0);
 
-      matrixToPack.set(angularAccelerationStart + 0, angularAccelerationStart + 0, Parameters.orientationModelAccelerationCovariance);
-      matrixToPack.set(angularAccelerationStart + 1, angularAccelerationStart + 1, Parameters.orientationModelAccelerationCovariance);
-      matrixToPack.set(angularAccelerationStart + 2, angularAccelerationStart + 2, Parameters.orientationModelAccelerationCovariance);
+      matrixToPack.set(angularAccelerationStart + 0, angularAccelerationStart + 0, angularAccelerationCovariance.getValue());
+      matrixToPack.set(angularAccelerationStart + 1, angularAccelerationStart + 1, angularAccelerationCovariance.getValue());
+      matrixToPack.set(angularAccelerationStart + 2, angularAccelerationStart + 2, angularAccelerationCovariance.getValue());
 
-      matrixToPack.set(linearAccelerationStart + 0, linearAccelerationStart + 0, Parameters.positionModelAccelerationCovariance);
-      matrixToPack.set(linearAccelerationStart + 1, linearAccelerationStart + 1, Parameters.positionModelAccelerationCovariance);
-      matrixToPack.set(linearAccelerationStart + 2, linearAccelerationStart + 2, Parameters.positionModelAccelerationCovariance);
+      matrixToPack.set(linearAccelerationStart + 0, linearAccelerationStart + 0, linearAccelerationCovariance.getValue());
+      matrixToPack.set(linearAccelerationStart + 1, linearAccelerationStart + 1, linearAccelerationCovariance.getValue());
+      matrixToPack.set(linearAccelerationStart + 2, linearAccelerationStart + 2, linearAccelerationCovariance.getValue());
    }
 
    public void getOrientation(FrameQuaternion orientationToPack)

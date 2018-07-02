@@ -11,6 +11,8 @@ import us.ihmc.ekf.filter.state.JointState;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.robotics.dataStructures.Polynomial;
+import us.ihmc.yoVariables.parameters.DefaultParameterReader;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class JointStateTest extends AbstractStateTest
 {
@@ -23,7 +25,7 @@ public class JointStateTest extends AbstractStateTest
       double qExpected = random.nextDouble();
       double qdExpected = random.nextDouble();
 
-      JointState state = new JointState("TestJoint", Double.NaN);
+      JointState state = new JointState("TestJoint", Double.NaN, new YoVariableRegistry("TestRegistry"));
       state.initialize(qExpected, qdExpected);
 
       Assert.assertEquals(qExpected, state.getQ(), Double.MIN_VALUE);
@@ -35,9 +37,10 @@ public class JointStateTest extends AbstractStateTest
    public void testStateVector()
    {
       Random random = new Random(4922L);
+
       for (int test = 0; test < 1000; test++)
       {
-         State state = createState(random);
+         State state = createState(random, new YoVariableRegistry("Test"));
          DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
          {
@@ -59,7 +62,7 @@ public class JointStateTest extends AbstractStateTest
    public void testGetters()
    {
       Random random = new Random(4922L);
-      JointState state = new JointState("TestJoint", Double.NaN);
+      JointState state = new JointState("TestJoint", Double.NaN, new YoVariableRegistry("TestRegistry"));
       DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
       for (int i = 0; i < state.getSize(); i++)
       {
@@ -87,7 +90,7 @@ public class JointStateTest extends AbstractStateTest
          Polynomial polynomial = new Polynomial(c0, c1, c2);
          double t0 = EuclidCoreRandomTools.nextDouble(random, 10.0);
          double dt = EuclidCoreRandomTools.nextDouble(random, 1.0);
-         JointState state = new JointState("TestJoint", dt);
+         JointState state = new JointState("TestJoint", dt, new YoVariableRegistry("TestRegistry"));
 
          DenseMatrix64F stateVector = new DenseMatrix64F(state.getSize(), 1);
          stateVector.set(0, polynomial.evaluate(t0));
@@ -112,7 +115,7 @@ public class JointStateTest extends AbstractStateTest
 
       for (int test = 0; test < 10000; test++)
       {
-         State state = createState(random);
+         State state = createState(random, new YoVariableRegistry("Test"));
 
          DenseMatrix64F initialState = new DenseMatrix64F(state.getSize(), 1);
          initialState.set(0, EuclidCoreRandomTools.nextDouble(random, 10.0));
@@ -138,8 +141,10 @@ public class JointStateTest extends AbstractStateTest
    }
 
    @Override
-   public State createState(Random random)
+   public State createState(Random random, YoVariableRegistry registry)
    {
-      return new JointState("TestJointState", random.nextDouble());
+      JointState jointState = new JointState("Joint", random.nextDouble(), registry);
+      new DefaultParameterReader().readParametersInRegistry(registry);
+      return jointState;
    }
 }

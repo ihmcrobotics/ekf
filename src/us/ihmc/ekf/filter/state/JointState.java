@@ -3,7 +3,9 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import us.ihmc.ekf.filter.Parameters;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
+import us.ihmc.yoVariables.providers.DoubleProvider;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class JointState extends State
 {
@@ -14,9 +16,10 @@ public class JointState extends State
    private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
    private final DenseMatrix64F tempStateVector = new DenseMatrix64F(size, 1);
    private final DenseMatrix64F A = new DenseMatrix64F(size, size);
-   private final DenseMatrix64F Q = new DenseMatrix64F(size, size);
 
-   public JointState(String jointName, double dt)
+   private final DoubleProvider accelerationCovariance;
+
+   public JointState(String jointName, double dt, YoVariableRegistry registry)
    {
       this.jointName = jointName;
 
@@ -25,8 +28,7 @@ public class JointState extends State
       A.set(0, 2, 0.5 * dt * dt);
       A.set(1, 2, dt);
 
-      CommonOps.fill(Q, 0.0);
-      Q.set(2, 2, Parameters.jointModelAccelerationCovariance);
+      accelerationCovariance = new DoubleParameter(stringToPrefix(jointName) + "AccelerationCovariance", registry, 1.0);
    }
 
    public void initialize(double initialPosition, double initialVelocity)
@@ -76,7 +78,9 @@ public class JointState extends State
    @Override
    public void getQMatrix(DenseMatrix64F matrixToPack)
    {
-      matrixToPack.set(Q);
+      matrixToPack.reshape(size, size);
+      CommonOps.fill(matrixToPack, 0.0);
+      matrixToPack.set(2, 2, accelerationCovariance.getValue());
    }
 
    public double getQ()

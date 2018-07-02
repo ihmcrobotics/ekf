@@ -15,6 +15,7 @@ import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.SixDoFJoint;
 import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class RobotState extends ComposedState
 {
@@ -26,7 +27,7 @@ public class RobotState extends ComposedState
    private final List<JointState> jointStates = new ArrayList<>();
    private final Map<String, MutableInt> jointIndecesByName = new HashMap<>();
 
-   public RobotState(FullRobotModel fullRobotModel, double dt)
+   public RobotState(FullRobotModel fullRobotModel, double dt, YoVariableRegistry registry)
    {
       OneDoFJoint[] robotJoints = fullRobotModel.getBodyJointsInOrder();
       RevoluteJoint[] revoluteJoints = ScrewTools.filterJoints(robotJoints, RevoluteJoint.class);
@@ -43,7 +44,8 @@ public class RobotState extends ComposedState
          rootTwist = new Twist();
 
          ReferenceFrame bodyFrame = rootJoint.getFrameAfterJoint();
-         poseState = new PoseState(dt, bodyFrame);
+         String bodyName = rootJoint.getSuccessor().getName();
+         poseState = new PoseState(bodyName, dt, bodyFrame, registry);
          addState(poseState);
 
          rootJoint.updateFramesRecursively();
@@ -61,7 +63,7 @@ public class RobotState extends ComposedState
       for (OneDoFJoint joint : robotJoints)
       {
          MutableInt jointStateStartIndex = new MutableInt(getSize());
-         JointState jointState = new JointState(joint.getName(), dt);
+         JointState jointState = new JointState(joint.getName(), dt, registry);
          jointState.initialize(joint.getQ(), joint.getQd());
          addState(jointState);
          jointStates.add(jointState);
@@ -69,7 +71,7 @@ public class RobotState extends ComposedState
       }
    }
 
-   public RobotState(List<String> jointNames, double dt)
+   public RobotState(List<String> jointNames, double dt, YoVariableRegistry registry)
    {
       isFloating = false;
       rootTransform = null;
@@ -79,7 +81,7 @@ public class RobotState extends ComposedState
       for (String jointName : jointNames)
       {
          MutableInt jointStateStartIndex = new MutableInt(getSize());
-         JointState jointState = new JointState(jointName, dt);
+         JointState jointState = new JointState(jointName, dt, registry);
          addState(jointState);
          jointStates.add(jointState);
          jointIndecesByName.put(jointName, jointStateStartIndex);

@@ -2,6 +2,8 @@ package us.ihmc.ekf.filter.state;
 
 import org.ejml.data.DenseMatrix64F;
 
+import com.google.common.base.CaseFormat;
+
 public abstract class State
 {
    public abstract void setStateVector(DenseMatrix64F newState);
@@ -37,5 +39,10 @@ public abstract class State
       {
          throw new RuntimeException("States are expected to be row vectors.");
       }
+   }
+
+   protected static String stringToPrefix(String string)
+   {
+      return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, string);
    }
 }

@@ -7,16 +7,17 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import us.ihmc.ekf.filter.state.State;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public abstract class AbstractStateTest
 {
-   public abstract State createState(Random random);
+   public abstract State createState(Random random, YoVariableRegistry registry);
 
    @Test
    public void testSize()
    {
       Random random = new Random(4922L);
-      State state = createState(random);
+      State state = createState(random, new YoVariableRegistry("Test"));
 
       DenseMatrix64F matrix = new DenseMatrix64F(0, 0);
 

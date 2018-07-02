@@ -22,7 +22,7 @@ public class EstimatorController extends SimpleRobotController
 
    public EstimatorController(RobotSensorReader sensorReader, FullRobotModel fullRobotModel, double dt)
    {
-      robotState = new RobotState(fullRobotModel, dt);
+      robotState = new RobotState(fullRobotModel, dt, registry);
       this.sensorReader = sensorReader;
       this.fullRobotModel = fullRobotModel;
       estimator = new StateEstimator(sensorReader.getSensors(), robotState, registry);
