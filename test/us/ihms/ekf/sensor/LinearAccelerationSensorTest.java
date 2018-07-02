@@ -6,7 +6,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.Test;
 
-import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihms.ekf.filter.FilterMatrixOpsTest;
 import us.ihms.ekf.filter.StateEstimatorTest;
@@ -38,7 +38,7 @@ public class LinearAccelerationSensorTest
          DenseMatrix64F expected = computeAqdxLqd(A, L, qd1);
 
          // linearize to do a first order approximation of the expected result
-         DenseMatrix64F result_pertubation = simple(linearizeCrossProduct(A, L, qd0)).mult(simple(qd_pertubation)).getMatrix();
+         DenseMatrix64F result_pertubation = simple(LinearAccelerationSensor.linearizeCrossProduct(A, L, qd0)).mult(simple(qd_pertubation)).getMatrix();
          DenseMatrix64F actual = simple(nominal).plus(simple(result_pertubation)).getMatrix();
 
          try
@@ -54,37 +54,6 @@ public class LinearAccelerationSensorTest
 
          StateEstimatorTest.assertMatricesEqual(expected, actual, EPSILON);
       }
-   }
-
-   /**
-    * This linearizes the cross product {@code f(qd)=[A*qd]x[L*qd]} around {@code qd0}. This allows a first
-    * order approximation of:
-    * <br>{@code f(qd1) = f(qd0) + J * [qd1 - qd0]}</br>
-    * This approximation will be accurate for small values of {@code dqd = [qd1 - qd0]}.
-    *
-    * @param A matrix in the above equation
-    * @param L matrix in the above equation
-    * @param qd0 the point to linearize about
-    * @return {@code J} is the Jacobian of the above cross product w.r.t. {@code qd}
-    */
-   private static DenseMatrix64F linearizeCrossProduct(DenseMatrix64F A, DenseMatrix64F L, DenseMatrix64F qd0)
-   {
-      Vector3D Aqd = new Vector3D();
-      Aqd.set(simple(A).mult(simple(qd0)).getMatrix());
-      Vector3D Lqd = new Vector3D();
-      Lqd.set(simple(L).mult(simple(qd0)).getMatrix());
-
-      Matrix3D Aqdx_matrix = new Matrix3D();
-      Aqdx_matrix.setToTildeForm(Aqd);
-      Matrix3D Lqdx_matrix = new Matrix3D();
-      Lqdx_matrix.setToTildeForm(Lqd);
-
-      DenseMatrix64F Aqdx = new DenseMatrix64F(3, 3);
-      Aqdx_matrix.get(Aqdx);
-      DenseMatrix64F Lqdx = new DenseMatrix64F(3, 3);
-      Lqdx_matrix.get(Lqdx);
-
-      return simple(Aqdx).mult(simple(L)).minus(simple(Lqdx).mult(simple(A))).getMatrix();
    }
 
    private static SimpleMatrix simple(DenseMatrix64F matrix)
