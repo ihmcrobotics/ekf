@@ -115,7 +115,7 @@ public class FilterMatrixOpsTest
       StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, EPSILON);
    }
 
-   private static DenseMatrix64F createRandomDiagonalMatrix(int size, Random random, double min, double max)
+   public static DenseMatrix64F createRandomDiagonalMatrix(int size, Random random, double min, double max)
    {
       DenseMatrix64F ret = new DenseMatrix64F(size, size);
       for (int i = 0; i < size; i++)
@@ -125,7 +125,7 @@ public class FilterMatrixOpsTest
       return ret;
    }
 
-   private static DenseMatrix64F createRandomMatrix(int rows, int cols, Random random, double min, double max)
+   public static DenseMatrix64F createRandomMatrix(int rows, int cols, Random random, double min, double max)
    {
       DenseMatrix64F ret = new DenseMatrix64F(rows, cols);
       for (int i = 0; i < rows; i++)
@@ -138,7 +138,7 @@ public class FilterMatrixOpsTest
       return ret;
    }
 
-   private static DenseMatrix64F createRandomMatrix(int size, Random random, double min, double max)
+   public static DenseMatrix64F createRandomMatrix(int size, Random random, double min, double max)
    {
       return createRandomMatrix(size, size, random, min, max);
    }
