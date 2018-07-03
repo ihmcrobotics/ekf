@@ -19,7 +19,8 @@ public class StateEstimator
    private final ComposedState state;
    private final ComposedSensor sensor;
 
-   private final ExecutionTimer timer;
+   private final ExecutionTimer predictionTimer;
+   private final ExecutionTimer correctionTimer;
 
    private final FilterMatrixOps filterMatrixOps = new FilterMatrixOps();
 
@@ -34,7 +35,8 @@ public class StateEstimator
 
       filterMatrixOps.setIdentity(Pposterior, state.getSize());
 
-      timer = new ExecutionTimer(getClass().getSimpleName(), registry);
+      predictionTimer = new ExecutionTimer(getClass().getSimpleName() + "Prediction", registry);
+      correctionTimer = new ExecutionTimer(getClass().getSimpleName() + "Correction", registry);
    }
 
    private final DenseMatrix64F A = new DenseMatrix64F(0, 0);
@@ -49,18 +51,24 @@ public class StateEstimator
    private final DenseMatrix64F Xposterior = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F Pposterior = new DenseMatrix64F(0, 0);
 
-   public void compute()
+   public void predict()
    {
-      timer.startMeasurement();
+      predictionTimer.startMeasurement();
 
       // State prediction.
       state.predict();
-      state.getStateVector(Xprior);
 
       // Get linearized plant model and predict error covariance.
       state.getAMatrix(A);
       state.getQMatrix(Q);
       filterMatrixOps.predictErrorCovariance(Pprior, A, Pposterior, Q);
+
+      predictionTimer.stopMeasurement();
+   }
+
+   public void correct()
+   {
+      correctionTimer.startMeasurement();
 
       // From the sensor get the linearized measurement model and the measurement residual
       sensor.assembleFullJacobian(H, residual, robotState);
@@ -70,9 +78,10 @@ public class StateEstimator
       if (!filterMatrixOps.computeKalmanGain(K, Pprior, H, R))
       {
          PrintTools.info("Inversion failed integrating only.");
-         timer.stopMeasurement();
+         predictionTimer.stopMeasurement();
          return;
       }
+      state.getStateVector(Xprior);
       filterMatrixOps.updateState(Xposterior, K, residual, Xprior);
 
       // Update the error covariance.
@@ -81,7 +90,7 @@ public class StateEstimator
       // Update the state data structure after the correction step.
       state.setStateVector(Xposterior);
 
-      timer.stopMeasurement();
+      correctionTimer.stopMeasurement();
    }
 
    public void getCovariance(DenseMatrix64F covarianceToPack)

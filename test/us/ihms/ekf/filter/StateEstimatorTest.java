@@ -57,7 +57,8 @@ public class StateEstimatorTest
 
       for (int i = 0; i < 5000; i++)
       {
-         stateEstimator.compute();
+         stateEstimator.predict();
+         stateEstimator.correct();
       }
 
       DenseMatrix64F actualState = new DenseMatrix64F(0, 0);

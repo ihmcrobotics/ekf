@@ -178,5 +178,7 @@ public class RobotState extends ComposedState
          joint.setQ(jointState.getQ());
          joint.setQd(jointState.getQd());
       }
+
+      fullRobotModel.updateFrames();
    }
 }

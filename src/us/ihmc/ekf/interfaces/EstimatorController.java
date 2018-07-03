@@ -7,6 +7,7 @@ import org.ejml.data.DenseMatrix64F;
 
 import us.ihmc.ekf.filter.StateEstimator;
 import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 import us.ihmc.yoVariables.variable.YoDouble;
 
@@ -19,6 +20,8 @@ public class EstimatorController extends SimpleRobotController
 
    private final DenseMatrix64F stateVector = new DenseMatrix64F(1, 1);
    private final List<YoDouble> yoState = new ArrayList<>();
+
+   private final ExecutionTimer timer = new ExecutionTimer(getClass().getSimpleName(), registry);
 
    public EstimatorController(RobotSensorReader sensorReader, FullRobotModel fullRobotModel, double dt)
    {
@@ -36,16 +39,22 @@ public class EstimatorController extends SimpleRobotController
    @Override
    public void doControl()
    {
-      sensorReader.read();
-      estimator.compute();
+      timer.startMeasurement();
 
+      sensorReader.read();
+
+      estimator.predict();
       robotState.setFullRobotModelFromState(fullRobotModel);
+
+      estimator.correct();
+      robotState.setFullRobotModelFromState(fullRobotModel);
+
       robotState.getStateVector(stateVector);
       for (int stateIdx = 0; stateIdx < robotState.getSize(); stateIdx++)
       {
          yoState.get(stateIdx).set(stateVector.get(stateIdx));
       }
 
-      fullRobotModel.updateFrames();
+      timer.stopMeasurement();
    }
 }
