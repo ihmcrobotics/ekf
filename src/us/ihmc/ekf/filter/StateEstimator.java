@@ -78,7 +78,7 @@ public class StateEstimator
       if (!filterMatrixOps.computeKalmanGain(K, Pprior, H, R))
       {
          PrintTools.info("Inversion failed integrating only.");
-         predictionTimer.stopMeasurement();
+         correctionTimer.stopMeasurement();
          return;
       }
       state.getStateVector(Xprior);
