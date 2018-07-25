@@ -7,6 +7,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.sensor.AngularVelocitySensor;
+import us.ihmc.ekf.filter.sensor.BodyVelocitySensor;
 import us.ihmc.ekf.filter.sensor.JointPositionSensor;
 import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
@@ -27,7 +28,7 @@ public class SimulationSensorReader implements RobotSensorReader
    private final List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors = new ArrayList<>();
    private final List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors = new ArrayList<>();
 
-   public SimulationSensorReader(RobotFromDescription robot, FullRobotModel fullRobotModel, double dt)
+   public SimulationSensorReader(RobotFromDescription robot, FullRobotModel fullRobotModel, double dt, boolean addBaseVelocitySensor)
    {
       addJointPositionSensorsRecursive(robot.getRootJoints().get(0), jointPositionSensors, registry);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
@@ -35,6 +36,12 @@ public class SimulationSensorReader implements RobotSensorReader
       fullRobotModel.getImuDefinitions().stream().forEach(imu -> addIMUSensor(dt, imu, robot, angularVelocitySensors, linearAccelerationSensors, registry));
       angularVelocitySensors.stream().forEach(s -> allSensors.add(s.getRight()));
       linearAccelerationSensors.stream().forEach(s -> allSensors.add(s.getRight()));
+
+      // This adds a zero velocity sensor to the base of the robot.
+      if (addBaseVelocitySensor)
+      {
+         allSensors.add(new BodyVelocitySensor(fullRobotModel.getRootJoint().getSuccessor(), registry));
+      }
    }
 
    private static void addIMUSensor(double dt, IMUDefinition imu, RobotFromDescription robot,

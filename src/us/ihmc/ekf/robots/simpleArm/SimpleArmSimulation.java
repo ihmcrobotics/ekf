@@ -25,7 +25,7 @@ public class SimpleArmSimulation
       fullRobotModel.initialize(robot);
 
       double estimatorDT = simulationDT * ticksPerEstimatorTick;
-      SimulationSensorReader sensorReader = new SimulationSensorReader(robot, fullRobotModel, estimatorDT);
+      SimulationSensorReader sensorReader = new SimulationSensorReader(robot, fullRobotModel, estimatorDT, true);
       EstimatorController estimatorController = new EstimatorController(sensorReader, fullRobotModel, estimatorDT);
       robot.setController(estimatorController, ticksPerEstimatorTick);
 
