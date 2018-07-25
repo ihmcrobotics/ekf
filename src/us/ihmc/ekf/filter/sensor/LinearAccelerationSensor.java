@@ -7,7 +7,9 @@ import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
 
 import us.ihmc.ekf.filter.FilterTools;
+import us.ihmc.ekf.filter.state.BiasState;
 import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -25,6 +27,8 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 public class LinearAccelerationSensor extends Sensor
 {
    private static final int measurementSize = 3;
+
+   private final BiasState biasState;
 
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
@@ -54,9 +58,12 @@ public class LinearAccelerationSensor extends Sensor
 
    public LinearAccelerationSensor(String bodyName, double dt, IMUDefinition imuDefinition, YoVariableRegistry registry)
    {
+      String prefix = FilterTools.stringToPrefix(bodyName) + "LinearAcceleration";
+
       this.dt = dt;
 
       imuFrame = imuDefinition.getIMUFrame();
+      biasState = new BiasState(prefix, registry);
 
       RigidBody imuBody = imuDefinition.getRigidBody();
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(imuBody), imuBody);
@@ -64,7 +71,13 @@ public class LinearAccelerationSensor extends Sensor
       oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       jacobianDot.reshape(Twist.SIZE, robotJacobian.getNumberOfDegreesOfFreedom());
 
-      linearAccelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
+      linearAccelerationCovariance = new DoubleParameter(prefix + "Covariance", registry, 1.0);
+   }
+
+   @Override
+   public State getSensorState()
+   {
+      return biasState;
    }
 
    @Override
@@ -155,9 +168,9 @@ public class LinearAccelerationSensor extends Sensor
 
       residualToPack.reshape(measurementSize, 1);
       CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
-      residualToPack.set(0, measurement.getX() - residualToPack.get(0) - centrifugalAcceleration.getX());
-      residualToPack.set(1, measurement.getY() - residualToPack.get(1) - centrifugalAcceleration.getY());
-      residualToPack.set(2, measurement.getZ() - residualToPack.get(2) - centrifugalAcceleration.getZ());
+      residualToPack.set(0, measurement.getX() - biasState.getBias(0) - residualToPack.get(0) - centrifugalAcceleration.getX());
+      residualToPack.set(1, measurement.getY() - biasState.getBias(1) - residualToPack.get(1) - centrifugalAcceleration.getY());
+      residualToPack.set(2, measurement.getZ() - biasState.getBias(0) - residualToPack.get(2) - centrifugalAcceleration.getZ());
 
       // Add the linearized cross product of angular and linear velocity to the jacobian
       DenseMatrix64F jacobianAngularPart = new DenseMatrix64F(3, robotJacobian.getNumberOfDegreesOfFreedom());
@@ -183,6 +196,13 @@ public class LinearAccelerationSensor extends Sensor
          CommonOps.extract(crossProductLinearization, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, crossProductJacobian, 0, jointVelocityIndex);
       }
       CommonOps.add(jacobianToPack, crossProductJacobian, jacobianToPack);
+   }
+
+   @Override
+   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
+   {
+      jacobianToPack.reshape(biasState.getSize(), biasState.getSize());
+      CommonOps.setIdentity(jacobianToPack);
    }
 
    @Override
