@@ -79,7 +79,7 @@ public class ComposedState extends State
    }
 
    @Override
-   public void getAMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DenseMatrix64F matrixToPack)
    {
       matrixToPack.reshape(getSize(), getSize());
       CommonOps.fill(matrixToPack, 0.0);
@@ -90,7 +90,7 @@ public class ComposedState extends State
          int startIndex = pair.getLeft().intValue();
          State subState = pair.getRight();
 
-         subState.getAMatrix(tempMatrix);
+         subState.getFMatrix(tempMatrix);
          CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
       }
    }

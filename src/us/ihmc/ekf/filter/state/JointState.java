@@ -16,7 +16,7 @@ public class JointState extends State
 
    private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
    private final DenseMatrix64F tempStateVector = new DenseMatrix64F(size, 1);
-   private final DenseMatrix64F A = new DenseMatrix64F(size, size);
+   private final DenseMatrix64F F = new DenseMatrix64F(size, size);
 
    private final DoubleProvider accelerationCovariance;
 
@@ -24,10 +24,10 @@ public class JointState extends State
    {
       this.jointName = jointName;
 
-      CommonOps.setIdentity(A);
-      A.set(0, 1, dt);
-      A.set(0, 2, 0.5 * dt * dt);
-      A.set(1, 2, dt);
+      CommonOps.setIdentity(F);
+      F.set(0, 1, dt);
+      F.set(0, 2, 0.5 * dt * dt);
+      F.set(1, 2, dt);
 
       accelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "AccelerationCovariance", registry, 1.0);
    }
@@ -67,13 +67,13 @@ public class JointState extends State
    public void predict()
    {
       tempStateVector.set(stateVector);
-      CommonOps.mult(A, tempStateVector, stateVector);
+      CommonOps.mult(F, tempStateVector, stateVector);
    }
 
    @Override
-   public void getAMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DenseMatrix64F matrixToPack)
    {
-      matrixToPack.set(A);
+      matrixToPack.set(F);
    }
 
    @Override

@@ -25,16 +25,16 @@ public class FilterMatrixOpsTest
       int size = 10;
       Random random = new Random(2359L);
       DenseMatrix64F P = createRandomDiagonalMatrix(size, random, 1.0, 10000.0);
-      DenseMatrix64F A = createRandomMatrix(size, random, -1.0, 1.0);
+      DenseMatrix64F F = createRandomMatrix(size, random, -1.0, 1.0);
       DenseMatrix64F Q = createRandomMatrix(size, random, 0.0, 100.0);
       DenseMatrix64F result = new DenseMatrix64F(0, 0);
 
       // result = A * P * A' + Q
-      filterMatrixOps.predictErrorCovariance(result, A, P, Q);
+      filterMatrixOps.predictErrorCovariance(result, F, P, Q);
       SimpleMatrix Psimple = new SimpleMatrix(P);
-      SimpleMatrix Asimple = new SimpleMatrix(A);
+      SimpleMatrix Fsimple = new SimpleMatrix(F);
       SimpleMatrix Qsimple = new SimpleMatrix(Q);
-      SimpleMatrix resultSimple = Asimple.mult(Psimple.mult(Asimple.transpose())).plus(Qsimple);
+      SimpleMatrix resultSimple = Fsimple.mult(Psimple.mult(Fsimple.transpose())).plus(Qsimple);
 
       StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, 1.0e-20);
    }

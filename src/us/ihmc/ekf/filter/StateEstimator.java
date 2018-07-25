@@ -39,7 +39,7 @@ public class StateEstimator
       correctionTimer = new ExecutionTimer(getClass().getSimpleName() + "Correction", registry);
    }
 
-   private final DenseMatrix64F A = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F F = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F Q = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F H = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F R = new DenseMatrix64F(0, 0);
@@ -59,9 +59,9 @@ public class StateEstimator
       state.predict();
 
       // Get linearized plant model and predict error covariance.
-      state.getAMatrix(A);
+      state.getFMatrix(F);
       state.getQMatrix(Q);
-      filterMatrixOps.predictErrorCovariance(Pprior, A, Pposterior, Q);
+      filterMatrixOps.predictErrorCovariance(Pprior, F, Pposterior, Q);
 
       predictionTimer.stopMeasurement();
    }

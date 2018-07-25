@@ -64,7 +64,7 @@ public class BiasState extends State
    }
 
    @Override
-   public void getAMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DenseMatrix64F matrixToPack)
    {
       matrixToPack.reshape(size, size);
       CommonOps.setIdentity(matrixToPack);

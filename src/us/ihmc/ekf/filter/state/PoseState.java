@@ -171,7 +171,7 @@ public class PoseState extends State
    private final DenseMatrix64F tempBlock = new DenseMatrix64F(3, 3);
 
    @Override
-   public void getAMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DenseMatrix64F matrixToPack)
    {
       matrixToPack.reshape(size, size);
       CommonOps.setIdentity(matrixToPack);

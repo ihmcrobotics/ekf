@@ -71,7 +71,7 @@ public class StateEstimatorTest
       stateEstimator.getCovariance(actualCovariance);
       System.out.println("Final covariance:\n" + actualCovariance);
 
-      DenseMatrix64F A = new DenseMatrix64F(0, 0);
+      DenseMatrix64F F = new DenseMatrix64F(0, 0);
       DenseMatrix64F Q = new DenseMatrix64F(0, 0);
       DenseMatrix64F H = new DenseMatrix64F(0, 0);
       DenseMatrix64F R = new DenseMatrix64F(0, 0);
@@ -82,7 +82,7 @@ public class StateEstimatorTest
       ComposedSensor sensor = new ComposedSensor(sensors, robotState.getSize());
       state.addState(robotState);
       state.addState(sensor.getSensorState());
-      state.getAMatrix(A);
+      state.getFMatrix(F);
       state.getQMatrix(Q);
       sensor.assembleFullJacobian(H, residual, robotState);
       sensor.getRMatrix(R);
@@ -106,7 +106,7 @@ public class StateEstimatorTest
       {
          ops.invertMatrix(Pinv, P);
          ops.computeInverseOfABAtransPlusC(inverse, Htranspose, Rinv, Pinv);
-         ops.computeABAtransPlusC(P, A, inverse, Q);
+         ops.computeABAtransPlusC(P, F, inverse, Q);
       }
       ops.invertMatrix(Pinv, P);
       ops.computeInverseOfABAtransPlusC(P, Htranspose, Rinv, Pinv);

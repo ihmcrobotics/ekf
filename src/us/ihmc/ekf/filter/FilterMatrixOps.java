@@ -92,16 +92,16 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to</br>
-    * result = A * Pposterior * A' + Q
+    * result = F * Pposterior * F' + Q
     *
     * @param result (modified)
-    * @param A is the matrix that describes the linearized state evolution: x(k+1) = A * x(k)
+    * @param F is the matrix that describes the linearized state evolution: x(k+1) = F * x(k)
     * @param Pposterior is the previous error covariance
     * @param Q is the covariance matrix of the state evolution
     */
-   public void predictErrorCovariance(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F Pposterior, DenseMatrix64F Q)
+   public void predictErrorCovariance(DenseMatrix64F result, DenseMatrix64F F, DenseMatrix64F Pposterior, DenseMatrix64F Q)
    {
-      computeABAtransPlusC(result, A, Pposterior, Q);
+      computeABAtransPlusC(result, F, Pposterior, Q);
    }
 
    /**

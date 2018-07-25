@@ -27,7 +27,7 @@ public class EmptyState extends State
    }
 
    @Override
-   public void getAMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DenseMatrix64F matrixToPack)
    {
       matrixToPack.reshape(0, 0);
    }

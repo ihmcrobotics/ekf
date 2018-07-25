@@ -21,7 +21,7 @@ public abstract class AbstractStateTest
 
       DenseMatrix64F matrix = new DenseMatrix64F(0, 0);
 
-      state.getAMatrix(matrix);
+      state.getFMatrix(matrix);
       Assert.assertEquals(state.getSize(), matrix.getNumRows());
       Assert.assertEquals(state.getSize(), matrix.getNumCols());
 

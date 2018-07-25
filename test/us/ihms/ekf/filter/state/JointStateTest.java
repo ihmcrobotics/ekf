@@ -124,7 +124,7 @@ public class JointStateTest extends AbstractStateTest
 
          state.setStateVector(initialState);
          DenseMatrix64F A = new DenseMatrix64F(0, 0);
-         state.getAMatrix(A);
+         state.getFMatrix(A);
 
          DenseMatrix64F predicted = new DenseMatrix64F(state.getSize(), 1);
          state.predict();
