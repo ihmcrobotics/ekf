@@ -1,17 +1,15 @@
 package us.ihms.ekf.filter;
 
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import org.ejml.simple.SimpleMatrix;
 import org.junit.Assert;
 import org.junit.Test;
 
+import us.ihmc.ekf.filter.FilterMatrixOps;
 import us.ihmc.ekf.filter.StateEstimator;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.JointPositionSensor;
@@ -33,6 +31,7 @@ public class StateEstimatorTest
       Random random = new Random(358L);
       double dt = 0.001;
 
+      // Create a simple robot with three one dof joints.
       List<String> jointNames = new ArrayList<>();
       jointNames.add("Joint0");
       jointNames.add("Joint1");
@@ -55,58 +54,65 @@ public class StateEstimatorTest
       StateEstimator stateEstimator = new StateEstimator(sensors, robotState, registry);
       new DefaultParameterReader().readParametersInRegistry(registry);
 
+      // Run the estimator a bunch of times.
       for (int i = 0; i < 5000; i++)
       {
          stateEstimator.predict();
          stateEstimator.correct();
       }
 
+      // Make sure the estimated state is accurate.
       DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
       robotState.getStateVector(actualState);
       assertMatricesEqual(expectedState, actualState, EPSILON);
 
+      // The covariance should have converged to a steady state.
       DenseMatrix64F actualCovariance = new DenseMatrix64F(0, 0);
       stateEstimator.getCovariance(actualCovariance);
       System.out.println("Final covariance:\n" + actualCovariance);
+
+      DenseMatrix64F A = new DenseMatrix64F(0, 0);
+      DenseMatrix64F Q = new DenseMatrix64F(0, 0);
+      DenseMatrix64F H = new DenseMatrix64F(0, 0);
+      DenseMatrix64F R = new DenseMatrix64F(0, 0);
+      DenseMatrix64F residual = new DenseMatrix64F(0, 0);
 
       // This setup matches the filter constructor:
       ComposedState state = new ComposedState();
       ComposedSensor sensor = new ComposedSensor(sensors, robotState.getSize());
       state.addState(robotState);
       state.addState(sensor.getSensorState());
-
-      DenseMatrix64F denseA = new DenseMatrix64F(0, 0);
-      DenseMatrix64F denseQ = new DenseMatrix64F(0, 0);
-      DenseMatrix64F denseH = new DenseMatrix64F(0, 0);
-      DenseMatrix64F denseR = new DenseMatrix64F(0, 0);
-      state.getAMatrix(denseA);
-      state.getQMatrix(denseQ);
-      sensor.assembleFullJacobian(denseH, null, robotState);
-      sensor.getRMatrix(denseR);
+      state.getAMatrix(A);
+      state.getQMatrix(Q);
+      sensor.assembleFullJacobian(H, residual, robotState);
+      sensor.getRMatrix(R);
 
       // Now assert that the covariance matches the steady state as the matrixes are not
       // changing for this simple filtering problem.
-      SimpleMatrix P = new SimpleMatrix(actualCovariance);
-      SimpleMatrix A = new SimpleMatrix(denseA);
-      SimpleMatrix Q = new SimpleMatrix(denseQ);
-      SimpleMatrix H = new SimpleMatrix(denseH);
-      SimpleMatrix R = new SimpleMatrix(denseR);
+      DenseMatrix64F P = new DenseMatrix64F(actualCovariance.getNumRows(), actualCovariance.getNumCols());
+      DenseMatrix64F Rinv = new DenseMatrix64F(0, 0);
+      DenseMatrix64F Htranspose = new DenseMatrix64F(H.getNumCols(), H.getNumRows());
+      DenseMatrix64F inverse = new DenseMatrix64F(0, 0);
+      DenseMatrix64F Pinv = new DenseMatrix64F(0, 0);
 
-      // P should satisfy:
-      // P = Q + A inv(inv(P) + H' * inv(R) * H )) * A'
-      if (P.determinant() < 1.0e-4 || R.determinant() < 1.0e-4)
-      {
-         fail("Poorly conditioned matrix. Change covariances for this test.");
-      }
-      SimpleMatrix toInvert = P.invert().plus(H.transpose().mult(R.invert().mult(H)));
-      if (toInvert.determinant() < 1.0e-4)
-      {
-         fail("Poorly conditioned matrix: Determinant is " + toInvert.determinant() + ". Change covariances for this test.");
-      }
-      SimpleMatrix result = Q.plus(A.mult(toInvert.invert().mult(A.transpose())));
+      FilterMatrixOps ops = new FilterMatrixOps();
+      ops.invertMatrix(Rinv, R);
+      CommonOps.transpose(H, Htranspose);
 
-      System.out.println("Ricatti equation result:\n" + result);
-      assertMatricesEqual(result.getMatrix(), actualCovariance, EPSILON);
+      // Iterate the Ricatti Equation
+      // P = Q + A * inv(inv(P) + H' * inv(R) * H )) * A'
+      CommonOps.setIdentity(P);
+      for (int i = 0; i < 10000; i++)
+      {
+         ops.invertMatrix(Pinv, P);
+         ops.computeInverseOfABAtransPlusC(inverse, Htranspose, Rinv, Pinv);
+         ops.computeABAtransPlusC(P, A, inverse, Q);
+      }
+      ops.invertMatrix(Pinv, P);
+      ops.computeInverseOfABAtransPlusC(P, Htranspose, Rinv, Pinv);
+
+      System.out.println("Ricatti equation result:\n" + P);
+      assertMatricesEqual(P, actualCovariance, EPSILON);
    }
 
    public static void assertMatricesEqual(DenseMatrix64F expectedState, DenseMatrix64F actualState, double epsilon)
