@@ -16,7 +16,8 @@ public class FilterMatrixOps
    private final DenseMatrix64F PHtrans = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F innovation = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F identity = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F KH = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F IKH = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F KRKtrans = new DenseMatrix64F(0, 0);
 
    /**
     * Sets the provided matrix to a square identity matrix of the given size.
@@ -35,7 +36,7 @@ public class FilterMatrixOps
     * result = A * B * A'</br>
     * Note, that B must be square.
     */
-   private void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
+   public void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
    {
       BAtrans.reshape(B.getNumRows(), A.getNumRows());
       CommonOps.multTransB(B, A, BAtrans);
@@ -48,7 +49,7 @@ public class FilterMatrixOps
     * Sets the provided matrix to</br>
     * result = A * B * A' + C
     */
-   private void computeABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   public void computeABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
    {
       computeABAtrans(result, A, B);
       CommonOps.add(result, C, result);
@@ -61,7 +62,7 @@ public class FilterMatrixOps
     *
     * @return whether the inversion succeeded
     */
-   private boolean invertMatrix(DenseMatrix64F result, DenseMatrix64F A)
+   public boolean invertMatrix(DenseMatrix64F result, DenseMatrix64F A)
    {
       setIdentity(indentityToInvert, A.getNumRows());
 
@@ -83,7 +84,7 @@ public class FilterMatrixOps
     *
     * @return whether the inversion succeeded
     */
-   private boolean computeInverseOfABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   public boolean computeInverseOfABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
    {
       computeABAtransPlusC(ABAtransPlusC, A, B, C);
       return invertMatrix(result, ABAtransPlusC);
@@ -149,22 +150,21 @@ public class FilterMatrixOps
 
    /**
     * Sets the provided matrix to</br>
-    * result = (identity - K * H) * pPrior
+    * result = (identity - K * H) * pPrior * (identity - K * H)' + K * R * K'
     *
     * @param result (modified)
     * @param K is the kalman gain
     * @param H is the measurement jacobian
+    * @param R
     * @param pPrior is the error covariance before the update
     */
-   public void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F pPrior)
+   public void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F R, DenseMatrix64F pPrior)
    {
+      computeABAtrans(KRKtrans, K, R);
+      IKH.reshape(pPrior.getNumRows(), pPrior.getNumRows());
       setIdentity(identity, pPrior.getNumRows());
-
-      KH.reshape(pPrior.getNumRows(), pPrior.getNumRows());
-      CommonOps.mult(K, H, KH);
-
-      result.reshape(pPrior.getNumRows(), pPrior.getNumRows());
-      CommonOps.subtract(identity, KH, KH);
-      CommonOps.mult(KH, pPrior, result);
+      CommonOps.mult(K, H, IKH);
+      CommonOps.subtract(identity, IKH, IKH);
+      computeABAtransPlusC(result, IKH, pPrior, KRKtrans);
    }
 }

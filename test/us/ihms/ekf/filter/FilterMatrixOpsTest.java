@@ -101,14 +101,18 @@ public class FilterMatrixOpsTest
       DenseMatrix64F P = createRandomDiagonalMatrix(size, random, 1.0, 10000.0);
       DenseMatrix64F H = createRandomMatrix(measurements, size, random, -1.0, 1.0);
       DenseMatrix64F K = createRandomMatrix(size, measurements, random, -1.0, 1.0);
+      DenseMatrix64F R = createRandomMatrix(measurements, measurements, random, -1.0, 1.0);
       DenseMatrix64F result = new DenseMatrix64F(0, 0);
 
-      // result = (identity - K * H) * pPrior
-      filterMatrixOps.updateErrorCovariance(result, K, H, P);
+      // result = (identity - K * H) * pPrior * (identity - K * H)' + K * R * K'
+      filterMatrixOps.updateErrorCovariance(result, K, H, R, P);
       SimpleMatrix Psimple = new SimpleMatrix(P);
       SimpleMatrix Hsimple = new SimpleMatrix(H);
       SimpleMatrix Ksimple = new SimpleMatrix(K);
-      SimpleMatrix resultSimple = SimpleMatrix.identity(size).minus(Ksimple.mult(Hsimple)).mult(Psimple);
+      SimpleMatrix Rsimple = new SimpleMatrix(R);
+      SimpleMatrix IKH = SimpleMatrix.identity(size).minus(Ksimple.mult(Hsimple));
+      SimpleMatrix KRK = Ksimple.mult(Rsimple).mult(Ksimple.transpose());
+      SimpleMatrix resultSimple = IKH.mult(Psimple.mult(IKH.transpose())).plus(KRK);
 
       StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, EPSILON);
    }

@@ -85,7 +85,7 @@ public class StateEstimator
       filterMatrixOps.updateState(Xposterior, K, residual, Xprior);
 
       // Update the error covariance.
-      filterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
+      filterMatrixOps.updateErrorCovariance(Pposterior, K, H, R, Pprior);
 
       // Update the state data structure after the correction step.
       state.setStateVector(Xposterior);
