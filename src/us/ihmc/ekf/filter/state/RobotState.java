@@ -26,6 +26,9 @@ public class RobotState extends ComposedState
    private final Map<String, JointState> jointStatesByName = new HashMap<>();
    private final Map<String, MutableInt> jointIndecesByName = new HashMap<>();
 
+   private final int gravityIndex;
+   private final GravityState gravityState;
+
    public RobotState(FullRobotModel fullRobotModel, double dt, YoVariableRegistry registry)
    {
       OneDoFJoint[] robotJoints = fullRobotModel.getBodyJointsInOrder();
@@ -68,6 +71,10 @@ public class RobotState extends ComposedState
          jointStatesByName.put(joint.getName(), jointState);
          jointIndecesByName.put(joint.getName(), jointStateStartIndex);
       }
+
+      gravityIndex = getSize();
+      gravityState = new GravityState(registry);
+      addState(gravityState);
    }
 
    public RobotState(List<String> jointNames, double dt, YoVariableRegistry registry)
@@ -85,6 +92,10 @@ public class RobotState extends ComposedState
          jointStatesByName.put(jointName, jointState);
          jointIndecesByName.put(jointName, jointStateStartIndex);
       }
+
+      gravityIndex = getSize();
+      gravityState = new GravityState(registry);
+      addState(gravityState);
    }
 
    public JointState getJointState(String jointName)
@@ -147,6 +158,16 @@ public class RobotState extends ComposedState
    {
       checkFloating();
       return PoseState.linearAccelerationStart;
+   }
+
+   public int getGravityIndex()
+   {
+      return gravityIndex;
+   }
+
+   public double getGravity()
+   {
+      return gravityState.getValue();
    }
 
    private void checkFloating()

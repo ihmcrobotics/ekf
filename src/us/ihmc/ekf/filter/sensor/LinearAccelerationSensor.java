@@ -11,6 +11,7 @@ import us.ihmc.ekf.filter.state.BiasState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -166,6 +167,13 @@ public class LinearAccelerationSensor extends Sensor
       linearImuVelocity.set(3, imuTwist);
       centrifugalAcceleration.cross(angularImuVelocity, linearImuVelocity);
 
+      RotationMatrix imuRotationMatrix = new RotationMatrix();
+      imuFrame.getTransformToWorldFrame().getRotation(imuRotationMatrix);
+      int gravityIndex = robotState.getGravityIndex();
+      jacobianToPack.set(0, gravityIndex, imuRotationMatrix.getElement(2, 0));
+      jacobianToPack.set(1, gravityIndex, imuRotationMatrix.getElement(2, 1));
+      jacobianToPack.set(2, gravityIndex, imuRotationMatrix.getElement(2, 2));
+
       residualToPack.reshape(measurementSize, 1);
       CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
       residualToPack.set(0, measurement.getX() - biasState.getBias(0) - residualToPack.get(0) - centrifugalAcceleration.getX());
@@ -215,11 +223,7 @@ public class LinearAccelerationSensor extends Sensor
 
    public void setLinearAccelerationMeasurement(Vector3D measurement)
    {
-      // Subtract gravity right away:
       this.measurement.setIncludingFrame(imuFrame, measurement);
-      this.measurement.changeFrame(ReferenceFrame.getWorldFrame());
-      this.measurement.subZ(9.81);
-      this.measurement.changeFrame(imuFrame);
    }
 
    /**
