@@ -3,6 +3,7 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
@@ -82,8 +83,8 @@ public class PoseState extends State
       this.dt = dt;
       this.bodyFrame = bodyFrame;
 
-      angularAccelerationCovariance = new DoubleParameter(stringToPrefix(bodyName) + "AngularAccelerationCovariance", registry, 1.0);
-      linearAccelerationCovariance = new DoubleParameter(stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
+      angularAccelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationCovariance", registry, 1.0);
+      linearAccelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
    }
 
    public void initialize(RigidBodyTransform transform, Twist twist)
@@ -117,6 +118,7 @@ public class PoseState extends State
    @Override
    public void setStateVector(DenseMatrix64F newState)
    {
+      FilterTools.checkVectorDimensions(newState, stateVector);
       stateVector.set(newState);
 
       // This state is an error state in the orientation. Add the measured

@@ -6,6 +6,7 @@ import java.util.List;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -36,6 +37,7 @@ public class BiasState extends State
    @Override
    public void setStateVector(DenseMatrix64F newState)
    {
+      FilterTools.checkVectorDimensions(newState, bias);
       bias.set(newState);
 
       for (int i = 0; i < size; i++)

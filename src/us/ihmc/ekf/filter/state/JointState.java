@@ -3,6 +3,7 @@ package us.ihmc.ekf.filter.state;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -28,7 +29,7 @@ public class JointState extends State
       A.set(0, 2, 0.5 * dt * dt);
       A.set(1, 2, dt);
 
-      accelerationCovariance = new DoubleParameter(stringToPrefix(jointName) + "AccelerationCovariance", registry, 1.0);
+      accelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "AccelerationCovariance", registry, 1.0);
    }
 
    public void initialize(double initialPosition, double initialVelocity)
@@ -46,7 +47,7 @@ public class JointState extends State
    @Override
    public void setStateVector(DenseMatrix64F newState)
    {
-      State.checkDimensions(newState, stateVector);
+      FilterTools.checkVectorDimensions(newState, stateVector);
       System.arraycopy(newState.data, 0, stateVector.data, 0, getSize());
    }
 

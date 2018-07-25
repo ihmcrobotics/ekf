@@ -5,6 +5,7 @@ import java.util.List;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.BiasState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -40,7 +41,7 @@ public class AngularVelocitySensor extends Sensor
 
    public AngularVelocitySensor(String bodyName, IMUDefinition imuDefinition, YoVariableRegistry registry)
    {
-      String prefix = State.stringToPrefix(bodyName) + "AngularVelocity";
+      String prefix = FilterTools.stringToPrefix(bodyName) + "AngularVelocity";
 
       imuFrame = imuDefinition.getIMUFrame();
       biasState = new BiasState(prefix, registry);

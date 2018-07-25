@@ -3,9 +3,9 @@ package us.ihmc.ekf.filter.sensor;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.JointState;
 import us.ihmc.ekf.filter.state.RobotState;
-import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -24,7 +24,7 @@ public class JointPositionSensor extends Sensor
    {
       this.jointName = jointName;
 
-      jointPositionCovariance = new DoubleParameter(State.stringToPrefix(jointName) + "JointPositionCovariance", registry, 1.0);
+      jointPositionCovariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "JointPositionCovariance", registry, 1.0);
    }
 
    public void setJointPositionMeasurement(double jointPosition)

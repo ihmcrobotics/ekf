@@ -6,8 +6,8 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
 
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.RobotState;
-import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -64,7 +64,7 @@ public class LinearAccelerationSensor extends Sensor
       oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       jacobianDot.reshape(Twist.SIZE, robotJacobian.getNumberOfDegreesOfFreedom());
 
-      linearAccelerationCovariance = new DoubleParameter(State.stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
+      linearAccelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
    }
 
    @Override
