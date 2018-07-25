@@ -6,7 +6,6 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
 
-import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.matrix.Matrix3D;
@@ -26,8 +25,6 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 public class LinearAccelerationSensor extends Sensor
 {
    private static final int measurementSize = 3;
-
-   private final EmptyState emptyState = new EmptyState();
 
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
@@ -68,12 +65,6 @@ public class LinearAccelerationSensor extends Sensor
       jacobianDot.reshape(Twist.SIZE, robotJacobian.getNumberOfDegreesOfFreedom());
 
       linearAccelerationCovariance = new DoubleParameter(State.stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
-   }
-
-   @Override
-   public State getSensorState()
-   {
-      return emptyState;
    }
 
    @Override
@@ -192,12 +183,6 @@ public class LinearAccelerationSensor extends Sensor
          CommonOps.extract(crossProductLinearization, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, crossProductJacobian, 0, jointVelocityIndex);
       }
       CommonOps.add(jacobianToPack, crossProductJacobian, jacobianToPack);
-   }
-
-   @Override
-   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
-   {
-      jacobianToPack.reshape(0, 0);
    }
 
    @Override

@@ -3,7 +3,6 @@ package us.ihmc.ekf.filter.sensor;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-import us.ihmc.ekf.filter.state.EmptyState;
 import us.ihmc.ekf.filter.state.JointState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -14,8 +13,6 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 public class JointPositionSensor extends Sensor
 {
    private static final int measurementSize = 1;
-
-   private final EmptyState emptyState = new EmptyState();
 
    private double measurement = Double.NaN;
 
@@ -51,18 +48,6 @@ public class JointPositionSensor extends Sensor
       residualToPack.reshape(measurementSize, 1);
       JointState jointState = robotState.getJointState(jointName);
       residualToPack.set(0, measurement - jointState.getQ());
-   }
-
-   @Override
-   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
-   {
-      jacobianToPack.reshape(0, 0);
-   }
-
-   @Override
-   public State getSensorState()
-   {
-      return emptyState;
    }
 
    @Override
