@@ -83,6 +83,8 @@ public class RobotState extends ComposedState
       rootTransform = null;
       rootTwist = null;
       poseState = null;
+      gravityIndex = -1;
+      gravityState = null;
 
       for (String jointName : jointNames)
       {
@@ -92,10 +94,6 @@ public class RobotState extends ComposedState
          jointStatesByName.put(jointName, jointState);
          jointIndecesByName.put(jointName, jointStateStartIndex);
       }
-
-      gravityIndex = getSize();
-      gravityState = new GravityState(registry);
-      addState(gravityState);
    }
 
    public JointState getJointState(String jointName)

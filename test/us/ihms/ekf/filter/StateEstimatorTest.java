@@ -69,7 +69,6 @@ public class StateEstimatorTest
       // The covariance should have converged to a steady state.
       DenseMatrix64F actualCovariance = new DenseMatrix64F(0, 0);
       stateEstimator.getCovariance(actualCovariance);
-      System.out.println("Final covariance:\n" + actualCovariance);
 
       DenseMatrix64F F = new DenseMatrix64F(0, 0);
       DenseMatrix64F Q = new DenseMatrix64F(0, 0);
@@ -111,7 +110,6 @@ public class StateEstimatorTest
       ops.invertMatrix(Pinv, P);
       ops.computeInverseOfABAtransPlusC(P, Htranspose, Rinv, Pinv);
 
-      System.out.println("Ricatti equation result:\n" + P);
       assertMatricesEqual(P, actualCovariance, EPSILON);
    }
 
