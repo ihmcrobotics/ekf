@@ -111,7 +111,7 @@ public abstract class BodyVelocitySensor extends Sensor
 
       extractFFromJacobian(jacobianToPack, jacobianMatrix, robotState);
 
-      // Compute the sensor velocity based on the robot state:
+      // Compute the sensor measurement based on the robot state:
       residualToPack.reshape(measurementSize, 1);
       robotState.getStateVector(tempRobotState);
       CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);

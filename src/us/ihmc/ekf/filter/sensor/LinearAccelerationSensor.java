@@ -6,7 +6,6 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
 
-import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.BiasState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -15,12 +14,12 @@ import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.screwTheory.Twist;
-import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -36,8 +35,6 @@ public class LinearAccelerationSensor extends Sensor
    private final List<OneDoFJoint> oneDofJoints;
 
    private final FrameVector3D measurement = new FrameVector3D();
-
-   private final ReferenceFrame imuFrame;
 
    private final DenseMatrix64F convectiveTerm = new DenseMatrix64F(6, 1);
    private final Vector3D linearConvectiveTerm = new Vector3D();
@@ -55,30 +52,48 @@ public class LinearAccelerationSensor extends Sensor
    private final Vector3D linearImuVelocity = new Vector3D();
    private final Vector3D centrifugalAcceleration = new Vector3D();
 
-   private final DoubleProvider linearAccelerationCovariance;
+   private final DoubleProvider covariance;
 
-   public LinearAccelerationSensor(String bodyName, double dt, IMUDefinition imuDefinition, YoVariableRegistry registry)
+   public LinearAccelerationSensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias,
+                                   YoVariableRegistry registry)
    {
-      String prefix = FilterTools.stringToPrefix(bodyName) + "LinearAcceleration";
-
       this.dt = dt;
 
-      imuFrame = imuDefinition.getIMUFrame();
-      biasState = new BiasState(prefix, registry);
-
-      RigidBody imuBody = imuDefinition.getRigidBody();
-      robotJacobian.setKinematicChain(ScrewTools.getRootBody(imuBody), imuBody);
-      robotJacobian.setJacobianFrame(imuFrame);
+      robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
+      robotJacobian.setJacobianFrame(measurementFrame);
       oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
+      covariance = new DoubleParameter(sensorName + "Covariance", registry, 1.0);
+
       jacobianDot.reshape(Twist.SIZE, robotJacobian.getNumberOfDegreesOfFreedom());
 
-      linearAccelerationCovariance = new DoubleParameter(prefix + "Covariance", registry, 1.0);
+      if (estimateBias)
+      {
+         biasState = new BiasState(sensorName, registry);
+      }
+      else
+      {
+         biasState = null;
+      }
    }
 
    @Override
    public State getSensorState()
    {
-      return biasState;
+      return biasState == null ? super.getSensorState() : biasState;
+   }
+
+   @Override
+   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
+   {
+      if (biasState == null)
+      {
+         super.getSensorJacobian(jacobianToPack);
+      }
+      else
+      {
+         jacobianToPack.reshape(biasState.getSize(), biasState.getSize());
+         CommonOps.setIdentity(jacobianToPack);
+      }
    }
 
    @Override
@@ -168,17 +183,27 @@ public class LinearAccelerationSensor extends Sensor
       centrifugalAcceleration.cross(angularImuVelocity, linearImuVelocity);
 
       RotationMatrix imuRotationMatrix = new RotationMatrix();
-      imuFrame.getTransformToWorldFrame().getRotation(imuRotationMatrix);
+      robotJacobian.getJacobianFrame().getTransformToWorldFrame().getRotation(imuRotationMatrix);
       int gravityIndex = robotState.getGravityIndex();
       jacobianToPack.set(0, gravityIndex, imuRotationMatrix.getElement(2, 0));
       jacobianToPack.set(1, gravityIndex, imuRotationMatrix.getElement(2, 1));
       jacobianToPack.set(2, gravityIndex, imuRotationMatrix.getElement(2, 2));
 
+      // Compute the sensor measurement based on the robot state:
       residualToPack.reshape(measurementSize, 1);
       CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
-      residualToPack.set(0, measurement.getX() - biasState.getBias(0) - residualToPack.get(0) - centrifugalAcceleration.getX());
-      residualToPack.set(1, measurement.getY() - biasState.getBias(1) - residualToPack.get(1) - centrifugalAcceleration.getY());
-      residualToPack.set(2, measurement.getZ() - biasState.getBias(0) - residualToPack.get(2) - centrifugalAcceleration.getZ());
+
+      // Compute the residual considering the sensor bias and the current measurement:
+      residualToPack.set(0, measurement.getX() - residualToPack.get(0) - centrifugalAcceleration.getX());
+      residualToPack.set(1, measurement.getY() - residualToPack.get(1) - centrifugalAcceleration.getY());
+      residualToPack.set(2, measurement.getZ() - residualToPack.get(2) - centrifugalAcceleration.getZ());
+
+      if (biasState != null)
+      {
+         residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
+         residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
+         residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
+      }
 
       // Add the linearized cross product of angular and linear velocity to the jacobian
       DenseMatrix64F jacobianAngularPart = new DenseMatrix64F(3, robotJacobian.getNumberOfDegreesOfFreedom());
@@ -207,23 +232,16 @@ public class LinearAccelerationSensor extends Sensor
    }
 
    @Override
-   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
-   {
-      jacobianToPack.reshape(biasState.getSize(), biasState.getSize());
-      CommonOps.setIdentity(jacobianToPack);
-   }
-
-   @Override
    public void getRMatrix(DenseMatrix64F matrixToPack)
    {
       matrixToPack.reshape(measurementSize, measurementSize);
       CommonOps.setIdentity(matrixToPack);
-      CommonOps.scale(linearAccelerationCovariance.getValue(), matrixToPack);
+      CommonOps.scale(covariance.getValue(), matrixToPack);
    }
 
-   public void setLinearAccelerationMeasurement(Vector3D measurement)
+   public void setMeasurement(Vector3DReadOnly measurement)
    {
-      this.measurement.setIncludingFrame(imuFrame, measurement);
+      this.measurement.set(measurement);
    }
 
    /**
