@@ -20,7 +20,7 @@ import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
-public class AngularVelocitySensor extends Sensor
+public class LinearVelocitySensor extends Sensor
 {
    private static final int measurementSize = 3;
 
@@ -34,7 +34,7 @@ public class AngularVelocitySensor extends Sensor
 
    private final DenseMatrix64F tempRobotState = new DenseMatrix64F(1, 1);
 
-   public AngularVelocitySensor(String sensorName, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
+   public LinearVelocitySensor(String sensorName, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
       measurement = new FrameVector3D(measurementFrame);
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
@@ -112,15 +112,15 @@ public class AngularVelocitySensor extends Sensor
       int jointOffset = 0;
       if (robotState.isFloating())
       {
-         CommonOps.extract(jacobianMatrix, 0, 3, 0, 3, FToPack, 0, robotState.findAngularVelocityIndex());
-         CommonOps.extract(jacobianMatrix, 0, 3, 3, 6, FToPack, 0, robotState.findLinearVelocityIndex());
+         CommonOps.extract(jacobianMatrix, 3, 6, 0, 3, FToPack, 0, robotState.findAngularVelocityIndex());
+         CommonOps.extract(jacobianMatrix, 3, 6, 3, 6, FToPack, 0, robotState.findLinearVelocityIndex());
          jointOffset = Twist.SIZE;
       }
       for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
       {
          int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
          int jointIndexInJacobian = jointIndex + jointOffset;
-         CommonOps.extract(jacobianMatrix, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, FToPack, 0, jointVelocityIndex);
+         CommonOps.extract(jacobianMatrix, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, FToPack, 0, jointVelocityIndex);
       }
    }
 

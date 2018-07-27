@@ -6,12 +6,15 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import us.ihmc.commons.PrintTools;
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.sensor.AngularVelocitySensor;
-import us.ihmc.ekf.filter.sensor.BodyVelocitySensor;
 import us.ihmc.ekf.filter.sensor.JointPositionSensor;
 import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
+import us.ihmc.ekf.filter.sensor.LinearVelocitySensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
@@ -40,7 +43,9 @@ public class SimulationSensorReader implements RobotSensorReader
       // This adds a zero velocity sensor to the base of the robot.
       if (addBaseVelocitySensor)
       {
-         allSensors.add(new BodyVelocitySensor(fullRobotModel.getRootJoint().getSuccessor(), registry));
+         RigidBody baseBody = fullRobotModel.getRootJoint().getSuccessor();
+         String sensorName = FilterTools.stringToPrefix(baseBody.getName()) + "LinearVelocity";
+         allSensors.add(new LinearVelocitySensor(sensorName, baseBody, baseBody.getBodyFixedFrame(), false, registry));
       }
    }
 
@@ -56,7 +61,9 @@ public class SimulationSensorReader implements RobotSensorReader
          throw new RuntimeException("Could not find IMU '" + imuName + "' in robot.");
       }
 
-      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(imuName, imu, registry);
+      RigidBody imuBody = imu.getRigidBody();
+      ReferenceFrame imuFrame = imu.getIMUFrame();
+      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(FilterTools.stringToPrefix(imuName) + "AngularVelocity", imuBody, imuFrame, true, registry);
       angularVelocitySensors.add(new ImmutablePair<IMUMount, AngularVelocitySensor>(imuMount, angularVelocitySensor));
 
       LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(imuName, dt, imu, registry);
@@ -103,7 +110,7 @@ public class SimulationSensorReader implements RobotSensorReader
          IMUMount imuMount = sensorPair.getLeft();
          AngularVelocitySensor sensor = sensorPair.getRight();
          imuMount.getAngularVelocityInBody(tempVector);
-         sensor.setAngularVelocityMeasurement(tempVector);
+         sensor.setMeasurement(tempVector);
       }
 
       for (ImmutablePair<IMUMount, LinearAccelerationSensor> sensorPair : linearAccelerationSensors)
