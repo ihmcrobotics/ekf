@@ -12,15 +12,20 @@ Now you can run the [SimpleArmSimulation](https://github.com/georgwi/EKF/blob/ma
 
 ## Structure of the Framework
 
+### What is different about this filter vs common Kalman filter implemnentations for robotics applications?
+
+I consider angular velocity and accelerations as part of the state. This allows me to integrate multiple distributed IMUs seamlessly into the framework. The filter also does not treat the matter of estimating the joint states differently from the robot pose. Rather it can use distributed IMU sensors to estimate joint states in case of very noise of faulty joint position sensing.
+
+### Kalman Filter
 A good introductory paper for Kalman filters can be found [here](https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf).
 
 ### Supported Sensors
- - Joint Position
- - Angular Velocity
- - Linear Acceleration
- - (soon) Body Velocity
+ - Joint Position (e.g. Encoders)
+ - Linear Body Velocity (e.g. Fixed Points, Cameras)
+ - Angular Body Velocity (e.g. IMU Sensors)
+ - Linear Body Acceleration (e.g. IMU Sensors)
  
 ### Supported States
- - Revolute Joint
- - Floating Joint
- - (soon) Sensor Bias State
+ - Revolute Joint (incl. Acceleration)
+ - Floating Joint (incl. Acceleration)
+ - Sensor Bias State
