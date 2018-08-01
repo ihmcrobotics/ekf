@@ -18,6 +18,8 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class RobotState extends ComposedState
 {
+   private static final double GRAVITY = 9.81;
+
    private final boolean isFloating;
    private final RigidBodyTransform rootTransform;
    private final Twist rootTwist;
@@ -25,9 +27,6 @@ public class RobotState extends ComposedState
    private final PoseState poseState;
    private final Map<String, JointState> jointStatesByName = new HashMap<>();
    private final Map<String, MutableInt> jointIndecesByName = new HashMap<>();
-
-   private final int gravityIndex;
-   private final GravityState gravityState;
 
    public RobotState(FullRobotModel fullRobotModel, double dt, YoVariableRegistry registry)
    {
@@ -71,10 +70,6 @@ public class RobotState extends ComposedState
          jointStatesByName.put(joint.getName(), jointState);
          jointIndecesByName.put(joint.getName(), jointStateStartIndex);
       }
-
-      gravityIndex = getSize();
-      gravityState = new GravityState(registry);
-      addState(gravityState);
    }
 
    public RobotState(List<String> jointNames, double dt, YoVariableRegistry registry)
@@ -83,14 +78,38 @@ public class RobotState extends ComposedState
       rootTransform = null;
       rootTwist = null;
       poseState = null;
-      gravityIndex = -1;
-      gravityState = null;
 
       for (String jointName : jointNames)
       {
          MutableInt jointStateStartIndex = new MutableInt(getSize());
          JointState jointState = new JointState(jointName, dt, registry);
          addState(jointState);
+         jointStatesByName.put(jointName, jointState);
+         jointIndecesByName.put(jointName, jointStateStartIndex);
+      }
+   }
+
+   public RobotState(PoseState poseState, List<JointState> jointStates, YoVariableRegistry registry)
+   {
+      isFloating = poseState != null;
+      this.poseState = poseState;
+      if (isFloating)
+      {
+         rootTransform = new RigidBodyTransform();
+         rootTwist = new Twist();
+         addState(poseState);
+      }
+      else
+      {
+         rootTransform = null;
+         rootTwist = null;
+      }
+
+      for (JointState jointState : jointStates)
+      {
+         MutableInt jointStateStartIndex = new MutableInt(getSize());
+         addState(jointState);
+         String jointName = jointState.getJointName();
          jointStatesByName.put(jointName, jointState);
          jointIndecesByName.put(jointName, jointStateStartIndex);
       }
@@ -123,9 +142,8 @@ public class RobotState extends ComposedState
 
    public int findOrientationIndex()
    {
-      // Accessing this is dangerous and the values will be zero anyway.
-      // TODO: In case we start using an orientation sensor.
-      throw new RuntimeException(PoseState.class.getSimpleName() + " uses an error orientation state.");
+      checkFloating();
+      return PoseState.orientationStart;
    }
 
    public int findAngularVelocityIndex()
@@ -158,14 +176,9 @@ public class RobotState extends ComposedState
       return PoseState.linearAccelerationStart;
    }
 
-   public int getGravityIndex()
-   {
-      return gravityIndex;
-   }
-
    public double getGravity()
    {
-      return gravityState.getValue();
+      return GRAVITY;
    }
 
    private void checkFloating()
