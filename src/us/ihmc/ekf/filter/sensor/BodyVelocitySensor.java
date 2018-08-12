@@ -1,10 +1,12 @@
 package us.ihmc.ekf.filter.sensor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.BiasState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
@@ -15,7 +17,6 @@ import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
-import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -42,18 +43,20 @@ public abstract class BodyVelocitySensor extends Sensor
    private final BiasState biasState;
    private final DoubleProvider covariance;
 
-   private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
+   private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jacobianRelevantPart = new DenseMatrix64F(0, 0);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
-   private final List<OneDoFJoint> oneDofJoints;
+   private final List<String> oneDofJointNames = new ArrayList<>();
 
-   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(1, 1);
+   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
 
    public BodyVelocitySensor(String sensorName, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
       measurement = new FrameVector3D(measurementFrame);
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
-      oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
+      List<OneDoFJoint> oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
+      oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
       covariance = new DoubleParameter(sensorName + "Covariance", registry, 1.0);
 
       if (estimateBias)
@@ -64,15 +67,12 @@ public abstract class BodyVelocitySensor extends Sensor
       {
          biasState = null;
       }
+
+      int degreesOfFreedom = robotJacobian.getNumberOfDegreesOfFreedom();
+      jacobianRelevantPart.reshape(measurementSize, degreesOfFreedom);
    }
 
-   /**
-    * Gets the row offset that should be used in the Jacobian matrix. Should be {@code 0} to select the angular part of the robot
-    * Jacobian and {@code 3} to select the angular part of the Jacobian matrix.
-    *
-    * @return the start row in the robot Jacobian used to assemble the measurement matrix.
-    */
-   protected abstract int getOffsetInJacobian();
+   protected abstract void packRelevantJacobianPart(DenseMatrix64F relevantPartToPack, DenseMatrix64F fullJacobian);
 
    @Override
    public State getSensorState()
@@ -103,13 +103,11 @@ public abstract class BodyVelocitySensor extends Sensor
    @Override
    public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
-      jacobianToPack.reshape(measurementSize, robotState.getSize());
-      CommonOps.fill(jacobianToPack, 0.0);
-
       robotJacobian.computeJacobianMatrix();
       robotJacobian.getJacobianMatrix(jacobianMatrix);
 
-      extractFFromJacobian(jacobianToPack, jacobianMatrix, robotState);
+      packRelevantJacobianPart(jacobianRelevantPart, jacobianMatrix);
+      FilterTools.insertForVelocity(jacobianToPack, oneDofJointNames, jacobianRelevantPart, robotState);
 
       // Compute the sensor measurement based on the robot state:
       residualToPack.reshape(measurementSize, 1);
@@ -126,24 +124,6 @@ public abstract class BodyVelocitySensor extends Sensor
          residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
          residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
          residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
-      }
-   }
-
-   private void extractFFromJacobian(DenseMatrix64F FToPack, DenseMatrix64F jacobianMatrix, RobotState robotState)
-   {
-      int offset = getOffsetInJacobian();
-      int jointOffset = 0;
-      if (robotState.isFloating())
-      {
-         CommonOps.extract(jacobianMatrix, offset, offset + 3, 0, 3, FToPack, 0, robotState.findAngularVelocityIndex());
-         CommonOps.extract(jacobianMatrix, offset, offset + 3, 3, 6, FToPack, 0, robotState.findLinearVelocityIndex());
-         jointOffset = Twist.SIZE;
-      }
-      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
-      {
-         int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
-         int jointIndexInJacobian = jointIndex + jointOffset;
-         CommonOps.extract(jacobianMatrix, offset, offset + 3, jointIndexInJacobian, jointIndexInJacobian + 1, FToPack, 0, jointVelocityIndex);
       }
    }
 

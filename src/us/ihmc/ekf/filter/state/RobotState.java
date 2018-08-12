@@ -16,7 +16,7 @@ import us.ihmc.robotics.screwTheory.SixDoFJoint;
 import us.ihmc.robotics.screwTheory.Twist;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
-public class RobotState extends ComposedState
+public class RobotState extends ComposedState implements RobotStateIndexProvider
 {
    public static final double GRAVITY = 9.81;
 
@@ -120,56 +120,66 @@ public class RobotState extends ComposedState
       return jointStatesByName.get(jointName);
    }
 
+   @Override
    public int findJointPositionIndex(String jointName)
    {
       return jointIndecesByName.get(jointName).intValue();
    }
 
+   @Override
    public int findJointVelocityIndex(String jointName)
    {
       return jointIndecesByName.get(jointName).intValue() + 1;
    }
 
+   @Override
    public int findJointAccelerationIndex(String jointName)
    {
       return jointIndecesByName.get(jointName).intValue() + 2;
    }
 
+   @Override
    public boolean isFloating()
    {
       return isFloating;
    }
 
+   @Override
    public int findOrientationIndex()
    {
       checkFloating();
       return PoseState.orientationStart;
    }
 
+   @Override
    public int findAngularVelocityIndex()
    {
       checkFloating();
       return PoseState.angularVelocityStart;
    }
 
+   @Override
    public int findAngularAccelerationIndex()
    {
       checkFloating();
       return PoseState.angularAccelerationStart;
    }
 
+   @Override
    public int findPositionIndex()
    {
       checkFloating();
       return PoseState.positionStart;
    }
 
+   @Override
    public int findLinearVelocityIndex()
    {
       checkFloating();
       return PoseState.linearVelocityStart;
    }
 
+   @Override
    public int findLinearAccelerationIndex()
    {
       checkFloating();

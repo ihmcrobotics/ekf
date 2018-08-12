@@ -1,5 +1,8 @@
 package us.ihmc.ekf.filter.sensor;
 
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
+
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -12,8 +15,8 @@ public class LinearVelocitySensor extends BodyVelocitySensor
    }
 
    @Override
-   protected int getOffsetInJacobian()
+   protected void packRelevantJacobianPart(DenseMatrix64F relevantPartToPack, DenseMatrix64F fullJacobian)
    {
-      return 3;
+      CommonOps.extract(fullJacobian, 3, 6, 0, fullJacobian.getNumCols(), relevantPartToPack, 0, 0);
    }
 }
