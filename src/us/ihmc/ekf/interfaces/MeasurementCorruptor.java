@@ -11,6 +11,8 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoFrameVector3D;
 
 public class MeasurementCorruptor
 {
@@ -23,7 +25,9 @@ public class MeasurementCorruptor
    private static final int encoderBits = 12;
    private static final double jointPositionEncoderTick = 2.0 * Math.PI / Math.pow(2, encoderBits); // rad
 
-   private static final double biasDriftVariance = 0.0;
+   // Add a random walk to the IMU
+   private static final double angularVelocityRandomWalk = 1.0e-7;
+   private static final double linearAccelerationRandomWalk = 1.0e-6;
 
    private final Random random = new Random(1L);
 
@@ -31,11 +35,11 @@ public class MeasurementCorruptor
    private final List<OneDegreeOfFreedomJoint> simulatedJoints = new ArrayList<>();
 
    private final List<AngularVelocitySensor> angularVelocitySensors = new ArrayList<>();
-   private final List<Vector3D> angularVelocityBias = new ArrayList<>();
+   private final List<Vector3DBasics> angularVelocityBias = new ArrayList<>();
    private final List<IMUMount> simulatedIMUsForAngularVelocity = new ArrayList<>();
 
    private final List<LinearAccelerationSensor> linearAccelerationSensors = new ArrayList<>();
-   private final List<Vector3D> linearAccelerationBias = new ArrayList<>();
+   private final List<Vector3DBasics> linearAccelerationBias = new ArrayList<>();
    private final List<IMUMount> simulatedIMUsForLinearAcceleration = new ArrayList<>();
 
    private final Vector3D tempNoise = new Vector3D();
@@ -55,17 +59,17 @@ public class MeasurementCorruptor
       simulatedJoints.add(simulatedJoint);
    }
 
-   public void addAngularVelocitySensor(AngularVelocitySensor sensor, IMUMount simulatedImu)
+   public void addAngularVelocitySensor(AngularVelocitySensor sensor, IMUMount simulatedImu, YoVariableRegistry registry)
    {
       angularVelocitySensors.add(sensor);
-      angularVelocityBias.add(new Vector3D());
+      angularVelocityBias.add(new YoFrameVector3D("TrueBias" + angularVelocityBias.size() + "AngularVelocity", null, registry));
       simulatedIMUsForAngularVelocity.add(simulatedImu);
    }
 
-   public void addLinearAccelerationSensor(LinearAccelerationSensor sensor, IMUMount simulatedImu)
+   public void addLinearAccelerationSensor(LinearAccelerationSensor sensor, IMUMount simulatedImu, YoVariableRegistry registry)
    {
       linearAccelerationSensors.add(sensor);
-      linearAccelerationBias.add(new Vector3D());
+      linearAccelerationBias.add(new YoFrameVector3D("TrueBias" + linearAccelerationBias.size() + "LinearAcceleration", null, registry));
       simulatedIMUsForLinearAcceleration.add(simulatedImu);
    }
 
@@ -86,7 +90,7 @@ public class MeasurementCorruptor
          tempMeasurement.add(tempNoise);
          angularVelocitySensors.get(sensorIndex).setMeasurement(tempMeasurement);
 
-         createGaussianNoise(biasDriftVariance, tempNoise);
+         createGaussianNoise(angularVelocityRandomWalk, tempNoise);
          angularVelocityBias.get(sensorIndex).add(tempNoise);
       }
 
@@ -98,7 +102,7 @@ public class MeasurementCorruptor
          tempMeasurement.add(tempNoise);
          linearAccelerationSensors.get(sensorIndex).setMeasurement(tempMeasurement);
 
-         createGaussianNoise(biasDriftVariance, tempNoise);
+         createGaussianNoise(linearAccelerationRandomWalk, tempNoise);
          linearAccelerationBias.get(sensorIndex).add(tempNoise);
       }
    }

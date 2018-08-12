@@ -17,10 +17,10 @@
 	        <parameter name="baseImuLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.000235619449"/>
 	        <parameter name="arm3ImuLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.000235619449"/>
 
-	        <parameter name="baseImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
-	        <parameter name="arm3ImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
-	        <parameter name="baseImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
-	        <parameter name="arm3ImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
+	        <parameter name="baseImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-7"/>
+	        <parameter name="arm3ImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-7"/>
+	        <parameter name="baseImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-6"/>
+	        <parameter name="arm3ImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-6"/>
 
 	        <parameter name="baseLinearVelocityVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
 	    </registry>

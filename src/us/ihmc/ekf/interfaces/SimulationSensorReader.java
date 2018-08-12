@@ -24,7 +24,7 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class SimulationSensorReader implements RobotSensorReader
 {
-   private static final boolean estimateBiases = false;
+   private static final boolean estimateBiases = true;
    private static final boolean addSimulatedNoise = true;
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
@@ -57,8 +57,8 @@ public class SimulationSensorReader implements RobotSensorReader
       {
          measurementCorruptor = new MeasurementCorruptor(dt);
          jointPositionSensors.forEach(pair -> measurementCorruptor.addJointPositionSensor(pair.getRight(), pair.getLeft()));
-         angularVelocitySensors.forEach(pair -> measurementCorruptor.addAngularVelocitySensor(pair.getRight(), pair.getLeft()));
-         linearAccelerationSensors.forEach(pair -> measurementCorruptor.addLinearAccelerationSensor(pair.getRight(), pair.getLeft()));
+         angularVelocitySensors.forEach(pair -> measurementCorruptor.addAngularVelocitySensor(pair.getRight(), pair.getLeft(), registry));
+         linearAccelerationSensors.forEach(pair -> measurementCorruptor.addLinearAccelerationSensor(pair.getRight(), pair.getLeft(), registry));
       }
       else
       {
