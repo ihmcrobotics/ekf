@@ -9,9 +9,9 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class LinearVelocitySensor extends BodyVelocitySensor
 {
-   public LinearVelocitySensor(String sensorName, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
+   public LinearVelocitySensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
-      super(sensorName, body, measurementFrame, estimateBias, registry);
+      super(sensorName, dt, body, measurementFrame, estimateBias, registry);
    }
 
    @Override

@@ -72,19 +72,21 @@ public class PoseState extends State
 
    private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
 
-   private final DoubleProvider angularAccelerationCovariance;
-   private final DoubleProvider linearAccelerationCovariance;
+   private final DoubleProvider angularAccelerationVariance;
+   private final DoubleProvider linearAccelerationVariance;
 
    private final double dt;
+   private final double sqrtHz;
    private final ReferenceFrame bodyFrame;
 
    public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, YoVariableRegistry registry)
    {
       this.dt = dt;
+      this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.bodyFrame = bodyFrame;
 
-      angularAccelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationCovariance", registry, 1.0);
-      linearAccelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationCovariance", registry, 1.0);
+      angularAccelerationVariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationVariance", registry, 1.0);
+      linearAccelerationVariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0);
    }
 
    public void initialize(RigidBodyTransform transform, Twist twist)
@@ -202,13 +204,13 @@ public class PoseState extends State
       matrixToPack.reshape(size, size);
       CommonOps.fill(matrixToPack, 0.0);
 
-      matrixToPack.set(angularAccelerationStart + 0, angularAccelerationStart + 0, angularAccelerationCovariance.getValue());
-      matrixToPack.set(angularAccelerationStart + 1, angularAccelerationStart + 1, angularAccelerationCovariance.getValue());
-      matrixToPack.set(angularAccelerationStart + 2, angularAccelerationStart + 2, angularAccelerationCovariance.getValue());
+      matrixToPack.set(angularAccelerationStart + 0, angularAccelerationStart + 0, angularAccelerationVariance.getValue() * sqrtHz);
+      matrixToPack.set(angularAccelerationStart + 1, angularAccelerationStart + 1, angularAccelerationVariance.getValue() * sqrtHz);
+      matrixToPack.set(angularAccelerationStart + 2, angularAccelerationStart + 2, angularAccelerationVariance.getValue() * sqrtHz);
 
-      matrixToPack.set(linearAccelerationStart + 0, linearAccelerationStart + 0, linearAccelerationCovariance.getValue());
-      matrixToPack.set(linearAccelerationStart + 1, linearAccelerationStart + 1, linearAccelerationCovariance.getValue());
-      matrixToPack.set(linearAccelerationStart + 2, linearAccelerationStart + 2, linearAccelerationCovariance.getValue());
+      matrixToPack.set(linearAccelerationStart + 0, linearAccelerationStart + 0, linearAccelerationVariance.getValue() * sqrtHz);
+      matrixToPack.set(linearAccelerationStart + 1, linearAccelerationStart + 1, linearAccelerationVariance.getValue() * sqrtHz);
+      matrixToPack.set(linearAccelerationStart + 2, linearAccelerationStart + 2, linearAccelerationVariance.getValue() * sqrtHz);
    }
 
    public void getOrientation(FrameQuaternion orientationToPack)

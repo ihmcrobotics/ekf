@@ -18,18 +18,21 @@ public class JointState extends State
    private final DenseMatrix64F tempStateVector = new DenseMatrix64F(size, 1);
    private final DenseMatrix64F F = new DenseMatrix64F(size, size);
 
-   private final DoubleProvider accelerationCovariance;
+   private final DoubleProvider accelerationVariance;
+
+   private final double sqrtHz;
 
    public JointState(String jointName, double dt, YoVariableRegistry registry)
    {
       this.jointName = jointName;
+      this.sqrtHz = 1.0 / Math.sqrt(dt);
 
       CommonOps.setIdentity(F);
       F.set(0, 1, dt);
       F.set(0, 2, 0.5 * dt * dt);
       F.set(1, 2, dt);
 
-      accelerationCovariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "AccelerationCovariance", registry, 1.0);
+      accelerationVariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "AccelerationVariance", registry, 1.0);
    }
 
    public void initialize(double initialPosition, double initialVelocity)
@@ -81,7 +84,7 @@ public class JointState extends State
    {
       matrixToPack.reshape(size, size);
       CommonOps.fill(matrixToPack, 0.0);
-      matrixToPack.set(2, 2, accelerationCovariance.getValue());
+      matrixToPack.set(2, 2, accelerationVariance.getValue() * sqrtHz);
    }
 
    public double getQ()

@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <parameters>
     <registry name="EstimatorController">
-        <parameter name="baseArm1AccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
-        <parameter name="arm1Arm2AccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
-        <parameter name="arm2Arm3AccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
-        <parameter name="baseAngularAccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
-        <parameter name="baseLinearAccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
+        <parameter name="baseArm1AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
+        <parameter name="arm1Arm2AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
+        <parameter name="arm2Arm3AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
+        <parameter name="baseAngularAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="10000.0"/>
+        <parameter name="baseLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="10000.0"/>
+
         <registry name="SimulationSensorReader">
-	        <parameter name="baseArm1JointPositionCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-1"/>
-	        <parameter name="arm1Arm2JointPositionCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-1"/>
-	        <parameter name="arm2Arm3JointPositionCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-1"/>
-	        <parameter name="baseImuAngularVelocityCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-2"/>
-	        <parameter name="arm3ImuAngularVelocityCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-2"/>
-	        <parameter name="baseImuLinearAccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E3"/>
-	        <parameter name="arm3ImuLinearAccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E3"/>
-	        <parameter name="baseImuAngularVelocityBiasCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
-	        <parameter name="arm3ImuAngularVelocityBiasCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
-	        <parameter name="baseImuLinearAccelerationBiasCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
-	        <parameter name="arm3ImuLinearAccelerationBiasCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
-	        <parameter name="baseLinearVelocityCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-2"/>
+	        <parameter name="baseArm1JointPositionVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
+	        <parameter name="arm1Arm2JointPositionVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
+	        <parameter name="arm2Arm3JointPositionVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
+
+	        <parameter name="baseImuAngularVelocityVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0022563"/>
+	        <parameter name="arm3ImuAngularVelocityVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0022563"/>
+	        <parameter name="baseImuLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.000235619449"/>
+	        <parameter name="arm3ImuLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.000235619449"/>
+
+	        <parameter name="baseImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
+	        <parameter name="arm3ImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
+	        <parameter name="baseImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
+	        <parameter name="arm3ImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0"/>
+
+	        <parameter name="baseLinearVelocityVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
 	    </registry>
     </registry>
 </parameters>

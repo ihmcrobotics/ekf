@@ -18,15 +18,19 @@ public class BiasState extends State
 
    private final DenseMatrix64F bias = new DenseMatrix64F(size, 1);
    private final List<YoDouble> yoState = new ArrayList<>();
-   private final DoubleProvider covariance;
+   private final DoubleProvider variance;
 
-   public BiasState(String prefix, YoVariableRegistry registry)
+   private final double sqrtHz;
+
+   public BiasState(String prefix, double dt, YoVariableRegistry registry)
    {
+      this.sqrtHz = 1.0 / Math.sqrt(dt);
+
       for (int i = 0; i < size; i++)
       {
          yoState.add(new YoDouble(prefix + "Bias" + i, registry));
       }
-      covariance = new DoubleParameter(prefix + "BiasCovariance", registry, 1.0);
+      variance = new DoubleParameter(prefix + "BiasVariance", registry, 1.0);
    }
 
    public double getBias(int index)
@@ -75,7 +79,7 @@ public class BiasState extends State
    {
       matrixToPack.reshape(size, size);
       CommonOps.setIdentity(matrixToPack);
-      CommonOps.scale(covariance.getValue(), matrixToPack);
+      CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
 }

@@ -59,8 +59,8 @@ public class OrientationEstimationTest
 
       YoVariableRegistry registry = new YoVariableRegistry("TestRegistry");
       LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor("LinearAcceleration", ESTIMATOR_DT, imuBody, imuFrame, false, registry);
-      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor("AngularVelocity", imuBody, imuFrame, false, registry);
-      LinearVelocitySensor linearVelocitySensor = new LinearVelocitySensor("LinearVelocity", imuBody, imuFrame, false, registry);
+      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor("AngularVelocity", ESTIMATOR_DT, imuBody, imuFrame, false, registry);
+      LinearVelocitySensor linearVelocitySensor = new LinearVelocitySensor("LinearVelocity", ESTIMATOR_DT, imuBody, imuFrame, false, registry);
 
       PoseState poseState = new PoseState(imuBody.getName(), ESTIMATOR_DT, imuFrame, registry);
       RobotState robotState = new RobotState(poseState, Collections.emptyList(), registry);

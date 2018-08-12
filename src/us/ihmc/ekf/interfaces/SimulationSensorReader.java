@@ -24,6 +24,9 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class SimulationSensorReader implements RobotSensorReader
 {
+   private static final boolean estimateBiases = false;
+   private static final boolean addSimulatedNoise = true;
+
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
    private final List<Sensor> allSensors = new ArrayList<>();
@@ -31,9 +34,11 @@ public class SimulationSensorReader implements RobotSensorReader
    private final List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors = new ArrayList<>();
    private final List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors = new ArrayList<>();
 
+   private final MeasurementCorruptor measurementCorruptor;
+
    public SimulationSensorReader(RobotFromDescription robot, FullRobotModel fullRobotModel, double dt, boolean addBaseVelocitySensor)
    {
-      addJointPositionSensorsRecursive(robot.getRootJoints().get(0), jointPositionSensors, registry);
+      addJointPositionSensorsRecursive(dt, robot.getRootJoints().get(0), jointPositionSensors, registry);
       jointPositionSensors.stream().forEach(s -> allSensors.add(s.getRight()));
 
       fullRobotModel.getImuDefinitions().stream().forEach(imu -> addIMUSensor(dt, imu, robot, angularVelocitySensors, linearAccelerationSensors, registry));
@@ -45,7 +50,19 @@ public class SimulationSensorReader implements RobotSensorReader
       {
          RigidBody baseBody = fullRobotModel.getRootJoint().getSuccessor();
          String sensorName = FilterTools.stringToPrefix(baseBody.getName()) + "LinearVelocity";
-         allSensors.add(new LinearVelocitySensor(sensorName, baseBody, baseBody.getBodyFixedFrame(), false, registry));
+         allSensors.add(new LinearVelocitySensor(sensorName, dt, baseBody, baseBody.getBodyFixedFrame(), false, registry));
+      }
+
+      if (addSimulatedNoise)
+      {
+         measurementCorruptor = new MeasurementCorruptor(dt);
+         jointPositionSensors.forEach(pair -> measurementCorruptor.addJointPositionSensor(pair.getRight(), pair.getLeft()));
+         angularVelocitySensors.forEach(pair -> measurementCorruptor.addAngularVelocitySensor(pair.getRight(), pair.getLeft()));
+         linearAccelerationSensors.forEach(pair -> measurementCorruptor.addLinearAccelerationSensor(pair.getRight(), pair.getLeft()));
+      }
+      else
+      {
+         measurementCorruptor = null;
       }
    }
 
@@ -63,24 +80,26 @@ public class SimulationSensorReader implements RobotSensorReader
 
       RigidBody imuBody = imu.getRigidBody();
       ReferenceFrame imuFrame = imu.getIMUFrame();
-      boolean estimateBiases = true;
 
-      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(FilterTools.stringToPrefix(imuName) + "AngularVelocity", imuBody, imuFrame, estimateBiases, registry);
+      AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(FilterTools.stringToPrefix(imuName) + "AngularVelocity", dt, imuBody, imuFrame,
+                                                                              estimateBiases, registry);
       angularVelocitySensors.add(new ImmutablePair<IMUMount, AngularVelocitySensor>(imuMount, angularVelocitySensor));
 
-      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(FilterTools.stringToPrefix(imuName) + "LinearAcceleration", dt, imuBody, imuFrame, estimateBiases, registry);
+      LinearAccelerationSensor linearAccelerationSensor = new LinearAccelerationSensor(FilterTools.stringToPrefix(imuName) + "LinearAcceleration", dt, imuBody,
+                                                                                       imuFrame, estimateBiases, registry);
       linearAccelerationSensors.add(new ImmutablePair<>(imuMount, linearAccelerationSensor));
 
       PrintTools.info("Created IMU Sensor '" + imuName + "'");
    }
 
-   private static void addJointPositionSensorsRecursive(Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors, YoVariableRegistry registry)
+   private static void addJointPositionSensorsRecursive(double dt, Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors,
+                                                        YoVariableRegistry registry)
    {
       if (joint instanceof PinJoint)
       {
          PinJoint pinJoint = (PinJoint) joint;
          String jointName = pinJoint.getName();
-         JointPositionSensor sensor = new JointPositionSensor(jointName, registry);
+         JointPositionSensor sensor = new JointPositionSensor(jointName, dt, registry);
          sensors.add(new ImmutablePair<>(pinJoint, sensor));
          PrintTools.info("Created joint position sensor for '" + jointName + "'");
       }
@@ -91,7 +110,7 @@ public class SimulationSensorReader implements RobotSensorReader
 
       for (Joint child : joint.getChildrenJoints())
       {
-         addJointPositionSensorsRecursive(child, sensors, registry);
+         addJointPositionSensorsRecursive(dt, child, sensors, registry);
       }
    }
 
@@ -100,27 +119,34 @@ public class SimulationSensorReader implements RobotSensorReader
    @Override
    public void read()
    {
-      for (ImmutablePair<PinJoint, JointPositionSensor> sensorPair : jointPositionSensors)
+      if (addSimulatedNoise)
       {
-         PinJoint joint = sensorPair.getLeft();
-         JointPositionSensor sensor = sensorPair.getRight();
-         sensor.setJointPositionMeasurement(joint.getQ());
+         measurementCorruptor.corrupt();
       }
-
-      for (ImmutablePair<IMUMount, AngularVelocitySensor> sensorPair : angularVelocitySensors)
+      else
       {
-         IMUMount imuMount = sensorPair.getLeft();
-         AngularVelocitySensor sensor = sensorPair.getRight();
-         imuMount.getAngularVelocityInBody(tempVector);
-         sensor.setMeasurement(tempVector);
-      }
+         for (ImmutablePair<PinJoint, JointPositionSensor> sensorPair : jointPositionSensors)
+         {
+            PinJoint joint = sensorPair.getLeft();
+            JointPositionSensor sensor = sensorPair.getRight();
+            sensor.setJointPositionMeasurement(joint.getQ());
+         }
 
-      for (ImmutablePair<IMUMount, LinearAccelerationSensor> sensorPair : linearAccelerationSensors)
-      {
-         IMUMount imuMount = sensorPair.getLeft();
-         LinearAccelerationSensor sensor = sensorPair.getRight();
-         imuMount.getLinearAccelerationInBody(tempVector);
-         sensor.setMeasurement(tempVector);
+         for (ImmutablePair<IMUMount, AngularVelocitySensor> sensorPair : angularVelocitySensors)
+         {
+            IMUMount imuMount = sensorPair.getLeft();
+            AngularVelocitySensor sensor = sensorPair.getRight();
+            imuMount.getAngularVelocityInBody(tempVector);
+            sensor.setMeasurement(tempVector);
+         }
+
+         for (ImmutablePair<IMUMount, LinearAccelerationSensor> sensorPair : linearAccelerationSensors)
+         {
+            IMUMount imuMount = sensorPair.getLeft();
+            LinearAccelerationSensor sensor = sensorPair.getRight();
+            imuMount.getLinearAccelerationInBody(tempVector);
+            sensor.setMeasurement(tempVector);
+         }
       }
    }
 

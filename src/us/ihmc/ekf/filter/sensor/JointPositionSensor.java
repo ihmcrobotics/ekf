@@ -18,13 +18,16 @@ public class JointPositionSensor extends Sensor
 
    private final String jointName;
 
-   private final DoubleProvider jointPositionCovariance;
+   private final DoubleProvider jointPositionVariance;
 
-   public JointPositionSensor(String jointName, YoVariableRegistry registry)
+   private final double sqrtHz;
+
+   public JointPositionSensor(String jointName, double dt, YoVariableRegistry registry)
    {
       this.jointName = jointName;
+      this.sqrtHz = 1.0 / Math.sqrt(dt);
 
-      jointPositionCovariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "JointPositionCovariance", registry, 1.0);
+      jointPositionVariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "JointPositionVariance", registry, 1.0);
    }
 
    public void setJointPositionMeasurement(double jointPosition)
@@ -54,6 +57,6 @@ public class JointPositionSensor extends Sensor
    public void getRMatrix(DenseMatrix64F matrixToPack)
    {
       matrixToPack.reshape(measurementSize, measurementSize);
-      matrixToPack.set(0, 0, jointPositionCovariance.getValue());
+      matrixToPack.set(0, 0, jointPositionVariance.getValue() * sqrtHz);
    }
 }

@@ -43,7 +43,7 @@ public class StateEstimatorTest
       for (int jointIdx = 0; jointIdx < jointNames.size(); jointIdx++)
       {
          String jointName = jointNames.get(jointIdx);
-         JointPositionSensor jointSensor = new JointPositionSensor(jointName, registry);
+         JointPositionSensor jointSensor = new JointPositionSensor(jointName, dt, registry);
          double jointPosition = EuclidCoreRandomTools.nextDouble(random);
          expectedState.set(3 * jointIdx, jointPosition);
          jointSensor.setJointPositionMeasurement(jointPosition);
@@ -55,7 +55,7 @@ public class StateEstimatorTest
       new DefaultParameterReader().readParametersInRegistry(registry);
 
       // Run the estimator a bunch of times.
-      for (int i = 0; i < 5000; i++)
+      for (int i = 0; i < 6000; i++)
       {
          stateEstimator.predict();
          stateEstimator.correct();

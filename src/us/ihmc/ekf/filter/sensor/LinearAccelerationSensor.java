@@ -64,26 +64,28 @@ public class LinearAccelerationSensor extends Sensor
    private final RigidBodyTransform rootToMeasurement = new RigidBodyTransform();
 
    private final double dt;
+   private final double sqrtHz;
 
    private boolean hasBeenCalled = false;
 
-   private final DoubleProvider covariance;
+   private final DoubleProvider variance;
 
    public LinearAccelerationSensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias,
                                    YoVariableRegistry registry)
    {
       this.dt = dt;
+      this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.measurementFrame = measurementFrame;
 
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
       List<OneDoFJoint> oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
-      covariance = new DoubleParameter(sensorName + "Covariance", registry, 1.0);
+      variance = new DoubleParameter(sensorName + "Variance", registry, 1.0);
 
       if (estimateBias)
       {
-         biasState = new BiasState(sensorName, registry);
+         biasState = new BiasState(sensorName, dt, registry);
       }
       else
       {
@@ -222,7 +224,7 @@ public class LinearAccelerationSensor extends Sensor
    {
       matrixToPack.reshape(measurementSize, measurementSize);
       CommonOps.setIdentity(matrixToPack);
-      CommonOps.scale(covariance.getValue(), matrixToPack);
+      CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
    public void setMeasurement(Vector3DReadOnly measurement)

@@ -41,7 +41,7 @@ public abstract class BodyVelocitySensor extends Sensor
 
    private final FrameVector3D measurement;
    private final BiasState biasState;
-   private final DoubleProvider covariance;
+   private final DoubleProvider variance;
 
    private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F jacobianRelevantPart = new DenseMatrix64F(0, 0);
@@ -50,18 +50,22 @@ public abstract class BodyVelocitySensor extends Sensor
 
    private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
 
-   public BodyVelocitySensor(String sensorName, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
+   private final double sqrtHz;
+
+   public BodyVelocitySensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
+      this.sqrtHz = 1.0 / Math.sqrt(dt);
+
       measurement = new FrameVector3D(measurementFrame);
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
       List<OneDoFJoint> oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
-      covariance = new DoubleParameter(sensorName + "Covariance", registry, 1.0);
+      variance = new DoubleParameter(sensorName + "Variance", registry, 1.0);
 
       if (estimateBias)
       {
-         biasState = new BiasState(sensorName, registry);
+         biasState = new BiasState(sensorName, dt, registry);
       }
       else
       {
@@ -132,7 +136,7 @@ public abstract class BodyVelocitySensor extends Sensor
    {
       matrixToPack.reshape(measurementSize, measurementSize);
       CommonOps.setIdentity(matrixToPack);
-      CommonOps.scale(covariance.getValue(), matrixToPack);
+      CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
    public void setMeasurement(Vector3DReadOnly measurement)
