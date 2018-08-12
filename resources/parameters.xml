@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <parameters>
     <registry name="EstimatorController">
-    	<parameter name="GravityCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-15"/>
         <parameter name="baseArm1AccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
         <parameter name="arm1Arm2AccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
         <parameter name="arm2Arm3AccelerationCovariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E6"/>
