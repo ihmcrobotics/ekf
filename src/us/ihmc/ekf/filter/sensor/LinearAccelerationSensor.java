@@ -12,6 +12,8 @@ import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DBasics;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
@@ -29,27 +31,39 @@ public class LinearAccelerationSensor extends Sensor
 
    private final BiasState biasState;
 
-   private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(1, 1);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
    private final List<OneDoFJoint> oneDofJoints;
 
+   private final ReferenceFrame measurementFrame;
    private final FrameVector3D measurement = new FrameVector3D();
 
-   private final DenseMatrix64F convectiveTerm = new DenseMatrix64F(6, 1);
-   private final Vector3D linearConvectiveTerm = new Vector3D();
+   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jacobianAngularPart = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jacobianLinearPart = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F qd = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F qdd = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jointAccelerationTerm = new DenseMatrix64F(Twist.SIZE, 1);
+   private final FrameVector3DBasics linearJointTerm = new FrameVector3D();
+   private final DenseMatrix64F convectiveTerm = new DenseMatrix64F(Twist.SIZE, 1);
+   private final FrameVector3DBasics linearConvectiveTerm = new FrameVector3D();
+   private final Twist sensorTwist = new Twist();
+   private final FrameVector3DBasics sensorAngularVelocity = new FrameVector3D();
+   private final FrameVector3DBasics sensorLinearVelocity = new FrameVector3D();
+   private final FrameVector3DBasics centrifugalTerm = new FrameVector3D();
+   private final FrameVector3DBasics gravityTerm = new FrameVector3D();
+   private final DenseMatrix64F linearJointTermLinearization = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F previousJacobianMatrixLinearPart = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jacobianDotLinearPart = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F convectiveTermLinearization = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F centrifugalTermLinearization = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F gravityTermLinearization = new DenseMatrix64F(0, 0);
+   private final Matrix3D gravityPart = new Matrix3D();
+   private final RigidBodyTransform rootToMeasurement = new RigidBodyTransform();
 
    private final double dt;
-   private final DenseMatrix64F previousJacobianMatrix = new DenseMatrix64F(1, 1);
-   private final DenseMatrix64F jacobianDot = new DenseMatrix64F(1, 1);
+
    private boolean hasBeenCalled = false;
-
-   private final DenseMatrix64F qd = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
-
-   private final DenseMatrix64F imuTwist = new DenseMatrix64F(6, 1);
-   private final Vector3D angularImuVelocity = new Vector3D();
-   private final Vector3D linearImuVelocity = new Vector3D();
-   private final Vector3D centrifugalAcceleration = new Vector3D();
 
    private final DoubleProvider covariance;
 
@@ -57,13 +71,12 @@ public class LinearAccelerationSensor extends Sensor
                                    YoVariableRegistry registry)
    {
       this.dt = dt;
+      this.measurementFrame = measurementFrame;
 
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
       oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
-      covariance = new DoubleParameter(sensorName + "Covariance", registry, 1);
-
-      jacobianDot.reshape(Twist.SIZE, robotJacobian.getNumberOfDegreesOfFreedom());
+      covariance = new DoubleParameter(sensorName + "Covariance", registry, 1.0);
 
       if (estimateBias)
       {
@@ -73,6 +86,13 @@ public class LinearAccelerationSensor extends Sensor
       {
          biasState = null;
       }
+
+      int degreesOfFreedom = robotJacobian.getNumberOfDegreesOfFreedom();
+      jacobianAngularPart.reshape(3, degreesOfFreedom);
+      jacobianLinearPart.reshape(3, degreesOfFreedom);
+      jacobianDotLinearPart.reshape(3, degreesOfFreedom);
+      qd.reshape(degreesOfFreedom, 1);
+      qdd.reshape(degreesOfFreedom, 1);
    }
 
    @Override
@@ -111,93 +131,39 @@ public class LinearAccelerationSensor extends Sensor
    @Override
    public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
-      jacobianToPack.reshape(measurementSize, robotState.getSize());
-      CommonOps.fill(jacobianToPack, 0.0);
-
       robotJacobian.computeJacobianMatrix();
+      robotJacobian.computeConvectiveTerm();
       robotJacobian.getJacobianMatrix(jacobianMatrix);
-      int jointOffset = robotState.isFloating() ? Twist.SIZE : 0;
+      CommonOps.extract(jacobianMatrix, 0, 3, 0, jacobianMatrix.getNumCols(), jacobianAngularPart, 0, 0);
+      CommonOps.extract(jacobianMatrix, 3, 6, 0, jacobianMatrix.getNumCols(), jacobianLinearPart, 0, 0);
 
-      // Extract the qd vector for to correct for the centrifugal acceleration by computing omega x v
-      robotState.getStateVector(tempRobotState);
-      qd.reshape(robotJacobian.getNumberOfDegreesOfFreedom(), 1);
-      if (robotState.isFloating())
-      {
-         int angularVelocityIndex = robotState.findAngularVelocityIndex();
-         int linearVelocityIndex = robotState.findLinearVelocityIndex();
-         CommonOps.extract(tempRobotState, angularVelocityIndex, angularVelocityIndex + 3, 0, 1, qd, 0, 0);
-         CommonOps.extract(tempRobotState, linearVelocityIndex, linearVelocityIndex + 3, 0, 1, qd, 3, 0);
-      }
-      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
-      {
-         int jointIndexInJacobian = jointIndex + jointOffset;
-         int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
-         CommonOps.extract(tempRobotState, jointVelocityIndex, jointVelocityIndex + 1, 0, 1, qd, jointIndexInJacobian, 0);
-      }
+      // Compute the residual (non-linear)
+      // J * qdd
+      packQdd(qdd, robotState);
+      CommonOps.mult(jacobianMatrix, qdd, jointAccelerationTerm);
+      linearJointTerm.setIncludingFrame(measurementFrame, 3, jointAccelerationTerm);
 
-      // z = J_dot_r * qDot + J_r * qDDot + omega x v
-      if (robotState.isFloating())
-      {
-         CommonOps.extract(jacobianMatrix, 3, 6, 0, 3, jacobianToPack, 0, robotState.findAngularAccelerationIndex());
-         CommonOps.extract(jacobianMatrix, 3, 6, 3, 6, jacobianToPack, 0, robotState.findLinearAccelerationIndex());
-      }
-      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
-      {
-         int jointAccelerationIndex = robotState.findJointAccelerationIndex(oneDofJoints.get(jointIndex).getName());
-         int jointIndexInJacobian = jointIndex + jointOffset;
-         CommonOps.extract(jacobianMatrix, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, jacobianToPack, 0, jointAccelerationIndex);
-      }
+      // Jd * qd
+      robotJacobian.getConvectiveTerm(convectiveTerm);
+      linearConvectiveTerm.setIncludingFrame(measurementFrame, 3, convectiveTerm);
 
-      // The first time we are computing the jacobian we can not yet numerically differentiate. Instead we subtract the convective term from the measurement.
-      if (!hasBeenCalled)
-      {
-         hasBeenCalled = true;
+      // w x v
+      robotJacobian.getEndEffector().getBodyFixedFrame().getTwistOfFrame(sensorTwist);
+      sensorTwist.changeFrame(measurementFrame);
+      centrifugalTerm.setToZero(measurementFrame);
+      sensorTwist.getAngularPart(sensorAngularVelocity);
+      sensorTwist.getLinearPart(sensorLinearVelocity);
+      centrifugalTerm.cross(sensorAngularVelocity, sensorLinearVelocity);
 
-         robotJacobian.computeConvectiveTerm();
-         robotJacobian.getConvectiveTerm(convectiveTerm);
-         linearConvectiveTerm.set(3, convectiveTerm);
-         measurement.sub(linearConvectiveTerm);
+      // R * g
+      gravityTerm.setIncludingFrame(ReferenceFrame.getWorldFrame(), 0.0, 0.0, robotState.getGravity());
+      gravityTerm.changeFrame(measurementFrame);
 
-         previousJacobianMatrix.set(jacobianMatrix);
-      }
-      else
-      {
-         // Here we are doing a numerical computation of J_dot_r = (J_r - J_r_prev) / dt
-         CommonOps.subtract(jacobianMatrix, previousJacobianMatrix, jacobianDot);
-         CommonOps.scale(1.0 / dt, jacobianDot);
-         if (robotState.isFloating())
-         {
-            int angularVelocityIndex = robotState.findAngularVelocityIndex();
-            int linearVelocityIndex = robotState.findLinearVelocityIndex();
-            CommonOps.extract(jacobianDot, 3, 6, 0, 3, jacobianToPack, 0, angularVelocityIndex);
-            CommonOps.extract(jacobianDot, 3, 6, 3, 6, jacobianToPack, 0, linearVelocityIndex);
-         }
-         for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
-         {
-            int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
-            int jointIndexInJacobian = jointIndex + jointOffset;
-            CommonOps.extract(jacobianDot, 3, 6, jointIndexInJacobian, jointIndexInJacobian + 1, jacobianToPack, 0, jointVelocityIndex);
-         }
-
-         previousJacobianMatrix.set(jacobianMatrix);
-      }
-
-      CommonOps.mult(jacobianMatrix, qd, imuTwist);
-      angularImuVelocity.set(0, imuTwist);
-      linearImuVelocity.set(3, imuTwist);
-      centrifugalAcceleration.cross(angularImuVelocity, linearImuVelocity);
-
-      FrameVector3D gravity = new FrameVector3D(ReferenceFrame.getWorldFrame(), 0.0, 0.0, robotState.getGravity());
-      gravity.changeFrame(robotJacobian.getJacobianFrame());
-
-      // Compute the sensor measurement based on the robot state:
+      // Compute the residual by substracting all terms from the measurement:
       residualToPack.reshape(measurementSize, 1);
-      CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
-
-      // Compute the residual considering the sensor bias and the current measurement:
-      residualToPack.set(0, measurement.getX() - residualToPack.get(0) - centrifugalAcceleration.getX() - gravity.getX());
-      residualToPack.set(1, measurement.getY() - residualToPack.get(1) - centrifugalAcceleration.getY() - gravity.getY());
-      residualToPack.set(2, measurement.getZ() - residualToPack.get(2) - centrifugalAcceleration.getZ() - gravity.getZ());
+      residualToPack.set(0, measurement.getX() - linearJointTerm.getX() - linearConvectiveTerm.getX() - centrifugalTerm.getX() - gravityTerm.getX());
+      residualToPack.set(1, measurement.getY() - linearJointTerm.getY() - linearConvectiveTerm.getY() - centrifugalTerm.getY() - gravityTerm.getY());
+      residualToPack.set(2, measurement.getZ() - linearJointTerm.getZ() - linearConvectiveTerm.getZ() - centrifugalTerm.getZ() - gravityTerm.getZ());
 
       if (biasState != null)
       {
@@ -206,41 +172,137 @@ public class LinearAccelerationSensor extends Sensor
          residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
       }
 
-      // Add the linearized gravity term to the jacobian
-      if (robotState.isFloating())
+      // Now for assembling the linearized measurement model:
+      // J * qdd
+      insertForAcceleration(linearJointTermLinearization, jacobianLinearPart, robotState);
+
+      // Jd * qd (numerical)
+      if (!hasBeenCalled)
       {
-         Matrix3D gravityPart = new Matrix3D();
-         gravityPart.setToTildeForm(gravity);
-         DenseMatrix64F gravityPartMatrix = new DenseMatrix64F(3, 3);
-         gravityPart.get(gravityPartMatrix);
-         CommonOps.extract(gravityPartMatrix, 0, 3, 0, 3, jacobianToPack, 0, robotState.findOrientationIndex());
+         jacobianDotLinearPart.zero();
+         hasBeenCalled = true;
       }
-      // TODO: add other joints.
+      else
+      {
+         CommonOps.subtract(jacobianLinearPart, previousJacobianMatrixLinearPart, jacobianDotLinearPart);
+         CommonOps.scale(1.0 / dt, jacobianDotLinearPart);
+      }
+      insertForVelocity(convectiveTermLinearization, jacobianDotLinearPart, robotState);
+      previousJacobianMatrixLinearPart.set(jacobianLinearPart);
 
-      // Add the linearized cross product of angular and linear velocity to the jacobian
-      DenseMatrix64F jacobianAngularPart = new DenseMatrix64F(3, robotJacobian.getNumberOfDegreesOfFreedom());
-      DenseMatrix64F jacobianLinearPart = new DenseMatrix64F(3, robotJacobian.getNumberOfDegreesOfFreedom());
-      CommonOps.extract(jacobianMatrix, 0, 3, 0, robotJacobian.getNumberOfDegreesOfFreedom(), jacobianAngularPart, 0, 0);
-      CommonOps.extract(jacobianMatrix, 3, 6, 0, robotJacobian.getNumberOfDegreesOfFreedom(), jacobianLinearPart, 0, 0);
-
+      // w x v
+      packQd(qd, robotState);
       DenseMatrix64F crossProductLinearization = linearizeCrossProduct(jacobianAngularPart, jacobianLinearPart, qd);
-      DenseMatrix64F crossProductJacobian = new DenseMatrix64F(0, 0);
-      crossProductJacobian.reshape(measurementSize, robotState.getSize());
-      CommonOps.fill(crossProductJacobian, 0.0);
+      insertForVelocity(centrifugalTermLinearization, crossProductLinearization, robotState);
+
+      // R * g (used only with floating joints) (skip the joint angles - only correct the base orientation)
+      gravityTermLinearization.reshape(measurementSize, robotState.getSize());
+      gravityTermLinearization.zero();
       if (robotState.isFloating())
       {
-         int angularVelocityIndex = robotState.findAngularVelocityIndex();
-         int linearVelocityIndex = robotState.findLinearVelocityIndex();
-         CommonOps.extract(crossProductLinearization, 0, 3, 0, 3, crossProductJacobian, 0, angularVelocityIndex);
-         CommonOps.extract(crossProductLinearization, 0, 3, 3, 6, crossProductJacobian, 0, linearVelocityIndex);
+         ReferenceFrame rootFrame = robotJacobian.getJointsFromBaseToEndEffector().get(0).getFrameAfterJoint();
+         rootFrame.getTransformToDesiredFrame(rootToMeasurement, measurementFrame);
+
+         gravityPart.setToTildeForm(gravityTerm);
+         gravityPart.multiply(rootToMeasurement.getRotationMatrix());
+         gravityPart.get(0, robotState.findOrientationIndex(), gravityTermLinearization);
       }
+
+      // Add all linearizations together:
+      jacobianToPack.set(linearJointTermLinearization);
+      CommonOps.add(jacobianToPack, convectiveTermLinearization, jacobianToPack);
+      CommonOps.add(jacobianToPack, centrifugalTermLinearization, jacobianToPack);
+      CommonOps.add(jacobianToPack, gravityTermLinearization, jacobianToPack);
+   }
+
+   private void insertForVelocity(DenseMatrix64F matrixToPack, DenseMatrix64F matrixToInsert, RobotState robotState)
+   {
+      matrixToPack.reshape(measurementSize, robotState.getSize());
+      matrixToPack.zero();
+      int index = 0;
+
+      if (robotState.isFloating())
+      {
+         int angularIndex = robotState.findAngularVelocityIndex();
+         int linearIndex = robotState.findLinearVelocityIndex();
+         CommonOps.extract(matrixToInsert, 0, 3, 0, 3, matrixToPack, 0, angularIndex);
+         CommonOps.extract(matrixToInsert, 0, 3, 3, 6, matrixToPack, 0, linearIndex);
+         index += 6;
+      }
+
       for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
       {
-         int jointVelocityIndex = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
-         int jointIndexInJacobian = jointIndex + jointOffset;
-         CommonOps.extract(crossProductLinearization, 0, 3, jointIndexInJacobian, jointIndexInJacobian + 1, crossProductJacobian, 0, jointVelocityIndex);
+         int indexInState = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
+         CommonOps.extract(matrixToInsert, 0, 3, index, index + 1, matrixToPack, 0, indexInState);
+         index++;
       }
-      CommonOps.add(jacobianToPack, crossProductJacobian, jacobianToPack);
+   }
+
+   private void insertForAcceleration(DenseMatrix64F matrixToPack, DenseMatrix64F matrixToInsert, RobotState robotState)
+   {
+      matrixToPack.reshape(measurementSize, robotState.getSize());
+      matrixToPack.zero();
+      int index = 0;
+
+      if (robotState.isFloating())
+      {
+         int angularIndex = robotState.findAngularAccelerationIndex();
+         int linearIndex = robotState.findLinearAccelerationIndex();
+         CommonOps.extract(matrixToInsert, 0, 3, 0, 3, matrixToPack, 0, angularIndex);
+         CommonOps.extract(matrixToInsert, 0, 3, 3, 6, matrixToPack, 0, linearIndex);
+         index += 6;
+      }
+
+      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
+      {
+         int indexInState = robotState.findJointAccelerationIndex(oneDofJoints.get(jointIndex).getName());
+         CommonOps.extract(matrixToInsert, 0, 3, index, index + 1, matrixToPack, 0, indexInState);
+         index++;
+      }
+   }
+
+   private void packQd(DenseMatrix64F qd, RobotState robotState)
+   {
+      robotState.getStateVector(tempRobotState);
+      int index = 0;
+
+      if (robotState.isFloating())
+      {
+         int angularIndex = robotState.findAngularVelocityIndex();
+         int linearIndex = robotState.findLinearVelocityIndex();
+         CommonOps.extract(tempRobotState, angularIndex, angularIndex + 3, 0, 1, qd, 0, 0);
+         CommonOps.extract(tempRobotState, linearIndex, linearIndex + 3, 0, 1, qd, 3, 0);
+         index += 6;
+      }
+
+      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
+      {
+         int indexInState = robotState.findJointVelocityIndex(oneDofJoints.get(jointIndex).getName());
+         CommonOps.extract(tempRobotState, indexInState, indexInState + 1, 0, 1, qd, index, 0);
+         index++;
+      }
+   }
+
+   private void packQdd(DenseMatrix64F qdd, RobotState robotState)
+   {
+      robotState.getStateVector(tempRobotState);
+      int index = 0;
+
+      if (robotState.isFloating())
+      {
+         int angularIndex = robotState.findAngularAccelerationIndex();
+         int linearIndex = robotState.findLinearAccelerationIndex();
+         CommonOps.extract(tempRobotState, angularIndex, angularIndex + 3, 0, 1, qdd, 0, 0);
+         CommonOps.extract(tempRobotState, linearIndex, linearIndex + 3, 0, 1, qdd, 3, 0);
+         index += 6;
+      }
+
+      for (int jointIndex = 0; jointIndex < oneDofJoints.size(); jointIndex++)
+      {
+         int indexInState = robotState.findJointAccelerationIndex(oneDofJoints.get(jointIndex).getName());
+         CommonOps.extract(tempRobotState, indexInState, indexInState + 1, 0, 1, qdd, index, 0);
+         index++;
+      }
    }
 
    @Override
@@ -253,7 +315,7 @@ public class LinearAccelerationSensor extends Sensor
 
    public void setMeasurement(Vector3DReadOnly measurement)
    {
-      this.measurement.set(measurement);
+      this.measurement.setIncludingFrame(robotJacobian.getJacobianFrame(), measurement);
    }
 
    /**

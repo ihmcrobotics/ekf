@@ -18,7 +18,7 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class RobotState extends ComposedState
 {
-   private static final double GRAVITY = 9.81;
+   public static final double GRAVITY = 9.81;
 
    private final boolean isFloating;
    private final RigidBodyTransform rootTransform;
