@@ -3,6 +3,7 @@ package us.ihmc.ekf.filter;
 import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
 
 import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
@@ -34,6 +35,7 @@ public class StateEstimator
       state.addState(sensor.getSensorState());
 
       filterMatrixOps.setIdentity(Pposterior, state.getSize());
+      CommonOps.scale(1.0E-05, Pposterior);
 
       predictionTimer = new ExecutionTimer(getClass().getSimpleName() + "Prediction", registry);
       correctionTimer = new ExecutionTimer(getClass().getSimpleName() + "Correction", registry);
