@@ -14,12 +14,15 @@ import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 
 public class MeasurementCorruptor
 {
-   // In the data sheet of an example IMU the "Rate Noise Density" is given as
+   // In the data sheet of an example IMU (ADIS16448) the "Rate Noise Density" is given as
    private static final double angularVelocitySensorVariance = Math.toRadians(0.0135); // rad/s / sqrt(Hz)
-   // In the data sheet of an example IMU the "Noise Density" is given as
+   // In the data sheet of an example IMU (ADIS16448) the "Noise Density" is given as
    private static final double linearAccelerationSensorVariance = 0.23 * (9.81 / 1000.0); // m/s^2 / sqrt(Hz)
 
-   private static final double jointPositionSensorVariance = 0.0;
+   // For the joint encoder we assume limited resolution
+   private static final int encoderBits = 12;
+   private static final double jointPositionEncoderTick = 2.0 * Math.PI / Math.pow(2, encoderBits); // rad
+
    private static final double biasDriftVariance = 0.0;
 
    private final Random random = new Random(1L);
@@ -70,7 +73,8 @@ public class MeasurementCorruptor
    {
       for (int sensorIndex = 0; sensorIndex < jointPositionSensors.size(); sensorIndex++)
       {
-         double measurement = simulatedJoints.get(sensorIndex).getQ() + createGaussianNoise(jointPositionSensorVariance);
+         double measurement = simulatedJoints.get(sensorIndex).getQ();
+         measurement = jointPositionEncoderTick * Math.round(measurement / jointPositionEncoderTick);
          jointPositionSensors.get(sensorIndex).setJointPositionMeasurement(measurement);
       }
 
