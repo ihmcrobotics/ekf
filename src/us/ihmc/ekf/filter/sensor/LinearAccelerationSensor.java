@@ -62,6 +62,7 @@ public class LinearAccelerationSensor extends Sensor
    private final DenseMatrix64F gravityTermLinearization = new DenseMatrix64F(0, 0);
    private final Matrix3D gravityPart = new Matrix3D();
    private final RigidBodyTransform rootToMeasurement = new RigidBodyTransform();
+   private final RigidBodyTransform rootTransform = new RigidBodyTransform();
 
    private final double dt;
    private final double sqrtHz;
@@ -205,10 +206,13 @@ public class LinearAccelerationSensor extends Sensor
       if (robotState.isFloating())
       {
          ReferenceFrame rootFrame = robotJacobian.getJointsFromBaseToEndEffector().get(0).getFrameAfterJoint();
+         ReferenceFrame baseFrame = robotJacobian.getJointsFromBaseToEndEffector().get(0).getFrameBeforeJoint();
          rootFrame.getTransformToDesiredFrame(rootToMeasurement, measurementFrame);
+         baseFrame.getTransformToDesiredFrame(rootTransform, rootFrame);
 
          gravityPart.setToTildeForm(gravityTerm);
          gravityPart.multiply(rootToMeasurement.getRotationMatrix());
+         gravityPart.multiply(rootTransform.getRotationMatrix());
          gravityPart.get(0, robotState.findOrientationIndex(), gravityTermLinearization);
       }
 

@@ -32,9 +32,9 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 public class OrientationEstimationTest
 {
    private static final int TEST_ITERATIONS = 100;
-   private static final double BODY_ORIENTATION_EPSILON = 0.005;
-   private static final int MAX_ITERATIONS = 1000;
-   private static final double MAX_ANGLE = Math.PI / 4.0;
+   private static final double BODY_ORIENTATION_EPSILON = 0.01;
+   private static final int MAX_ITERATIONS = 5000;
+   private static final double MAX_ANGLE = Math.PI / 2.0;
    private static final double ESTIMATOR_DT = 0.001;
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
