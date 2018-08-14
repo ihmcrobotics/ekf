@@ -13,7 +13,11 @@ sourceCompatibility = 1.8
 version = '0.1'
 
 ihmc {
+   group = "us.ihmc"
+   version = "0.1"
+   openSource = true
    configureDependencyResolution()
+   configurePublications()
 }
 
 mainDependencies {
