@@ -6,9 +6,9 @@ I hope to make the final filter implementation depend on more lightweight packag
 
 ## Running the Code
 
-To get set up and run the filter demonstration on your computer you will need Gradle ([instructions](https://ihmcrobotics.github.io/documentation/10-installation/01-gradle/00-installing-gradle/)) and Java ([instructions](([instructions]()))) installed on your system. Install your favorite IDE and import this repository as a gradle project. The import will download the dependencies. This might take a few minutes since the IHMC software packet is quite big.
+To get set up and run the filter demonstration on your computer you will need Gradle ([instructions](https://ihmcrobotics.github.io/ihmc-open-robotics-software/docs/installgradle)) and Java ([instructions](https://ihmcrobotics.github.io/ihmc-open-robotics-software/docs/installjava) installed on your system. Install your favorite IDE and import this repository as a gradle project. The import will download the dependencies. This might take a few minutes since the IHMC software packet is quite big.
 
-Now you can run the [SimpleArmSimulation](https://github.com/georgwi/EKF/blob/master/src/us/ihmc/ekf/robots/SimpleArmSimulation.java). As the robot moves the estimated robot state is visualizes as a ghost. You may also observe and plot state variables and compare them to the real values.
+Now you can run the [SimpleArmSimulation](https://github.com/georgwi/EKF/blob/master/src/us/ihmc/ekf/robots/simpleArm/SimpleArmSimulation.java). As the robot moves the estimated robot state is visualizes as a ghost. You may also observe and plot state variables and compare them to the real values.
 
 ## Structure of the Framework
 
