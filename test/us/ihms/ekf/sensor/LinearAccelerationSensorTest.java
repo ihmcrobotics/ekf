@@ -7,7 +7,13 @@ import org.ejml.simple.SimpleMatrix;
 import org.junit.Test;
 
 import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.robotics.screwTheory.RevoluteJoint;
+import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihms.ekf.filter.FilterMatrixOpsTest;
 import us.ihms.ekf.filter.StateEstimatorTest;
 
@@ -23,11 +29,25 @@ public class LinearAccelerationSensorTest
       int runs = 1000;
       Random random = new Random(24359L);
 
+      RigidBody rootBody = new RigidBody("RootBody", ReferenceFrame.getWorldFrame());
+      RigidBody imuBody = rootBody;
+      for (int i = 0; i < n; i++)
+      {
+         RevoluteJoint joint = ScrewTools.addRevoluteJoint("Joint" + i, imuBody, new RigidBodyTransform(), new Vector3D(0.0, 0.0, 1.0));
+         imuBody = ScrewTools.addRigidBody("Body" + i, joint, 0.1, 0.1, 0.1, 1.0, new Vector3D());
+      }
+
+      LinearAccelerationSensor sensor = new LinearAccelerationSensor("TestSensor", 0.01, imuBody, ReferenceFrame.getWorldFrame(), false,
+                                                                     new YoVariableRegistry("TestRegistry"));
+
+      DenseMatrix64F crossProductLinearization = new DenseMatrix64F(0, 0);
+
       for (int i = 0; i < runs; i++)
       {
          DenseMatrix64F qd0 = FilterMatrixOpsTest.createRandomMatrix(n, 1, random, -5.0, 5.0);
          DenseMatrix64F A = FilterMatrixOpsTest.createRandomMatrix(3, n, random, -5.0, 5.0);
          DenseMatrix64F L = FilterMatrixOpsTest.createRandomMatrix(3, n, random, -5.0, 5.0);
+         crossProductLinearization.reshape(3, n);
 
          // we would like to linearize "w x v = A*qd x L qd"
          DenseMatrix64F qd_pertubation = FilterMatrixOpsTest.createRandomMatrix(n, 1, random, MAX_PERTUBATION, MAX_PERTUBATION);
@@ -38,7 +58,8 @@ public class LinearAccelerationSensorTest
          DenseMatrix64F expected = computeAqdxLqd(A, L, qd1);
 
          // linearize to do a first order approximation of the expected result
-         DenseMatrix64F result_pertubation = simple(LinearAccelerationSensor.linearizeCrossProduct(A, L, qd0)).mult(simple(qd_pertubation)).getMatrix();
+         sensor.linearizeCrossProduct(A, L, qd0, crossProductLinearization);
+         DenseMatrix64F result_pertubation = simple(crossProductLinearization).mult(simple(qd_pertubation)).getMatrix();
          DenseMatrix64F actual = simple(nominal).plus(simple(result_pertubation)).getMatrix();
 
          try
