@@ -63,7 +63,7 @@ public class OrientationEstimationTest
       LinearVelocitySensor linearVelocitySensor = new LinearVelocitySensor("LinearVelocity", ESTIMATOR_DT, imuBody, imuFrame, false, registry);
 
       PoseState poseState = new PoseState(imuBody.getName(), ESTIMATOR_DT, imuFrame, registry);
-      RobotState robotState = new RobotState(poseState, Collections.emptyList(), registry);
+      RobotState robotState = new RobotState(poseState, Collections.emptyList());
 
       List<Sensor> sensors = new ArrayList<>();
       sensors.add(linearAccelerationSensor);
