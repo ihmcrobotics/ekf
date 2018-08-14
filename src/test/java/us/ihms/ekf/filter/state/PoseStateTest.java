@@ -156,7 +156,7 @@ public class PoseStateTest extends AbstractStateTest
          FrameQuaternion orientationFromLinearization = new FrameQuaternion();
          rotationVectorFromLinearization.set(PoseState.orientationStart, linearized);
          orientationFromLinearization.setIncludingFrame(initialOrientation);
-         PoseState.add(orientationFromLinearization, rotationVectorFromLinearization);
+         state.add(orientationFromLinearization, rotationVectorFromLinearization);
          FrameQuaternion orientationFromPrediction = new FrameQuaternion();
          state.getOrientation(orientationFromPrediction);
          EuclidCoreTestTools.assertQuaternionEquals(orientationFromPrediction, orientationFromLinearization, EPSILON);

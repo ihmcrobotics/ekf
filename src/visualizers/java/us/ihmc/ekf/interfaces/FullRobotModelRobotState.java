@@ -62,7 +62,7 @@ public class FullRobotModelRobotState
          jointStates.add(jointState);
       }
 
-      robotState = new RobotState(poseState, jointStates, registry);
+      robotState = new RobotState(poseState, jointStates);
    }
 
    public RobotState getRobotState()

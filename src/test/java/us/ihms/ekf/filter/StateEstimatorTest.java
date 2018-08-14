@@ -15,6 +15,7 @@ import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.JointPositionSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.ComposedState;
+import us.ihmc.ekf.filter.state.JointState;
 import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
@@ -33,6 +34,7 @@ public class StateEstimatorTest
 
       // Create a simple robot with three one dof joints.
       List<String> jointNames = new ArrayList<>();
+      List<JointState> jointStates = new ArrayList<>();
       jointNames.add("Joint0");
       jointNames.add("Joint1");
       jointNames.add("Joint2");
@@ -48,9 +50,12 @@ public class StateEstimatorTest
          expectedState.set(3 * jointIdx, jointPosition);
          jointSensor.setJointPositionMeasurement(jointPosition);
          sensors.add(jointSensor);
+
+         JointState jointState = new JointState(jointName, dt, registry);
+         jointStates.add(jointState);
       }
 
-      RobotState robotState = new RobotState(jointNames, dt, registry);
+      RobotState robotState = new RobotState(null, jointStates);
       StateEstimator stateEstimator = new StateEstimator(sensors, robotState, registry);
       new DefaultParameterReader().readParametersInRegistry(registry);
 

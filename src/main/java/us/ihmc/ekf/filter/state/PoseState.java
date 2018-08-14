@@ -70,6 +70,18 @@ public class PoseState extends State
    private final Vector3DBasics linearVelocity = new Vector3D();
    private final Vector3DBasics angularVelocity = new Vector3D();
 
+   // Temporary variables for calculations that could be cleaned up a bit:
+   private final Quaternion tempRotation = new Quaternion();
+   private final RotationMatrix rotationMatrix = new RotationMatrix();
+   private final Matrix3D result = new Matrix3D();
+   private final Vector3D tempLinearVelocity1 = new Vector3D();
+   private final Vector3D tempLinearVelocity2 = new Vector3D();
+   private final Matrix3D matrix = new Matrix3D();
+   private final RotationMatrix tempRotationMatrix = new RotationMatrix();
+   private final Matrix3D tildeForm = new Matrix3D();
+   private final Matrix3D term1 = new Matrix3D();
+   private final Matrix3D term2 = new Matrix3D();
+
    private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
 
    private final DoubleProvider angularAccelerationVariance;
@@ -267,62 +279,46 @@ public class PoseState extends State
       twistToPack.setLinearPartZ(stateVector.get(linearVelocityStart + 2));
    }
 
-   public static void add(QuaternionBasics orientation, Vector3DReadOnly rotationVector)
+   // TODO: extract to tools class
+   public void add(QuaternionBasics orientation, Vector3DReadOnly rotationVector)
    {
-      // TODO: make garbage free!
-      Quaternion tempRotation = new Quaternion();
-
       tempRotation.setRotationVector(rotationVector);
       orientation.preMultiply(tempRotation);
    }
 
-   public static void packAngularVelocityTermForOrientation(DenseMatrix64F block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
+   // TODO: extract to tools class
+   public void packAngularVelocityTermForOrientation(DenseMatrix64F block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
    {
-      // TODO: make garbage free!
-      RotationMatrix rotationMatrix = new RotationMatrix();
-      Matrix3D result = new Matrix3D();
-      Vector3D tempLinearVelocity = new Vector3D();
-
       orientation.get(rotationMatrix);
-      tempLinearVelocity.set(linearVelocity);
-      tempLinearVelocity.scale(dt);
-      packJacobianOfExponentialMap(result, tempLinearVelocity);
+      tempLinearVelocity1.set(linearVelocity);
+      tempLinearVelocity1.scale(dt);
+      packJacobianOfExponentialMap(result, tempLinearVelocity1);
       result.preMultiply(rotationMatrix);
       result.scale(dt);
-
       result.get(block);
    }
 
-   public static void packOrientatonTermForPosition(DenseMatrix64F block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
+   // TODO: extract to tools class
+   public void packOrientatonTermForPosition(DenseMatrix64F block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
    {
-      // TODO: make garbage free!
-      Vector3D tempLinearVelocity = new Vector3D();
-      Matrix3D matrix = new Matrix3D();
-
-      tempLinearVelocity.set(linearVelocity);
-      orientation.transform(tempLinearVelocity);
-      matrix.setToTildeForm(tempLinearVelocity);
+      tempLinearVelocity2.set(linearVelocity);
+      orientation.transform(tempLinearVelocity2);
+      matrix.setToTildeForm(tempLinearVelocity2);
       matrix.get(block);
       CommonOps.scale(-dt, block);
    }
 
-   public static void packLinearVelocityTermForPosition(DenseMatrix64F block, QuaternionReadOnly orientation, double dt)
+   // TODO: extract to tools class
+   public void packLinearVelocityTermForPosition(DenseMatrix64F block, QuaternionReadOnly orientation, double dt)
    {
-      // TODO: make garbage free!
-      RotationMatrix tempRotation = new RotationMatrix();
-
-      orientation.get(tempRotation);
-      tempRotation.get(block);
+      orientation.get(tempRotationMatrix);
+      tempRotationMatrix.get(block);
       CommonOps.scale(dt, block);
    }
 
-   public static void packJacobianOfExponentialMap(Matrix3D jacobianToPack, Vector3DReadOnly rotationVector)
+   // TODO: extract to tools class
+   public void packJacobianOfExponentialMap(Matrix3D jacobianToPack, Vector3DReadOnly rotationVector)
    {
-      // TODO: make garbage free!
-      Matrix3D tildeForm = new Matrix3D();
-      Matrix3D term1 = new Matrix3D();
-      Matrix3D term2 = new Matrix3D();
-
       jacobianToPack.setIdentity();
       tildeForm.setToTildeForm(rotationVector);
 
