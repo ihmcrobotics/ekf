@@ -44,6 +44,7 @@
 **/pit-test
 **/pit-reports
 **/generated-src2
+**/Configurations
 
 
 # File types to ignore
