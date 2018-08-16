@@ -56,7 +56,8 @@ public class OrientationEstimationTest
       double actualRoll = Double.NaN;
       for (int i = 0; i < FILTER_ITERATIONS; i++)
       {
-         FrameQuaternionReadOnly orientationEstimate = orientationEstimator.update(angularVelocityMeasurement , linearAccelerationMeasurement);
+         orientationEstimator.update(angularVelocityMeasurement, linearAccelerationMeasurement);
+         FrameQuaternionReadOnly orientationEstimate = orientationEstimator.getOrientationEstimate();
          actualPitch = orientationEstimate.getPitch();
          actualRoll = orientationEstimate.getRoll();
       }
