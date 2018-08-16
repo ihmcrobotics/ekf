@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import us.ihmc.ekf.filter.sensor.AngularVelocitySensor;
-import us.ihmc.ekf.filter.sensor.JointPositionSensor;
-import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
+import us.ihmc.ekf.filter.sensor.implementations.AngularVelocitySensor;
+import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
+import us.ihmc.ekf.filter.sensor.implementations.LinearAccelerationSensor;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.simulationconstructionset.IMUMount;

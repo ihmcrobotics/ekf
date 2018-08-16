@@ -5,13 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 import us.ihmc.commons.Conversions;
+import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.StateEstimator;
-import us.ihmc.ekf.filter.sensor.AngularVelocitySensor;
-import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
-import us.ihmc.ekf.filter.sensor.LinearVelocitySensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
-import us.ihmc.ekf.filter.state.PoseState;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.sensor.implementations.AngularVelocitySensor;
+import us.ihmc.ekf.filter.sensor.implementations.LinearAccelerationSensor;
+import us.ihmc.ekf.filter.sensor.implementations.LinearVelocitySensor;
+import us.ihmc.ekf.filter.state.implementations.PoseState;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;

@@ -1,11 +1,12 @@
-package us.ihmc.ekf.filter.sensor;
+package us.ihmc.ekf.filter.sensor.implementations;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.FilterTools;
-import us.ihmc.ekf.filter.state.JointState;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.RobotState;
+import us.ihmc.ekf.filter.sensor.Sensor;
+import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;

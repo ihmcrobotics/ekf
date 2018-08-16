@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter.sensor;
+package us.ihmc.ekf.filter.sensor.implementations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,9 +7,10 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.FilterTools;
-import us.ihmc.ekf.filter.state.BiasState;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.RobotState;
+import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.State;
+import us.ihmc.ekf.filter.state.implementations.BiasState;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;

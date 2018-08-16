@@ -9,7 +9,6 @@ import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.ComposedState;
-import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 

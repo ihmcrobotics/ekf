@@ -7,8 +7,8 @@ import org.ejml.ops.CommonOps;
 import org.junit.Assert;
 import org.junit.Test;
 
-import us.ihmc.ekf.filter.state.JointState;
 import us.ihmc.ekf.filter.state.State;
+import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.robotics.dataStructures.Polynomial;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;

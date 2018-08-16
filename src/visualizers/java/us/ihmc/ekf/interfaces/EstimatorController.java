@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.StateEstimator;
-import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 import us.ihmc.yoVariables.variable.YoDouble;

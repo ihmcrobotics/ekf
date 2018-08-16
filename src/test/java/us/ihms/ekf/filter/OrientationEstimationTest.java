@@ -6,7 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import us.ihmc.ekf.ImuOrientationEstimator;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;

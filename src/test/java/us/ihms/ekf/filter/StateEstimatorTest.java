@@ -10,13 +10,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import us.ihmc.ekf.filter.FilterMatrixOps;
+import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.StateEstimator;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
-import us.ihmc.ekf.filter.sensor.JointPositionSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
+import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
 import us.ihmc.ekf.filter.state.ComposedState;
-import us.ihmc.ekf.filter.state.JointState;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;

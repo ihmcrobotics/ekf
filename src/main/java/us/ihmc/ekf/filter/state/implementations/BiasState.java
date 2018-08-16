@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter.state;
+package us.ihmc.ekf.filter.state.implementations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.FilterTools;
+import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;

@@ -8,8 +8,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.state.ComposedState;
-import us.ihmc.ekf.filter.state.RobotState;
 import us.ihmc.ekf.filter.state.State;
 
 public class ComposedSensor extends Sensor

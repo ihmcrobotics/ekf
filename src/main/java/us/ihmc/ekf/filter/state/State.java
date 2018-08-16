@@ -2,6 +2,9 @@ package us.ihmc.ekf.filter.state;
 
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.ekf.filter.state.implementations.JointState;
+import us.ihmc.ekf.filter.state.implementations.PoseState;
+
 /**
  * A state interface for the Extended Kalman Filter implementation.
  * <p>
@@ -63,4 +66,45 @@ public abstract class State
     * @param noiseCovarianceToPack the covariance of the process noise.
     */
    public abstract void getQMatrix(DenseMatrix64F noiseCovarianceToPack);
+
+   /**
+    * Provides a default implementation of this interface for an empty state. It behaves as a state of size zero
+    * and can be used as a placeholder for state.
+    */
+   public static final State EMPTY_STATE = new State()
+   {
+      @Override
+      public void setStateVector(DenseMatrix64F newState)
+      {
+      }
+
+      @Override
+      public void predict()
+      {
+      }
+
+      @Override
+      public void getStateVector(DenseMatrix64F vectorToPack)
+      {
+         vectorToPack.reshape(0, 1);
+      }
+
+      @Override
+      public int getSize()
+      {
+         return 0;
+      }
+
+      @Override
+      public void getQMatrix(DenseMatrix64F noiseCovarianceToPack)
+      {
+         noiseCovarianceToPack.reshape(0, 0);
+      }
+
+      @Override
+      public void getFMatrix(DenseMatrix64F matrixToPack)
+      {
+         matrixToPack.reshape(0, 0);
+      }
+   };
 }

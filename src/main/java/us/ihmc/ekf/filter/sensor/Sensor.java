@@ -2,10 +2,11 @@ package us.ihmc.ekf.filter.sensor;
 
 import org.ejml.data.DenseMatrix64F;
 
-import us.ihmc.ekf.filter.state.BiasState;
-import us.ihmc.ekf.filter.state.EmptyState;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.RobotState;
+import us.ihmc.ekf.filter.sensor.implementations.AngularVelocitySensor;
+import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
 import us.ihmc.ekf.filter.state.State;
+import us.ihmc.ekf.filter.state.implementations.BiasState;
 
 /**
  * A sensor interface for the Extended Kalman Filter implementation.
@@ -20,9 +21,6 @@ import us.ihmc.ekf.filter.state.State;
  */
 public abstract class Sensor
 {
-   /** A default sensor state. */
-   private static final State EMPTY_STATE = new EmptyState();
-
    /**
     * Returns the sensor specific state that is added to the filter to be estimated. Usually this will be a
     * {@link BiasState} that is used with the {@link AngularVelocitySensor} for example.
@@ -31,7 +29,7 @@ public abstract class Sensor
     */
    public State getSensorState()
    {
-      return EMPTY_STATE;
+      return State.EMPTY_STATE;
    }
 
    /**

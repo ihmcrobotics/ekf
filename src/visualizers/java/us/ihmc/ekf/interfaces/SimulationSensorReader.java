@@ -7,11 +7,11 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.FilterTools;
-import us.ihmc.ekf.filter.sensor.AngularVelocitySensor;
-import us.ihmc.ekf.filter.sensor.JointPositionSensor;
-import us.ihmc.ekf.filter.sensor.LinearAccelerationSensor;
-import us.ihmc.ekf.filter.sensor.LinearVelocitySensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
+import us.ihmc.ekf.filter.sensor.implementations.AngularVelocitySensor;
+import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
+import us.ihmc.ekf.filter.sensor.implementations.LinearAccelerationSensor;
+import us.ihmc.ekf.filter.sensor.implementations.LinearVelocitySensor;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.screwTheory.RigidBody;

@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter.sensor;
+package us.ihmc.ekf.filter.sensor.implementations;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;

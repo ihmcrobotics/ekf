@@ -7,7 +7,6 @@ import org.ejml.ops.CommonOps;
 
 import com.google.common.base.CaseFormat;
 
-import us.ihmc.ekf.filter.state.RobotStateIndexProvider;
 import us.ihmc.robotics.screwTheory.Twist;
 
 public class FilterTools

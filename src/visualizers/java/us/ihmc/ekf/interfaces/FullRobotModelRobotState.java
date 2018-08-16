@@ -3,9 +3,9 @@ package us.ihmc.ekf.interfaces;
 import java.util.ArrayList;
 import java.util.List;
 
-import us.ihmc.ekf.filter.state.JointState;
-import us.ihmc.ekf.filter.state.PoseState;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.RobotState;
+import us.ihmc.ekf.filter.state.implementations.JointState;
+import us.ihmc.ekf.filter.state.implementations.PoseState;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
