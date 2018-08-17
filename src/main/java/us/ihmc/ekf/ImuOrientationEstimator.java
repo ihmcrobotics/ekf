@@ -20,6 +20,7 @@ import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -157,6 +158,22 @@ public class ImuOrientationEstimator
    public FrameVector3DReadOnly getAngularAccelerationEstimate()
    {
       return angularAccelerationEstimate;
+   }
+
+   /**
+    * Initialize the estimation to the provided IMU orientation. This will set the IMU velocity to zero
+    * and reset all sensor biases.
+    *
+    * @param orientation of the IMU in world
+    */
+   public void initialize(QuaternionReadOnly orientation)
+   {
+      imuTransform.setRotationAndZeroTranslation(orientation);
+      imuTwist.setToZero(imuJoint.getFrameAfterJoint(), imuJoint.getFrameBeforeJoint(), imuJoint.getFrameAfterJoint());
+      poseState.initialize(imuTransform, imuTwist);
+
+      linearAccelerationSensor.resetBias();
+      angularVelocitySensor.resetBias();
    }
 
    /**
