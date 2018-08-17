@@ -34,8 +34,13 @@ import us.ihmc.yoVariables.variable.YoFrameYawPitchRoll;
 /**
  * This class provides the functionality to estimate an IMU orientation given it's rate and acceleration measurements.
  * <p>
- * It can serve as a simple example of how to set up an estimator for a simple application using this library.
+ * It can serve as a simple example of how to set up an estimator for a simple application using this library. Some IMUs
+ * will provide an orientation estimation as part of their firmware. This estimation will use the measurements of a IMU
+ * (no magnetometer) to provide an orientation estimate. As the yaw is not observable small drift in the yaw estimate is
+ * expected.
  * </p>
+ *
+ * @author Georg Wiedebach
  */
 public class ImuOrientationEstimator
 {
@@ -63,17 +68,34 @@ public class ImuOrientationEstimator
    private final YoFrameVector3D yoAngularVelocity;
    private final YoFrameVector3D yoAngularAcceleration;
 
+   /**
+    * Create a new {@link #ImuOrientationEstimator} without sensor bias estimation.
+    *
+    * @param dt the timestep for prediction and measurement sampling period.
+    * @param parentRegistry the {@link YoVariableRegistry} that this estimator should be attached to.
+    */
    public ImuOrientationEstimator(double dt, YoVariableRegistry parentRegistry)
    {
       this(dt, false, false, parentRegistry);
    }
 
+   /**
+    * Create a new {@link #ImuOrientationEstimator}.
+    *
+    * @param dt the timestep for prediction and measurement sampling period.
+    * @param estimateAngularVelocityBias specifies whether to estimate the angular velocity sensor bias. If {@code false}
+    *    assume the bias is zero.
+    * @param estimateLiearAccelerationBias specifies whether to estimate the linear acceleration sensor bias. If
+    *    {@code false} assume the bias is zero.
+    * @param parentRegistry the {@link YoVariableRegistry} that this estimator should be attached to.
+    */
    public ImuOrientationEstimator(double dt, boolean estimateAngularVelocityBias, boolean estimateLiearAccelerationBias, YoVariableRegistry parentRegistry)
    {
-      // Create a "dummy" inverse dynamics structure for the estimator consisting of an IMU body and a floating joint connecting it to the world:
-      RigidBody elevator = new RigidBody("Elevator", ReferenceFrame.getWorldFrame());
-      imuJoint = new SixDoFJoint("ImuJoint", elevator);
-      RigidBody imuBody = ScrewTools.addRigidBody("ImuBody", imuJoint, 0.1, 0.1, 0.1, 1.0, new Vector3D());
+      // Create a "dummy" inverse dynamics structure for the estimator consisting of an IMU body and a floating joint
+      // connecting it to the world:
+      RigidBody elevator = new RigidBody("elevator", ReferenceFrame.getWorldFrame());
+      imuJoint = new SixDoFJoint("imu_joint", elevator);
+      RigidBody imuBody = ScrewTools.addRigidBody("imu_body", imuJoint, 0.1, 0.1, 0.1, 1.0, new Vector3D());
       MovingReferenceFrame imuFrame = imuJoint.getFrameAfterJoint();
 
       // Create all the sensors:
@@ -84,7 +106,7 @@ public class ImuOrientationEstimator
       List<Sensor> sensors = Arrays.asList(new Sensor[] {angularVelocitySensor, linearVelocitySensor, linearAccelerationSensor});
 
       // Create the state and the estimator:
-      poseState = new PoseState("ImuBody", dt, imuFrame, registry);
+      poseState = new PoseState(imuBody.getName(), dt, imuFrame, registry);
       RobotState robotState = new RobotState(poseState, Collections.emptyList());
       stateEstimator = new StateEstimator(sensors, robotState, registry);
 
@@ -135,6 +157,7 @@ public class ImuOrientationEstimator
 
    /**
     * Get the most recent estimate of the IMUs orientation in world frame.
+    *
     * @return the estimated orientation
     */
    public FrameQuaternionReadOnly getOrientationEstimate()
@@ -144,6 +167,7 @@ public class ImuOrientationEstimator
 
    /**
     * Get the most recent estimate of the IMUs angular velocity in IMU frame.
+    *
     * @return the estimated angular velocity
     */
    public FrameVector3DReadOnly getAngularVelocityEstimate()
@@ -153,6 +177,7 @@ public class ImuOrientationEstimator
 
    /**
     * Get the most recent estimate of the IMUs angular acceleration in IMU frame.
+    *
     * @return the estimated angular acceleration
     */
    public FrameVector3DReadOnly getAngularAccelerationEstimate()
@@ -161,8 +186,8 @@ public class ImuOrientationEstimator
    }
 
    /**
-    * Initialize the estimation to the provided IMU orientation. This will set the IMU velocity to zero
-    * and reset all sensor biases.
+    * Initialize the estimation to the provided IMU orientation. This will set the IMU velocity to zero and reset all
+    * sensor biases.
     *
     * @param orientation of the IMU in world
     */
@@ -177,10 +202,9 @@ public class ImuOrientationEstimator
    }
 
    /**
-    * Helper method to update the robots inverse dynamics structure from the robot state. This needs to be called
-    * after each time the state estimation updates the robot state. Some of the sensors and states use the
-    * inverse dynamics structure internally so this makes sure the sensors stay up to date with the latest robot
-    * state estimate.
+    * Helper method to update the robots inverse dynamics structure from the robot state. This needs to be called after
+    * each time the state estimation updates the robot state. Some of the sensors and states use the inverse dynamics
+    * structure internally so this makes sure the sensors stay up to date with the latest robot state estimate.
     */
    private void updateRobot()
    {

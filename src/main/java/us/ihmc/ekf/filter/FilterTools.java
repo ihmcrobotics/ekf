@@ -9,6 +9,11 @@ import com.google.common.base.CaseFormat;
 
 import us.ihmc.robotics.screwTheory.Twist;
 
+/**
+ * A set of static convenience methods used throughout the filter.
+ *
+ * @author Georg Wiedebach
+ */
 public class FilterTools
 {
    public static void insertForVelocity(DenseMatrix64F matrixToPack, List<String> oneDofJointNames, DenseMatrix64F matrixToInsert,
@@ -119,6 +124,6 @@ public class FilterTools
 
    public static String stringToPrefix(String string)
    {
-      return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, string);
+      return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, string);
    }
 }
