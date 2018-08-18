@@ -1,4 +1,4 @@
-package us.ihms.ekf.filter;
+package us.ihms.ekf;
 
 import java.util.Random;
 
@@ -14,7 +14,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
-public class OrientationEstimationTest
+public class ImuOrientationEstimatorTest
 {
    private static final int TEST_ITERATIONS = 50;
 
