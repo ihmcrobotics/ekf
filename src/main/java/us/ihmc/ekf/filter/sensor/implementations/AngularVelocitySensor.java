@@ -19,4 +19,10 @@ public class AngularVelocitySensor extends BodyVelocitySensor
    {
       CommonOps.extract(fullJacobian, 0, 3, 0, fullJacobian.getNumCols(), relevantPartToPack, 0, 0);
    }
+
+   @Override
+   public int getMeasurementSize()
+   {
+      return 3;
+   }
 }
