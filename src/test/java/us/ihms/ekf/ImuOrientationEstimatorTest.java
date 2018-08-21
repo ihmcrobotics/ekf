@@ -1,4 +1,4 @@
-package us.ihms.ekf.filter;
+package us.ihms.ekf;
 
 import java.util.Random;
 
@@ -6,7 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import us.ihmc.ekf.ImuOrientationEstimator;
-import us.ihmc.ekf.filter.state.RobotState;
+import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
@@ -14,7 +14,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
-public class OrientationEstimationTest
+public class ImuOrientationEstimatorTest
 {
    private static final int TEST_ITERATIONS = 50;
 
@@ -48,7 +48,7 @@ public class OrientationEstimationTest
 
       RotationMatrix rotationMatrix = new RotationMatrix();
       rotationMatrix.setYawPitchRoll(0.0, expectedPitch, expectedRoll);
-      Vector3D linearAccelerationMeasurement = new Vector3D(0.0, 0.0, RobotState.GRAVITY);
+      Vector3D linearAccelerationMeasurement = new Vector3D(0.0, 0.0, -RobotState.GRAVITY);
       rotationMatrix.inverseTransform(linearAccelerationMeasurement);
       Vector3D angularVelocityMeasurement = new Vector3D();
 
@@ -56,7 +56,8 @@ public class OrientationEstimationTest
       double actualRoll = Double.NaN;
       for (int i = 0; i < FILTER_ITERATIONS; i++)
       {
-         FrameQuaternionReadOnly orientationEstimate = orientationEstimator.update(angularVelocityMeasurement , linearAccelerationMeasurement);
+         orientationEstimator.update(angularVelocityMeasurement, linearAccelerationMeasurement);
+         FrameQuaternionReadOnly orientationEstimate = orientationEstimator.getOrientationEstimate();
          actualPitch = orientationEstimate.getPitch();
          actualRoll = orientationEstimate.getRoll();
       }

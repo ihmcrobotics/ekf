@@ -1,9 +1,10 @@
-package us.ihmc.ekf.filter.state;
+package us.ihmc.ekf.filter.state.implementations;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.FilterTools;
+import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
@@ -26,20 +27,21 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
  * An implementation of the {@link State} interface for an EKF.
  * <p>
  * This class maintains the state of a floating joint. More Specifically:</br>
- *  - The orientation of the body w.r.t world in world frame.</br>
- *  - The angular velocity of the body w.r.t. world in the body frame.</br>
- *  - The angular acceleration of the body w.r.t. world in the body frame.</br>
- *  - The position of the body w.r.t world in world frame.</br>
- *  - The linear velocity of the body w.r.t. world in the body frame.</br>
- *  - The linear acceleration of the body w.r.t. world in the body frame.</br>
+ * - The orientation of the body w.r.t world in world frame.</br>
+ * - The angular velocity of the body w.r.t. world in the body frame.</br>
+ * - The angular acceleration of the body w.r.t. world in the body frame.</br>
+ * - The position of the body w.r.t world in world frame.</br>
+ * - The linear velocity of the body w.r.t. world in the body frame.</br>
+ * - The linear acceleration of the body w.r.t. world in the body frame.</br>
  * </p>
  * <p>
- * The PoseState uses a minimal error state representation for the orientation. When obtaining the
- * state vector this will always result in a zero rotation state. To get the current orientation
- * of the body use {@link PoseState#getOrientation(FrameQuaternion)}.
+ * The PoseState uses a minimal error state representation for the orientation. When obtaining the state vector this
+ * will always result in a zero rotation state. To get the current orientation of the body use
+ * {@link PoseState#getOrientation(FrameQuaternion)}.
  * </p>
  * <p>
  * The state vector of this class is</br>
+ *
  * <pre>
  *     / orientation_error    \
  *     | angular_velocity     |
@@ -50,8 +52,8 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
  * </pre>
  * </p>
  * <p>
- * The derivation of the equations used in this state is based on the paper "A Primer on the
- * Differential Calculus of 3D Orientations" by M. Bloesch et al.
+ * The derivation of the equations used in this state is based on the paper "A Primer on the Differential Calculus of 3D
+ * Orientations" by M. Bloesch et al.
  * </p>
  */
 public class PoseState extends State

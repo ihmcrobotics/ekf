@@ -5,6 +5,12 @@ import org.ejml.factory.LinearSolverFactory;
 import org.ejml.interfaces.linsol.LinearSolver;
 import org.ejml.ops.CommonOps;
 
+/**
+ * Provides a collection of matrix operations used for the EKF algorithm such as computation of Kalman gain and
+ * covariance matrices.
+ *
+ * @author Georg Wiedebach
+ */
 public class FilterMatrixOps
 {
    private final LinearSolver<DenseMatrix64F> solver = LinearSolverFactory.linear(0);
@@ -35,6 +41,10 @@ public class FilterMatrixOps
     * Sets the provided matrix to</br>
     * result = A * B * A'</br>
     * Note, that B must be square.
+    *
+    * @param result (modified)
+    * @param A matrix
+    * @param B matrix
     */
    public void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
    {
@@ -48,6 +58,11 @@ public class FilterMatrixOps
    /**
     * Sets the provided matrix to</br>
     * result = A * B * A' + C
+    *
+    * @param result (modified)
+    * @param A matrix
+    * @param B matrix
+    * @param C matrix
     */
    public void computeABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
    {
@@ -60,6 +75,8 @@ public class FilterMatrixOps
     * result = inverse(A)</br>
     * Will return whether the inversion succeeded.
     *
+    * @param result (modified)
+    * @param A matrix
     * @return whether the inversion succeeded
     */
    public boolean invertMatrix(DenseMatrix64F result, DenseMatrix64F A)
@@ -82,6 +99,10 @@ public class FilterMatrixOps
     * result = inverse(A * B * A' + C)</br>
     * Will return whether the inversion succeeded.
     *
+    * @param result (modified)
+    * @param A matrix
+    * @param B matrix
+    * @param C matrix
     * @return whether the inversion succeeded
     */
    public boolean computeInverseOfABAtransPlusC(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
@@ -109,11 +130,11 @@ public class FilterMatrixOps
     * result = P * H' * inverse(H * P * H' + R)</br>
     * Will return whether the inversion succeeded.
     *
-    * @return whether the inversion succeeded
     * @param result (modified)
     * @param P is the error covariance
     * @param H is the measurement jacobian
     * @param R is the measurement covariance
+    * @return whether the inversion succeeded
     */
    public boolean computeKalmanGain(DenseMatrix64F result, DenseMatrix64F P, DenseMatrix64F H, DenseMatrix64F R)
    {
@@ -155,7 +176,7 @@ public class FilterMatrixOps
     * @param result (modified)
     * @param K is the kalman gain
     * @param H is the measurement jacobian
-    * @param R
+    * @param R is the sensor covariance matrix
     * @param pPrior is the error covariance before the update
     */
    public void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F R, DenseMatrix64F pPrior)

@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter.state;
+package us.ihmc.ekf.filter;
 
 public interface RobotStateIndexProvider
 {

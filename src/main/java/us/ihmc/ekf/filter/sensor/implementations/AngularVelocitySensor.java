@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter.sensor;
+package us.ihmc.ekf.filter.sensor.implementations;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -18,5 +18,11 @@ public class AngularVelocitySensor extends BodyVelocitySensor
    protected void packRelevantJacobianPart(DenseMatrix64F relevantPartToPack, DenseMatrix64F fullJacobian)
    {
       CommonOps.extract(fullJacobian, 0, 3, 0, fullJacobian.getNumCols(), relevantPartToPack, 0, 0);
+   }
+
+   @Override
+   public int getMeasurementSize()
+   {
+      return 3;
    }
 }

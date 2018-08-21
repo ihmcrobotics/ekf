@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter.state;
+package us.ihmc.ekf.filter.state.implementations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.FilterTools;
+import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -80,6 +81,15 @@ public class BiasState extends State
       matrixToPack.reshape(size, size);
       CommonOps.setIdentity(matrixToPack);
       CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
+   }
+
+   public void reset()
+   {
+      for (int i = 0; i < size; i++)
+      {
+         bias.set(i, 0.0);
+         yoState.get(i).set(bias.get(i));
+      }
    }
 
 }

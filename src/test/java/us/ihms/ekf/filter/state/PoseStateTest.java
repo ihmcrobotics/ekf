@@ -7,8 +7,8 @@ import org.ejml.ops.CommonOps;
 import org.junit.Assert;
 import org.junit.Test;
 
-import us.ihmc.ekf.filter.state.PoseState;
 import us.ihmc.ekf.filter.state.State;
+import us.ihmc.ekf.filter.state.implementations.PoseState;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;

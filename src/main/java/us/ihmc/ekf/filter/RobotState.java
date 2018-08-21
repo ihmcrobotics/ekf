@@ -1,4 +1,4 @@
-package us.ihmc.ekf.filter.state;
+package us.ihmc.ekf.filter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,9 +6,13 @@ import java.util.Map;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import us.ihmc.ekf.filter.state.ComposedState;
+import us.ihmc.ekf.filter.state.implementations.JointState;
+import us.ihmc.ekf.filter.state.implementations.PoseState;
+
 public class RobotState extends ComposedState implements RobotStateIndexProvider
 {
-   public static final double GRAVITY = 9.81;
+   public static final double GRAVITY = -9.81;
 
    private final boolean isFloating;
 
