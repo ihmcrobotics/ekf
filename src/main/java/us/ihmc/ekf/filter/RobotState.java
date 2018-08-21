@@ -12,7 +12,7 @@ import us.ihmc.ekf.filter.state.implementations.PoseState;
 
 public class RobotState extends ComposedState implements RobotStateIndexProvider
 {
-   public static final double GRAVITY = 9.81;
+   public static final double GRAVITY = -9.81;
 
    private final boolean isFloating;
 

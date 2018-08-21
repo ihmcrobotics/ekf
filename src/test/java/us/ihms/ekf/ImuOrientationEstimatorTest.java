@@ -48,7 +48,7 @@ public class ImuOrientationEstimatorTest
 
       RotationMatrix rotationMatrix = new RotationMatrix();
       rotationMatrix.setYawPitchRoll(0.0, expectedPitch, expectedRoll);
-      Vector3D linearAccelerationMeasurement = new Vector3D(0.0, 0.0, RobotState.GRAVITY);
+      Vector3D linearAccelerationMeasurement = new Vector3D(0.0, 0.0, -RobotState.GRAVITY);
       rotationMatrix.inverseTransform(linearAccelerationMeasurement);
       Vector3D angularVelocityMeasurement = new Vector3D();
 

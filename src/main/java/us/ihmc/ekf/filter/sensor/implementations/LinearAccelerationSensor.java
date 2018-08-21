@@ -175,7 +175,7 @@ public class LinearAccelerationSensor extends Sensor
       centrifugalTerm.cross(sensorAngularVelocity, sensorLinearVelocity);
 
       // R * g
-      gravityTerm.setIncludingFrame(ReferenceFrame.getWorldFrame(), 0.0, 0.0, robotState.getGravity());
+      gravityTerm.setIncludingFrame(ReferenceFrame.getWorldFrame(), 0.0, 0.0, -robotState.getGravity());
       gravityTerm.changeFrame(measurementFrame);
 
       // Compute the residual by substracting all terms from the measurement:
