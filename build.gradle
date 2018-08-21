@@ -10,7 +10,6 @@ buildscript {
 apply plugin: "us.ihmc.ihmc-build"
 
 sourceCompatibility = 1.8
-version = '0.1'
 
 ihmc {
    group = "us.ihmc"
