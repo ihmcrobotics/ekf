@@ -5,12 +5,13 @@ import java.util.List;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.ComposedState;
-import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class StateEstimator
 {
@@ -19,8 +20,8 @@ public class StateEstimator
    private final ComposedState state;
    private final ComposedSensor sensor;
 
-   private final ExecutionTimer predictionTimer;
-   private final ExecutionTimer correctionTimer;
+   private final YoDouble predictionTime;
+   private final YoDouble correctionTime;
 
    private final FilterMatrixOps filterMatrixOps = new FilterMatrixOps();
 
@@ -36,8 +37,8 @@ public class StateEstimator
       filterMatrixOps.setIdentity(Pposterior, state.getSize());
       CommonOps.scale(1.0E-05, Pposterior);
 
-      predictionTimer = new ExecutionTimer(getClass().getSimpleName() + "Prediction", registry);
-      correctionTimer = new ExecutionTimer(getClass().getSimpleName() + "Correction", registry);
+      predictionTime = new YoDouble("PredictionTimeMs", registry);
+      correctionTime = new YoDouble("CorrectionTimeMs", registry);
    }
 
    private final DenseMatrix64F F = new DenseMatrix64F(0, 0);
@@ -54,7 +55,7 @@ public class StateEstimator
 
    public void predict()
    {
-      predictionTimer.startMeasurement();
+      long startTime = System.nanoTime();
 
       // State prediction.
       state.predict();
@@ -64,12 +65,12 @@ public class StateEstimator
       state.getQMatrix(Q);
       filterMatrixOps.predictErrorCovariance(Pprior, F, Pposterior, Q);
 
-      predictionTimer.stopMeasurement();
+      predictionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
    }
 
    public void correct()
    {
-      correctionTimer.startMeasurement();
+      long startTime = System.nanoTime();
 
       // From the sensor get the linearized measurement model and the measurement residual
       sensor.assembleFullJacobian(H, residual, robotState);
@@ -79,19 +80,19 @@ public class StateEstimator
       if (!filterMatrixOps.computeKalmanGain(K, Pprior, H, R))
       {
          PrintTools.info("Inversion failed integrating only.");
-         correctionTimer.stopMeasurement();
+         correctionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
          return;
       }
       state.getStateVector(Xprior);
       filterMatrixOps.updateState(Xposterior, K, residual, Xprior);
 
       // Update the error covariance.
-      filterMatrixOps.updateErrorCovariance(Pposterior, K, H, R, Pprior);
+      filterMatrixOps.updateErrorCovarianceFast(Pposterior, K, H, Pprior);
 
       // Update the state data structure after the correction step.
       state.setStateVector(Xposterior);
 
-      correctionTimer.stopMeasurement();
+      correctionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
    }
 
    public void getCovariance(DenseMatrix64F covarianceToPack)

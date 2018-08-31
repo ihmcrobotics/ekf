@@ -179,7 +179,7 @@ public class FilterMatrixOps
     * @param R is the sensor covariance matrix
     * @param pPrior is the error covariance before the update
     */
-   public void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F R, DenseMatrix64F pPrior)
+   public void updateErrorCovarianceJosephForm(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F R, DenseMatrix64F pPrior)
    {
       computeABAtrans(KRKtrans, K, R);
       IKH.reshape(pPrior.getNumRows(), pPrior.getNumRows());
@@ -187,5 +187,24 @@ public class FilterMatrixOps
       CommonOps.mult(K, H, IKH);
       CommonOps.subtract(identity, IKH, IKH);
       computeABAtransPlusC(result, IKH, pPrior, KRKtrans);
+   }
+
+   /**
+    * Sets the provided matrix to</br>
+    * result = (identity - K * H) * pPrior;
+    *
+    * @param result (modified)
+    * @param K is the kalman gain
+    * @param H is the measurement jacobian
+    * @param pPrior is the error covariance before the update
+    */
+   public void updateErrorCovarianceFast(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F pPrior)
+   {
+      IKH.reshape(pPrior.getNumRows(), pPrior.getNumRows());
+      setIdentity(identity, pPrior.getNumRows());
+      CommonOps.mult(K, H, IKH);
+      CommonOps.subtract(identity, IKH, IKH);
+      result.reshape(pPrior.getNumRows(), pPrior.getNumRows());
+      CommonOps.mult(IKH, pPrior, result);
    }
 }

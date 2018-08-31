@@ -91,7 +91,7 @@ public class FilterMatrixOpsTest
    }
 
    @Test
-   public void testUpdateErrorCovariance()
+   public void testUpdateErrorCovarianceJosephForm()
    {
       // Just test this against a SimpleMatrix implementation.
       int size = 10;
@@ -105,7 +105,7 @@ public class FilterMatrixOpsTest
       DenseMatrix64F result = new DenseMatrix64F(0, 0);
 
       // result = (identity - K * H) * pPrior * (identity - K * H)' + K * R * K'
-      filterMatrixOps.updateErrorCovariance(result, K, H, R, P);
+      filterMatrixOps.updateErrorCovarianceJosephForm(result, K, H, R, P);
       SimpleMatrix Psimple = new SimpleMatrix(P);
       SimpleMatrix Hsimple = new SimpleMatrix(H);
       SimpleMatrix Ksimple = new SimpleMatrix(K);
@@ -113,6 +113,30 @@ public class FilterMatrixOpsTest
       SimpleMatrix IKH = SimpleMatrix.identity(size).minus(Ksimple.mult(Hsimple));
       SimpleMatrix KRK = Ksimple.mult(Rsimple).mult(Ksimple.transpose());
       SimpleMatrix resultSimple = IKH.mult(Psimple.mult(IKH.transpose())).plus(KRK);
+
+      StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, EPSILON);
+   }
+
+   @Test
+   public void testUpdateErrorCovarianceFast()
+   {
+      // Just test this against a SimpleMatrix implementation.
+      int size = 10;
+      int measurements = 4;
+      Random random = new Random(2359L);
+
+      DenseMatrix64F P = createRandomDiagonalMatrix(size, random, 1.0, 10000.0);
+      DenseMatrix64F H = createRandomMatrix(measurements, size, random, -1.0, 1.0);
+      DenseMatrix64F K = createRandomMatrix(size, measurements, random, -1.0, 1.0);
+      DenseMatrix64F result = new DenseMatrix64F(0, 0);
+
+      // result = (identity - K * H) * pPrior
+      filterMatrixOps.updateErrorCovarianceFast(result, K, H, P);
+      SimpleMatrix Psimple = new SimpleMatrix(P);
+      SimpleMatrix Hsimple = new SimpleMatrix(H);
+      SimpleMatrix Ksimple = new SimpleMatrix(K);
+      SimpleMatrix IKH = SimpleMatrix.identity(size).minus(Ksimple.mult(Hsimple));
+      SimpleMatrix resultSimple = IKH.mult(Psimple);
 
       StateEstimatorTest.assertMatricesEqual(resultSimple.getMatrix(), result, EPSILON);
    }
