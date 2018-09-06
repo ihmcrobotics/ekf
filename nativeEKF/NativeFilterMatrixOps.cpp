@@ -40,7 +40,8 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_pred
 	MatrixXd P = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(pDataArray, n, n);
 	MatrixXd Q = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(qDataArray, n, n);
 
-	MatrixXd errorCovariance = F * P * F.transpose() + Q;
+	MatrixXd Qdiag = Q.diagonal().asDiagonal();
+	MatrixXd errorCovariance = F * P.selfadjointView<Eigen::Upper>() * F.transpose() + Qdiag;
 
 	jdouble *resultDataArray = new jdouble[n * n];
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, n, n) = errorCovariance;
@@ -62,7 +63,7 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_upda
 	MatrixXd H = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(hDataArray, n, m);
 	MatrixXd P = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(pDataArray, m, m);
 
-	MatrixXd errorCovariance = (MatrixXd::Identity(m, m) - K * H) * P;
+	MatrixXd errorCovariance = (MatrixXd::Identity(m, m) - K * H) * P.selfadjointView<Eigen::Upper>();
 
 	jdouble *resultDataArray = new jdouble[m * m];
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, m, m) = errorCovariance;
@@ -84,8 +85,10 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_comp
 	MatrixXd H = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(hDataArray, n, m);
 	MatrixXd R = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(rDataArray, n, n);
 
-	MatrixXd toInvert = H * P * H.transpose() + R;
-	MatrixXd kalmanGain = P * H.transpose() * toInvert.inverse();
+	MatrixXd PHt = P.selfadjointView<Eigen::Upper>() * H.transpose();
+	MatrixXd Rdiag = R.diagonal().asDiagonal();
+	MatrixXd toInvert = H * PHt + Rdiag;
+	MatrixXd kalmanGain = PHt * toInvert.inverse();
 
 	jdouble *resultDataArray = new jdouble[m * n];
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, m, n) = kalmanGain;
