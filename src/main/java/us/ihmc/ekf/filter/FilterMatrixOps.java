@@ -25,8 +25,6 @@ public class FilterMatrixOps
    private final DenseMatrix64F IKH = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F KRKtrans = new DenseMatrix64F(0, 0);
 
-   private final NativeFilterMatrixOps nativeOps = new NativeFilterMatrixOps();
-
    /**
     * Sets the provided matrix to a square identity matrix of the given size.
     *
@@ -50,7 +48,11 @@ public class FilterMatrixOps
     */
    public void computeABAtrans(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
    {
-      nativeOps.computeABAt(result, A, B);
+      BAtrans.reshape(B.getNumRows(), A.getNumRows());
+      CommonOps.multTransB(B, A, BAtrans);
+
+      result.reshape(A.getNumRows(), A.getNumRows());
+      CommonOps.mult(A, BAtrans, result);
    }
 
    /**
