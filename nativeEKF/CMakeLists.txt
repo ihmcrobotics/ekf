@@ -11,7 +11,7 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(SOURCE_FILES NativeFilterMatrixOps.cpp)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../libs)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../src/main/resources)
 
 add_library(NativeFilterMatrixOps SHARED ${SOURCE_FILES})
 target_link_libraries (NativeFilterMatrixOps Eigen3::Eigen)

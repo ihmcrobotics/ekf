@@ -21,12 +21,13 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_comp
 	MatrixXd A = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(aDataArray, n, m);
 	MatrixXd B = Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(bDataArray, m, m);
 
-	MatrixXd ABAt = A * B.selfadjointView<Eigen::Upper>() * A.transpose();
+	MatrixXd ABAt = A * B * A.transpose();
 
 	jdouble *resultDataArray = new jdouble[n * n];
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, n, n) = ABAt;
 	env->SetDoubleArrayRegion(result, 0, n * n, resultDataArray);
-	env->ReleaseDoubleArrayElements(aData, aDataArray, 0);
-	env->ReleaseDoubleArrayElements(bData, bDataArray, 0);
+
+	delete aDataArray;
+	delete bDataArray;
 	delete resultDataArray;
 }

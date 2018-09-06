@@ -168,4 +168,19 @@ public class FilterMatrixOpsTest
    {
       return createRandomMatrix(size, size, random, min, max);
    }
+
+   public static DenseMatrix64F createRandomSymmetricMatrix(int size, Random random, double min, double max)
+   {
+      DenseMatrix64F ret = new DenseMatrix64F(size, size);
+      for (int i = 0; i < size; i++)
+      {
+         for (int j = 0; j <= i; j++)
+         {
+            double value = EuclidCoreRandomTools.nextDouble(random, min, max);
+            ret.set(i, j, value);
+            ret.set(j, i, value);
+         }
+      }
+      return ret;
+   }
 }
