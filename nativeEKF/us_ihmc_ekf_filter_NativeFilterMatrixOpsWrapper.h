@@ -15,6 +15,38 @@ extern "C" {
 JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_computeABAt
   (JNIEnv *, jobject, jdoubleArray, jdoubleArray, jdoubleArray, jint, jint);
 
+/*
+ * Class:     us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper
+ * Method:    predictErrorCovariance
+ * Signature: ([D[D[D[DI)V
+ */
+JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_predictErrorCovariance
+  (JNIEnv *, jobject, jdoubleArray, jdoubleArray, jdoubleArray, jdoubleArray, jint);
+
+/*
+ * Class:     us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper
+ * Method:    updateErrorCovariance
+ * Signature: ([D[D[D[DII)V
+ */
+JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_updateErrorCovariance
+  (JNIEnv *, jobject, jdoubleArray, jdoubleArray, jdoubleArray, jdoubleArray, jint, jint);
+
+/*
+ * Class:     us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper
+ * Method:    computeKalmanGain
+ * Signature: ([D[D[D[DII)V
+ */
+JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_computeKalmanGain
+  (JNIEnv *, jobject, jdoubleArray, jdoubleArray, jdoubleArray, jdoubleArray, jint, jint);
+
+/*
+ * Class:     us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper
+ * Method:    updateState
+ * Signature: ([D[D[D[DII)V
+ */
+JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_updateState
+  (JNIEnv *, jobject, jdoubleArray, jdoubleArray, jdoubleArray, jdoubleArray, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif
