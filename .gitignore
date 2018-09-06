@@ -18,6 +18,7 @@
 */Configurations
 
 # directories to always ignore
+**/build
 **/classes
 **/bin
 **/out
