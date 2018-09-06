@@ -14,8 +14,7 @@ import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihms.ekf.filter.FilterMatrixOpsTest;
-import us.ihms.ekf.filter.StateEstimatorTest;
+import us.ihms.ekf.filter.FilterTestTools;
 
 public class LinearAccelerationSensorTest
 {
@@ -44,13 +43,13 @@ public class LinearAccelerationSensorTest
 
       for (int i = 0; i < runs; i++)
       {
-         DenseMatrix64F qd0 = FilterMatrixOpsTest.createRandomMatrix(n, 1, random, -5.0, 5.0);
-         DenseMatrix64F A = FilterMatrixOpsTest.createRandomMatrix(3, n, random, -5.0, 5.0);
-         DenseMatrix64F L = FilterMatrixOpsTest.createRandomMatrix(3, n, random, -5.0, 5.0);
+         DenseMatrix64F qd0 = FilterTestTools.createRandomMatrix(n, 1, random, -5.0, 5.0);
+         DenseMatrix64F A = FilterTestTools.createRandomMatrix(3, n, random, -5.0, 5.0);
+         DenseMatrix64F L = FilterTestTools.createRandomMatrix(3, n, random, -5.0, 5.0);
          crossProductLinearization.reshape(3, n);
 
          // we would like to linearize "w x v = A*qd x L qd"
-         DenseMatrix64F qd_pertubation = FilterMatrixOpsTest.createRandomMatrix(n, 1, random, MAX_PERTUBATION, MAX_PERTUBATION);
+         DenseMatrix64F qd_pertubation = FilterTestTools.createRandomMatrix(n, 1, random, MAX_PERTUBATION, MAX_PERTUBATION);
          DenseMatrix64F qd1 = simple(qd0).plus(simple(qd_pertubation)).getMatrix();
 
          // compute the nominal and expected result
@@ -65,7 +64,7 @@ public class LinearAccelerationSensorTest
          try
          {
             // make sure we don't just pass because the perturbation is small.
-            StateEstimatorTest.assertMatricesEqual(expected, nominal, EPSILON);
+            FilterTestTools.assertMatricesEqual(expected, nominal, EPSILON);
             throw new RuntimeException("Change epsilon the test is not actually testing what we want.");
          }
          catch (AssertionError e)
@@ -73,7 +72,7 @@ public class LinearAccelerationSensorTest
             // all good
          }
 
-         StateEstimatorTest.assertMatricesEqual(expected, actual, EPSILON);
+         FilterTestTools.assertMatricesEqual(expected, actual, EPSILON);
       }
    }
 

@@ -6,10 +6,9 @@ import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import org.junit.Assert;
+import org.ejml.simple.SimpleMatrix;
 import org.junit.Test;
 
-import us.ihmc.ekf.filter.FilterMatrixOps;
 import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.StateEstimator;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
@@ -69,7 +68,7 @@ public class StateEstimatorTest
       // Make sure the estimated state is accurate.
       DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
       robotState.getStateVector(actualState);
-      assertMatricesEqual(expectedState, actualState, EPSILON);
+      FilterTestTools.assertMatricesEqual(expectedState, actualState, EPSILON);
 
       // The covariance should have converged to a steady state.
       DenseMatrix64F actualCovariance = new DenseMatrix64F(0, 0);
@@ -94,37 +93,38 @@ public class StateEstimatorTest
       // Now assert that the covariance matches the steady state as the matrixes are not
       // changing for this simple filtering problem.
       DenseMatrix64F P = new DenseMatrix64F(actualCovariance.getNumRows(), actualCovariance.getNumCols());
-      DenseMatrix64F Rinv = new DenseMatrix64F(0, 0);
       DenseMatrix64F Htranspose = new DenseMatrix64F(H.getNumCols(), H.getNumRows());
       DenseMatrix64F inverse = new DenseMatrix64F(0, 0);
-      DenseMatrix64F Pinv = new DenseMatrix64F(0, 0);
 
-      FilterMatrixOps ops = new FilterMatrixOps();
-      ops.invertMatrix(Rinv, R);
+      DenseMatrix64F Rinv = invert(R);
       CommonOps.transpose(H, Htranspose);
 
       // Iterate the Ricatti Equation
       // P = Q + A * inv(inv(P) + H' * inv(R) * H )) * A'
+      DenseMatrix64F Pinv;
       CommonOps.setIdentity(P);
       for (int i = 0; i < 10000; i++)
       {
-         ops.invertMatrix(Pinv, P);
-         ops.computeInverseOfABAtransPlusC(inverse, Htranspose, Rinv, Pinv);
-         ops.computeABAtransPlusC(P, F, inverse, Q);
+         Pinv = invert(P);
+         inverse = invert(computeABAtPlusC(Htranspose, Rinv, Pinv));
+         P = computeABAtPlusC(F, inverse, Q);
       }
-      ops.invertMatrix(Pinv, P);
-      ops.computeInverseOfABAtransPlusC(P, Htranspose, Rinv, Pinv);
+      Pinv = new SimpleMatrix(P).invert().getMatrix();
+      P = invert(computeABAtPlusC(Htranspose, Rinv, Pinv));
 
-      assertMatricesEqual(P, actualCovariance, EPSILON);
+      FilterTestTools.assertMatricesEqual(P, actualCovariance, EPSILON);
    }
 
-   public static void assertMatricesEqual(DenseMatrix64F expectedState, DenseMatrix64F actualState, double epsilon)
+   private static DenseMatrix64F invert(DenseMatrix64F matrix)
    {
-      Assert.assertEquals(expectedState.getNumRows(), actualState.getNumRows());
-      Assert.assertEquals(expectedState.getNumCols(), actualState.getNumCols());
-      for (int i = 0; i < expectedState.data.length; i++)
-      {
-         Assert.assertEquals(expectedState.data[i], actualState.data[i], epsilon);
-      }
+      return new SimpleMatrix(matrix).invert().getMatrix();
+   }
+
+   private static DenseMatrix64F computeABAtPlusC(DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   {
+      SimpleMatrix aSimple = new SimpleMatrix(A);
+      SimpleMatrix bSimple = new SimpleMatrix(B);
+      SimpleMatrix cSimple = new SimpleMatrix(C);
+      return aSimple.mult(bSimple).mult(aSimple.transpose()).plus(cSimple).getMatrix();
    }
 }
