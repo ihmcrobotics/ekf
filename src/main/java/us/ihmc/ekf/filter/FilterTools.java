@@ -126,4 +126,16 @@ public class FilterTools
    {
       return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, string);
    }
+
+   /**
+    * Sets the provided matrix to a square identity matrix of the given size.
+    *
+    * @param matrix (modified)
+    * @param size is the the desired number of rows and columns for the matrix
+    */
+   public static void setIdentity(DenseMatrix64F matrix, int size)
+   {
+      matrix.reshape(size, size);
+      CommonOps.setIdentity(matrix);
+   }
 }

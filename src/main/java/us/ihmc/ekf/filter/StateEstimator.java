@@ -6,7 +6,6 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.commons.Conversions;
-import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.ComposedState;
@@ -23,7 +22,7 @@ public class StateEstimator
    private final YoDouble predictionTime;
    private final YoDouble correctionTime;
 
-   private final FilterMatrixOps filterMatrixOps = new FilterMatrixOps();
+   private final NativeFilterMatrixOps filterMatrixOps = new NativeFilterMatrixOps();
 
    public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
    {
@@ -34,7 +33,7 @@ public class StateEstimator
       state.addState(robotState);
       state.addState(sensor.getSensorState());
 
-      filterMatrixOps.setIdentity(Pposterior, state.getSize());
+      FilterTools.setIdentity(Pposterior, state.getSize());
       CommonOps.scale(1.0E-05, Pposterior);
 
       predictionTime = new YoDouble("PredictionTimeMs", registry);
@@ -77,17 +76,12 @@ public class StateEstimator
 
       // Compute the kalman gain and correct the state
       sensor.getRMatrix(R);
-      if (!filterMatrixOps.computeKalmanGain(K, Pprior, H, R))
-      {
-         PrintTools.info("Inversion failed integrating only.");
-         correctionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
-         return;
-      }
+      filterMatrixOps.computeKalmanGain(K, Pprior, H, R);
       state.getStateVector(Xprior);
-      filterMatrixOps.updateState(Xposterior, K, residual, Xprior);
+      filterMatrixOps.updateState(Xposterior, Xprior, K, residual);
 
       // Update the error covariance.
-      filterMatrixOps.updateErrorCovarianceFast(Pposterior, K, H, Pprior);
+      filterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
 
       // Update the state data structure after the correction step.
       state.setStateVector(Xposterior);

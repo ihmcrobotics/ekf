@@ -22,6 +22,7 @@ ihmc {
 mainDependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile group: "us.ihmc", name: "euclid", version: "0.8.2"
+    compile group: 'us.ihmc', name: 'IHMCNativeLibraryLoader', version: '1.0'
     // TODO: replace this with a more lightweight version of our rigid body dynamics tools once they are extracted.
     compile group: "us.ihmc", name: "ihmc-common-walking-control-modules", version: "0.11.0-dynamic-walking-conference-2018"
 }

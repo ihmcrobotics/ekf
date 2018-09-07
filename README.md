@@ -29,3 +29,24 @@ A good introductory paper for Kalman filters can be found [here](https://www.cs.
  - Revolute Joint (incl. Acceleration)
  - Floating Joint (incl. Acceleration)
  - Sensor Bias State
+ 
+## Compiling Native Code (TODO: add Instructions for Mac and Win)
+To speed up the estimation the filter uses some native c++ code to perform the EKF specific matrix operations faster using Eigen. If it becomes necessary to modify / recompile these libraries follow the instructions here. To compile the c++ library on Ubuntu (assuming you are inside the ekf repository folder):
+
+`cd nativeEKF`
+`mkdir build`
+`cd build`
+`cmake ..`
+`make`
+
+The dependencies for compiling are
+ - Java
+ - Eigen3
+
+If you need to modify or extend the functionality of the native libraries and you need to modify the java class `NativeFilterMatrixOpsWrapper` you will need to regenerate the header file by running the command
+
+`javac -h nativeEKF/ src/main/java/us/ihmc/ekf/filter/NativeFilterMatrixOpsWrapper.java`
+
+Then modify the c++ source files to reflect your changes and recompile.
+
+
