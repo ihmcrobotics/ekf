@@ -33,8 +33,7 @@ public class StateEstimator
       state.addState(robotState);
       state.addState(sensor.getSensorState());
 
-      Pposterior.reshape(state.getSize(), state.getSize());
-      CommonOps.setIdentity(Pposterior);
+      FilterTools.setIdentity(Pposterior, state.getSize());
       CommonOps.scale(1.0E-05, Pposterior);
 
       predictionTime = new YoDouble("PredictionTimeMs", registry);
