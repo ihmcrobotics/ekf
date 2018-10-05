@@ -107,7 +107,7 @@ public class FootVelocitySensor extends LinearVelocitySensor
       public void setPositionAndUpdate(FramePoint3DReadOnly position)
       {
          this.position.setIncludingFrame(position);
-         this.position.changeFrame(parentFrame);
+         this.position.changeFrame(getParent());
          update();
       }
 
