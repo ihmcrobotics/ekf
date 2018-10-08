@@ -5,10 +5,7 @@ import org.ejml.ops.CommonOps;
 
 import us.ihmc.commons.MathTools;
 import us.ihmc.ekf.filter.FilterTools;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.screwTheory.RigidBody;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
@@ -17,10 +14,18 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 /**
- * This sensor in an extension of the {@link LinearVelocitySensor}. It can be used for switching contacts like a robots feet.
- * The measured velocity is always zero but this sensor allows the user to set the location of the non-moving measurement
- * frame on the body (usually this will be the center of pressure) via {@link #setMeasurement(FramePoint3DReadOnly, double)}.
- * This sensor also modulates the measurement variance depending on whether the body is in contact with the environment or not.
+ * This sensor in an extension of the {@link LinearVelocitySensor}. It can be used to tell the state estimator that the
+ * CoP of the foot has zero linear velocity in the inertial frame.
+ * <p>
+ * A reference frame located at the CoP is provided to the sensor at construction time an needs to be updated externally
+ * to always stay at the location of the CoP in the foot. Note, that is it not possible to set the measured velocity as it
+ * is always zero.
+ * </p>
+ * <p>
+ * In order to allow the foot to break contact and move the weight percentage of the total robot weight that the foot is
+ * carrying is provided to this sensor as the "measurement" via {@link #setLoad(double)}. Based on this load percentage
+ * the sensor will update its internal variance to trust the zero CoP velocity less and less as the foot is unloaded.
+ * </p>
  *
  * @author Georg Wiedebach
  *
@@ -37,19 +42,10 @@ public class FootVelocitySensor extends LinearVelocitySensor
    private final YoDouble loadPercentage;
    private final YoDouble variance;
 
-   private final PositionReferenceFrame measurementFrame;
-
-   public static FootVelocitySensor createFootVelocitySensor(double dt, RigidBody foot, YoVariableRegistry registry)
-   {
-      PositionReferenceFrame measurementFrame = new PositionReferenceFrame(foot.getName() + "CoP", foot.getParentJoint().getFrameAfterJoint());
-      return new FootVelocitySensor(dt, foot, measurementFrame, registry);
-   }
-
-   private FootVelocitySensor(double dt, RigidBody foot, PositionReferenceFrame measurementFrame, YoVariableRegistry registry)
+   public FootVelocitySensor(double dt, RigidBody foot, ReferenceFrame measurementFrame, YoVariableRegistry registry)
    {
       super(FilterTools.stringToPrefix(foot.getName()) + "Velocity", dt, foot, measurementFrame, false, null, registry);
 
-      this.measurementFrame = measurementFrame;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
 
       String footName = FilterTools.stringToPrefix(foot.getName());
@@ -62,23 +58,15 @@ public class FootVelocitySensor extends LinearVelocitySensor
       variance = new YoDouble(footName + "Variance", registry);
    }
 
+   public void setLoad(double loadPercentage)
+   {
+      this.loadPercentage.set(loadPercentage);
+   }
+
    @Override
    public void setMeasurement(Vector3DReadOnly measurement)
    {
       throw new RuntimeException("Setting a velocity measurement on " + getClass().getSimpleName() + " is not supported.");
-   }
-
-   public void setMeasurement(FramePoint3DReadOnly cop, double loadPercentage)
-   {
-      if (cop.containsNaN())
-      {
-         this.loadPercentage.set(0.0);
-      }
-      else
-      {
-         measurementFrame.setPositionAndUpdate(cop);
-         this.loadPercentage.set(loadPercentage);
-      }
    }
 
    @Override
@@ -93,29 +81,6 @@ public class FootVelocitySensor extends LinearVelocitySensor
       variance.set(maxVariance.getValue() - percent * (maxVariance.getValue() - minVariance.getValue()));
 
       CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
-   }
-
-   private static class PositionReferenceFrame extends ReferenceFrame
-   {
-      private final FramePoint3D position = new FramePoint3D();
-
-      public PositionReferenceFrame(String frameName, ReferenceFrame parentFrame)
-      {
-         super(frameName, parentFrame);
-      }
-
-      public void setPositionAndUpdate(FramePoint3DReadOnly position)
-      {
-         this.position.setIncludingFrame(position);
-         this.position.changeFrame(getParent());
-         update();
-      }
-
-      @Override
-      protected void updateTransformToParent(RigidBodyTransform transformToParent)
-      {
-         transformToParent.setTranslationAndIdentityRotation(position);
-      }
    }
 
 }
