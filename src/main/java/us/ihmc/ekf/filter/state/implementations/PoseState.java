@@ -105,7 +105,7 @@ public class PoseState extends State
 
    public void initialize(RigidBodyTransform transform, Twist twist)
    {
-      twist.checkReferenceFramesMatch(bodyFrame, bodyFrame.getParent(), bodyFrame);
+      twist.checkReferenceFrameMatch(bodyFrame, bodyFrame.getParent(), bodyFrame);
 
       transform.getRotation(orientation);
       stateVector.set(orientationStart + 0, 0.0);
