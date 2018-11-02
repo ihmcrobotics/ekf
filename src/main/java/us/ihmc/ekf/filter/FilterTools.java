@@ -7,7 +7,7 @@ import org.ejml.ops.CommonOps;
 
 import com.google.common.base.CaseFormat;
 
-import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.mecano.spatial.Twist;
 
 /**
  * A set of static convenience methods used throughout the filter.
