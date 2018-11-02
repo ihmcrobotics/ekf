@@ -170,8 +170,8 @@ public class LinearAccelerationSensor extends Sensor
       robotJacobian.getEndEffector().getBodyFixedFrame().getTwistOfFrame(sensorTwist);
       sensorTwist.changeFrame(measurementFrame);
       centrifugalTerm.setToZero(measurementFrame);
-      sensorTwist.getAngularPart(sensorAngularVelocity);
-      sensorTwist.getLinearPart(sensorLinearVelocity);
+      sensorAngularVelocity.setIncludingFrame(sensorTwist.getAngularPart());
+      sensorLinearVelocity.setIncludingFrame(sensorTwist.getLinearPart());
       centrifugalTerm.cross(sensorAngularVelocity, sensorLinearVelocity);
 
       // R * g
