@@ -158,7 +158,7 @@ public class FullRobotModel
          robotRootJoint.getVelocity(linearVelocity);
          linearVelocity.changeFrame(pelvisFrame);
          FrameVector3D angularVelocity = new FrameVector3D(pelvisFrame, robotRootJoint.getAngularVelocityInBody());
-         Twist bodyTwist = new Twist(pelvisFrame, elevatorFrame, pelvisFrame, linearVelocity, angularVelocity);
+         Twist bodyTwist = new Twist(pelvisFrame, elevatorFrame, pelvisFrame, angularVelocity, linearVelocity);
          rootJoint.setJointTwist(bodyTwist);
       }
 
