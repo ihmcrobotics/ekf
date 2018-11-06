@@ -8,11 +8,11 @@ import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.ekf.filter.state.implementations.PoseState;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
+import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
+import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.spatial.Twist;
-import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.ScrewTools;
-import us.ihmc.robotics.screwTheory.SixDoFJoint;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class FullRobotModelRobotState
