@@ -13,6 +13,7 @@ import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.robotics.robotDescription.FloatingJointDescription;
 import us.ihmc.robotics.robotDescription.IMUSensorDescription;
@@ -31,7 +32,7 @@ public class FullRobotModel
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
-   private final RigidBody elevator;
+   private final RigidBodyBasics elevator;
    private final SixDoFJoint rootJoint;
    private final OneDoFJoint[] bodyJointsInOrder;
 
@@ -46,7 +47,7 @@ public class FullRobotModel
       }
 
       elevator = new RigidBody("elevator", worldFrame);
-      RigidBody rootBody;
+      RigidBodyBasics rootBody;
 
       JointDescription rootJointDescription = rootJoints.get(0);
       String rootJointName = rootJointDescription.getName();
@@ -80,7 +81,7 @@ public class FullRobotModel
       bodyJointsInOrder = ScrewTools.filterJoints(ScrewTools.computeSupportAndSubtreeJoints(rootBody), OneDoFJoint.class);
    }
 
-   private void addRevoluteJointRecursive(JointDescription child, RigidBody parentBody)
+   private void addRevoluteJointRecursive(JointDescription child, RigidBodyBasics parentBody)
    {
       if (child instanceof PinJointDescription)
       {
@@ -108,7 +109,7 @@ public class FullRobotModel
          Matrix3D inertia = childLink.getMomentOfInertiaCopy();
          double mass = childLink.getMass();
          Vector3D comOffset = new Vector3D(childLink.getCenterOfMassOffset());
-         RigidBody rigidBody = ScrewTools.addRigidBody(linkName, revoluteJoint, inertia, mass, comOffset);
+         RigidBodyBasics rigidBody = ScrewTools.addRigidBody(linkName, revoluteJoint, inertia, mass, comOffset);
 
          addSensorDefinitions(revoluteJoint, child);
 
@@ -192,7 +193,7 @@ public class FullRobotModel
       return rootJoint;
    }
 
-   public RigidBody getElevator()
+   public RigidBodyBasics getElevator()
    {
       return elevator;
    }

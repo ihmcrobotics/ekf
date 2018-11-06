@@ -23,6 +23,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.robotics.screwTheory.MovingReferenceFrame;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -93,9 +94,9 @@ public class ImuOrientationEstimator
    {
       // Create a "dummy" inverse dynamics structure for the estimator consisting of an IMU body and a floating joint
       // connecting it to the world:
-      RigidBody elevator = new RigidBody("elevator", ReferenceFrame.getWorldFrame());
+      RigidBodyBasics elevator = new RigidBody("elevator", ReferenceFrame.getWorldFrame());
       imuJoint = new SixDoFJoint("imu_joint", elevator);
-      RigidBody imuBody = ScrewTools.addRigidBody("imu_body", imuJoint, 0.1, 0.1, 0.1, 1.0, new Vector3D());
+      RigidBodyBasics imuBody = ScrewTools.addRigidBody("imu_body", imuJoint, 0.1, 0.1, 0.1, 1.0, new Vector3D());
       MovingReferenceFrame imuFrame = imuJoint.getFrameAfterJoint();
 
       // Create all the sensors:

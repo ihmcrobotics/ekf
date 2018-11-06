@@ -15,7 +15,7 @@ import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
-import us.ihmc.mecano.multiBodySystem.RigidBody;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
@@ -51,12 +51,12 @@ public abstract class BodyVelocitySensor extends Sensor
 
    private final double sqrtHz;
 
-   public BodyVelocitySensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
+   public BodyVelocitySensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
       this(sensorName, dt, body, measurementFrame, estimateBias, new DoubleParameter(sensorName + "Variance", registry, 1.0), registry);
    }
 
-   public BodyVelocitySensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, DoubleProvider variance,
+   public BodyVelocitySensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, DoubleProvider variance,
                              YoVariableRegistry registry)
    {
       this.sqrtHz = 1.0 / Math.sqrt(dt);

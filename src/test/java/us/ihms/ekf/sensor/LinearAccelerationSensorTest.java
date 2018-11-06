@@ -12,6 +12,7 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihms.ekf.filter.FilterTestTools;
@@ -28,8 +29,8 @@ public class LinearAccelerationSensorTest
       int runs = 1000;
       Random random = new Random(24359L);
 
-      RigidBody rootBody = new RigidBody("RootBody", ReferenceFrame.getWorldFrame());
-      RigidBody imuBody = rootBody;
+      RigidBodyBasics rootBody = new RigidBody("RootBody", ReferenceFrame.getWorldFrame());
+      RigidBodyBasics imuBody = rootBody;
       for (int i = 0; i < n; i++)
       {
          RevoluteJoint joint = ScrewTools.addRevoluteJoint("Joint" + i, imuBody, new RigidBodyTransform(), new Vector3D(0.0, 0.0, 1.0));

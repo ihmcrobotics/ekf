@@ -19,7 +19,7 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
-import us.ihmc.mecano.multiBodySystem.RigidBody;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -82,7 +82,7 @@ public class LinearAccelerationSensor extends Sensor
    private final DenseMatrix64F AqdxL = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F LqdxA = new DenseMatrix64F(0, 0);
 
-   public LinearAccelerationSensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias,
+   public LinearAccelerationSensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias,
                                    YoVariableRegistry registry)
    {
       this.dt = dt;
