@@ -47,7 +47,7 @@ public class FullRobotModelRobotState
 
          rootJoint.updateFramesRecursively();
          rootJoint.getJointTransform3D(rootTransform);
-         rootJoint.getJointTwist(rootTwist);
+         rootTwist.setIncludingFrame(rootJoint.getJointTwist());
          poseState.initialize(rootTransform, rootTwist);
       }
       else

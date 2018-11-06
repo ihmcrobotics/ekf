@@ -49,7 +49,7 @@ public class RobotVisualizer extends SimpleRobotController
          rootJoint.getJointTransform3D(rootTransform);
          robotRootJoint.setRotationAndTranslation(rootTransform);
 
-         rootJoint.getJointTwist(rootTwist);
+         rootTwist.setIncludingFrame(rootJoint.getJointTwist());
          angularVelocity.setIncludingFrame(rootTwist.getAngularPart());
          linearVelocity.setIncludingFrame(rootTwist.getLinearPart());
          linearVelocity.changeFrame(ReferenceFrame.getWorldFrame());
