@@ -95,7 +95,7 @@ public class FullRobotModel
          String jointName = child.getName();
          RevoluteJoint revoluteJoint = ScrewTools.addRevoluteJoint(jointName, parentBody, offset, jointAxis);
          revoluteJoint.setEffortLimits(-pinJoint.getEffortLimit(), pinJoint.getEffortLimit());
-         revoluteJoint.setVelocityLimit(-pinJoint.getVelocityLimit(), pinJoint.getVelocityLimit());
+         revoluteJoint.setVelocityLimits(-pinJoint.getVelocityLimit(), pinJoint.getVelocityLimit());
          if (pinJoint.containsLimitStops())
          {
             double[] limitStopParameters = pinJoint.getLimitStopParameters();
