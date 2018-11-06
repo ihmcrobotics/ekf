@@ -15,7 +15,7 @@ import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.PinJointDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.screwTheory.InverseDynamicsJoint;
+import us.ihmc.robotics.screwTheory.JointBasics;
 import us.ihmc.robotics.screwTheory.OneDoFJoint;
 import us.ihmc.robotics.screwTheory.RevoluteJoint;
 import us.ihmc.robotics.screwTheory.RigidBody;
@@ -123,7 +123,7 @@ public class FullRobotModel
       }
    }
 
-   private void addSensorDefinitions(InverseDynamicsJoint joint, JointDescription jointDescription)
+   private void addSensorDefinitions(JointBasics joint, JointDescription jointDescription)
    {
       for (IMUSensorDescription imuSensor : jointDescription.getIMUSensors())
       {
