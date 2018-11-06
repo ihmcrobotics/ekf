@@ -77,7 +77,7 @@ public class FullRobotModelRobotState
       if (isFloating)
       {
          poseState.getTransform(rootTransform);
-         rootJoint.setPositionAndRotation(rootTransform);
+         rootJoint.setJointConfiguration(rootTransform);
 
          poseState.getTwist(rootTwist);
          rootJoint.setJointTwist(rootTwist);

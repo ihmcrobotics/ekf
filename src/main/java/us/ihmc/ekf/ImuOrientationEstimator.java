@@ -210,7 +210,7 @@ public class ImuOrientationEstimator
    private void updateRobot()
    {
       poseState.getTransform(imuTransform);
-      imuJoint.setPositionAndRotation(imuTransform);
+      imuJoint.setJointConfiguration(imuTransform);
       poseState.getTwist(imuTwist);
       imuJoint.setJointTwist(imuTwist);
       imuJoint.updateFramesRecursively();

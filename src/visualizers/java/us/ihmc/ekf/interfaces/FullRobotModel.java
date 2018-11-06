@@ -149,7 +149,7 @@ public class FullRobotModel
          RigidBodyTransform rootToWorld = new RigidBodyTransform();
          robotRootJoint.getTransformToWorld(rootToWorld);
          rootToWorld.normalizeRotationPart();
-         rootJoint.setPositionAndRotation(rootToWorld);
+         rootJoint.setJointConfiguration(rootToWorld);
 
          rootJoint.getPredecessor().updateFramesRecursively();
          ReferenceFrame elevatorFrame = rootJoint.getFrameBeforeJoint();
