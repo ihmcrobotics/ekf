@@ -4,7 +4,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.robotics.screwTheory.RigidBody;
+import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class AngularVelocitySensor extends BodyVelocitySensor
