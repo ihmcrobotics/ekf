@@ -46,7 +46,7 @@ public class RobotVisualizer extends SimpleRobotController
       if (rootJoint != null)
       {
          FloatingJoint robotRootJoint = robot.getRootJoint();
-         rootJoint.getJointTransform3D(rootTransform);
+         rootJoint.getJointConfiguration(rootTransform);
          robotRootJoint.setRotationAndTranslation(rootTransform);
 
          rootTwist.setIncludingFrame(rootJoint.getJointTwist());

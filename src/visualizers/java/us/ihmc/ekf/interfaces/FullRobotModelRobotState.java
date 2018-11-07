@@ -46,7 +46,7 @@ public class FullRobotModelRobotState
          poseState = new PoseState(bodyName, dt, bodyFrame, registry);
 
          rootJoint.updateFramesRecursively();
-         rootJoint.getJointTransform3D(rootTransform);
+         rootJoint.getJointConfiguration(rootTransform);
          rootTwist.setIncludingFrame(rootJoint.getJointTwist());
          poseState.initialize(rootTransform, rootTwist);
       }
