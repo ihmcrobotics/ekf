@@ -90,7 +90,7 @@ public class LinearAccelerationSensor extends Sensor
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.measurementFrame = measurementFrame;
 
-      robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
+      robotJacobian.setKinematicChain(MultiBodySystemTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
       List<OneDoFJoint> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));

@@ -64,7 +64,7 @@ public abstract class BodyVelocitySensor extends Sensor
       this.variance = variance;
 
       measurement = new FrameVector3D(measurementFrame);
-      robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
+      robotJacobian.setKinematicChain(MultiBodySystemTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
       List<OneDoFJoint> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
