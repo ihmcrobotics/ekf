@@ -26,7 +26,6 @@ import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
-import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoFrameVector3D;
@@ -96,7 +95,7 @@ public class ImuOrientationEstimator
       // connecting it to the world:
       RigidBodyBasics elevator = new RigidBody("elevator", ReferenceFrame.getWorldFrame());
       imuJoint = new SixDoFJoint("imu_joint", elevator);
-      RigidBodyBasics imuBody = ScrewTools.addRigidBody("imu_body", imuJoint, 0.1, 0.1, 0.1, 1.0, new Vector3D());
+      RigidBodyBasics imuBody = new RigidBody("imu_body", imuJoint, 0.1, 0.1, 0.1, 1.0, new Vector3D());
       MovingReferenceFrame imuFrame = imuJoint.getFrameAfterJoint();
 
       // Create all the sensors:

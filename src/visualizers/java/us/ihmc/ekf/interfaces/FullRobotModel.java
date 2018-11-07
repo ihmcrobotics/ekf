@@ -61,7 +61,7 @@ public class FullRobotModel
          Matrix3D rootLinkInertia = rootLinkDescription.getMomentOfInertiaCopy();
          double rootLinkMass = rootLinkDescription.getMass();
          Vector3D rootLinkCoM = rootLinkDescription.getCenterOfMassOffset();
-         rootBody = ScrewTools.addRigidBody(rootLinkName, rootJoint, rootLinkInertia, rootLinkMass, rootLinkCoM);
+         rootBody = new RigidBody(rootLinkName, rootJoint, rootLinkInertia, rootLinkMass, rootLinkCoM);
          addSensorDefinitions(rootJoint, rootJointDescription);
 
          for (JointDescription child : rootJointDescription.getChildrenJoints())
@@ -93,7 +93,7 @@ public class FullRobotModel
          Vector3D offset = new Vector3D();
          pinJoint.getOffsetFromParentJoint(offset);
          String jointName = child.getName();
-         RevoluteJoint revoluteJoint = ScrewTools.addRevoluteJoint(jointName, parentBody, offset, jointAxis);
+         RevoluteJoint revoluteJoint = new RevoluteJoint(jointName, parentBody, offset, jointAxis);
          revoluteJoint.setEffortLimits(-pinJoint.getEffortLimit(), pinJoint.getEffortLimit());
          revoluteJoint.setVelocityLimits(-pinJoint.getVelocityLimit(), pinJoint.getVelocityLimit());
          if (pinJoint.containsLimitStops())
@@ -109,7 +109,7 @@ public class FullRobotModel
          Matrix3D inertia = childLink.getMomentOfInertiaCopy();
          double mass = childLink.getMass();
          Vector3D comOffset = new Vector3D(childLink.getCenterOfMassOffset());
-         RigidBodyBasics rigidBody = ScrewTools.addRigidBody(linkName, revoluteJoint, inertia, mass, comOffset);
+         RigidBodyBasics rigidBody = new RigidBody(linkName, revoluteJoint, inertia, mass, comOffset);
 
          addSensorDefinitions(revoluteJoint, child);
 
