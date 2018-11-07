@@ -18,10 +18,11 @@ import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DBasics;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.mecano.algorithms.GeometricJacobianCalculator;
 import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
-import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
@@ -91,7 +92,7 @@ public class LinearAccelerationSensor extends Sensor
 
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
-      List<OneDoFJoint> oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
+      List<OneDoFJoint> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
       variance = new DoubleParameter(sensorName + "Variance", registry, 1.0);
 
@@ -150,9 +151,8 @@ public class LinearAccelerationSensor extends Sensor
    public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
       robotState.getStateVector(tempRobotState);
-      robotJacobian.computeJacobianMatrix();
-      robotJacobian.computeConvectiveTerm();
-      robotJacobian.getJacobianMatrix(jacobianMatrix);
+      robotJacobian.reset();
+      jacobianMatrix.set(robotJacobian.getJacobianMatrix());
       CommonOps.extract(jacobianMatrix, 0, 3, 0, jacobianMatrix.getNumCols(), jacobianAngularPart, 0, 0);
       CommonOps.extract(jacobianMatrix, 3, 6, 0, jacobianMatrix.getNumCols(), jacobianLinearPart, 0, 0);
 
@@ -163,7 +163,7 @@ public class LinearAccelerationSensor extends Sensor
       linearJointTerm.setIncludingFrame(measurementFrame, 3, jointAccelerationTerm);
 
       // Jd * qd
-      robotJacobian.getConvectiveTerm(convectiveTerm);
+      convectiveTerm.set(robotJacobian.getConvectiveTermMatrix());
       linearConvectiveTerm.setIncludingFrame(measurementFrame, 3, convectiveTerm);
 
       // w x v

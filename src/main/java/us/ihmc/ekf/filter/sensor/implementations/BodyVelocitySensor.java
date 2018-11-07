@@ -14,9 +14,10 @@ import us.ihmc.ekf.filter.state.implementations.BiasState;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.mecano.algorithms.GeometricJacobianCalculator;
 import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
@@ -65,7 +66,7 @@ public abstract class BodyVelocitySensor extends Sensor
       measurement = new FrameVector3D(measurementFrame);
       robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
-      List<OneDoFJoint> oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
+      List<OneDoFJoint> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
 
       if (estimateBias)
@@ -106,8 +107,8 @@ public abstract class BodyVelocitySensor extends Sensor
    @Override
    public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
-      robotJacobian.computeJacobianMatrix();
-      robotJacobian.getJacobianMatrix(jacobianMatrix);
+      robotJacobian.reset();
+      jacobianMatrix.set(robotJacobian.getJacobianMatrix());
 
       packRelevantJacobianPart(jacobianRelevantPart, jacobianMatrix);
       FilterTools.insertForVelocity(jacobianToPack, oneDofJointNames, jacobianRelevantPart, robotState);
