@@ -12,6 +12,7 @@ import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
 import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.spatial.Twist;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -31,7 +32,7 @@ public class FullRobotModelRobotState
       this.fullRobotModel = fullRobotModel;
 
       OneDoFJoint[] robotJoints = fullRobotModel.getBodyJointsInOrder();
-      RevoluteJoint[] revoluteJoints = ScrewTools.filterJoints(robotJoints, RevoluteJoint.class);
+      RevoluteJoint[] revoluteJoints = MultiBodySystemTools.filterJoints(robotJoints, RevoluteJoint.class);
       if (robotJoints.length != revoluteJoints.length)
       {
          throw new RuntimeException("Can only handle revolute joints in a robot.");

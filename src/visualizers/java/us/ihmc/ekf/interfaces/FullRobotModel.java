@@ -15,6 +15,7 @@ import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.robotics.robotDescription.FloatingJointDescription;
 import us.ihmc.robotics.robotDescription.IMUSensorDescription;
 import us.ihmc.robotics.robotDescription.JointDescription;
@@ -78,7 +79,7 @@ public class FullRobotModel
       }
 
       PrintTools.info("Created full robot model with root joint of type '" + rootJointName + "'");
-      bodyJointsInOrder = ScrewTools.filterJoints(ScrewTools.computeSupportAndSubtreeJoints(rootBody), OneDoFJoint.class);
+      bodyJointsInOrder = MultiBodySystemTools.filterJoints(ScrewTools.computeSupportAndSubtreeJoints(rootBody), OneDoFJoint.class);
    }
 
    private void addRevoluteJointRecursive(JointDescription child, RigidBodyBasics parentBody)
