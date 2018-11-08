@@ -8,11 +8,11 @@ import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
 import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
@@ -35,7 +35,7 @@ public class FullRobotModel
 
    private final RigidBodyBasics elevator;
    private final SixDoFJoint rootJoint;
-   private final OneDoFJoint[] bodyJointsInOrder;
+   private final OneDoFJointBasics[] bodyJointsInOrder;
 
    private final ArrayList<IMUDefinition> imuDefinitions = new ArrayList<IMUDefinition>();
 
@@ -79,7 +79,7 @@ public class FullRobotModel
       }
 
       PrintTools.info("Created full robot model with root joint of type '" + rootJointName + "'");
-      bodyJointsInOrder = MultiBodySystemTools.filterJoints(ScrewTools.computeSupportAndSubtreeJoints(rootBody), OneDoFJoint.class);
+      bodyJointsInOrder = MultiBodySystemTools.filterJoints(ScrewTools.computeSupportAndSubtreeJoints(rootBody), OneDoFJointBasics.class);
    }
 
    private void addRevoluteJointRecursive(JointDescription child, RigidBodyBasics parentBody)
@@ -168,7 +168,7 @@ public class FullRobotModel
       for (int jointIdx = 0; jointIdx < robotOneDofJoints.length; jointIdx++)
       {
          // TODO: Replace this with a better matching of joints e.g. name based.
-         OneDoFJoint oneDoFJoint = bodyJointsInOrder[robotOneDofJoints.length - 1 - jointIdx];
+         OneDoFJointBasics oneDoFJoint = bodyJointsInOrder[robotOneDofJoints.length - 1 - jointIdx];
          OneDegreeOfFreedomJoint oneDegreeOfFreedomJoint = robotOneDofJoints[jointIdx];
          if (!oneDoFJoint.getName().equals(oneDegreeOfFreedomJoint.getName()))
          {
@@ -184,7 +184,7 @@ public class FullRobotModel
       return imuDefinitions;
    }
 
-   public OneDoFJoint[] getBodyJointsInOrder()
+   public OneDoFJointBasics[] getBodyJointsInOrder()
    {
       return bodyJointsInOrder;
    }

@@ -7,8 +7,8 @@ import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
-import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
+import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
@@ -57,10 +57,10 @@ public class RobotVisualizer extends SimpleRobotController
          robotRootJoint.setVelocity(linearVelocity);
       }
 
-      OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
+      OneDoFJointBasics[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
       for (int jointIdx = 0; jointIdx < bodyJoints.length; jointIdx++)
       {
-         OneDoFJoint idJoint = bodyJoints[jointIdx];
+         OneDoFJointBasics idJoint = bodyJoints[jointIdx];
          OneDegreeOfFreedomJoint scsJoint = robot.getOneDegreeOfFreedomJoint(idJoint.getName());
          scsJoint.setQ(idJoint.getQ());
          scsJoint.setQd(idJoint.getQd());
