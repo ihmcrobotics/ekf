@@ -22,7 +22,6 @@ import us.ihmc.robotics.robotDescription.JointDescription;
 import us.ihmc.robotics.robotDescription.LinkDescription;
 import us.ihmc.robotics.robotDescription.PinJointDescription;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.sensors.IMUDefinition;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
@@ -79,7 +78,7 @@ public class FullRobotModel
       }
 
       PrintTools.info("Created full robot model with root joint of type '" + rootJointName + "'");
-      bodyJointsInOrder = MultiBodySystemTools.filterJoints(ScrewTools.computeSupportAndSubtreeJoints(rootBody), OneDoFJointBasics.class);
+      bodyJointsInOrder = MultiBodySystemTools.filterJoints(MultiBodySystemTools.collectSupportAndSubtreeJoints(rootBody), OneDoFJointBasics.class);
    }
 
    private void addRevoluteJointRecursive(JointDescription child, RigidBodyBasics parentBody)
