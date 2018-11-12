@@ -2,13 +2,13 @@ package us.ihmc.ekf.interfaces;
 
 import java.util.ArrayList;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.tempClasses.IMUDefinition;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
@@ -77,7 +77,7 @@ public class FullRobotModel
          addRevoluteJointRecursive(rootJointDescription, rootBody);
       }
 
-      PrintTools.info("Created full robot model with root joint of type '" + rootJointName + "'");
+      LogTools.info("Created full robot model with root joint of type '" + rootJointName + "'");
       bodyJointsInOrder = MultiBodySystemTools.filterJoints(MultiBodySystemTools.collectSupportAndSubtreeJoints(rootBody), OneDoFJointBasics.class);
    }
 
@@ -128,7 +128,7 @@ public class FullRobotModel
    {
       for (IMUSensorDescription imuSensor : jointDescription.getIMUSensors())
       {
-         PrintTools.info("Adding IMU " + imuSensor.getName());
+         LogTools.info("Adding IMU " + imuSensor.getName());
          IMUDefinition imuDefinition = new IMUDefinition(imuSensor.getName(), joint.getSuccessor(), imuSensor.getTransformToJoint());
          imuDefinitions.add(imuDefinition);
       }
