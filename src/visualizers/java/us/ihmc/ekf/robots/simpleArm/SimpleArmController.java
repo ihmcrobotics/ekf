@@ -6,12 +6,13 @@ import java.util.Random;
 
 import org.apache.commons.lang3.mutable.MutableDouble;
 
-import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
+import us.ihmc.simulationconstructionset.util.RobotController;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class SimpleArmController extends SimpleRobotController
+public class SimpleArmController implements RobotController
 {
    private static final Random random = new Random(4924982L);
 
@@ -62,5 +63,16 @@ public class SimpleArmController extends SimpleRobotController
    private static double nextAbsDouble(double maxValue)
    {
       return maxValue * random.nextDouble();
+   }
+
+   @Override
+   public void initialize()
+   {
+   }
+
+   @Override
+   public YoVariableRegistry getYoVariableRegistry()
+   {
+      return null;
    }
 }

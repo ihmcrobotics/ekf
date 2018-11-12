@@ -5,14 +5,17 @@ import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
 
+import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.StateEstimator;
-import us.ihmc.robotics.time.ExecutionTimer;
-import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
+import us.ihmc.simulationconstructionset.util.RobotController;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class EstimatorController extends SimpleRobotController
+public class EstimatorController implements RobotController
 {
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+
    private final RobotSensorReader sensorReader;
    private final StateEstimator estimator;
    private final FullRobotModelRobotState fullRobotModelRobotState;
@@ -20,7 +23,7 @@ public class EstimatorController extends SimpleRobotController
    private final DenseMatrix64F stateVector = new DenseMatrix64F(0, 0);
    private final List<YoDouble> yoState = new ArrayList<>();
 
-   private final ExecutionTimer timer = new ExecutionTimer(getClass().getSimpleName(), registry);
+   private final YoDouble estimationTime = new YoDouble("EstimationTimeMs", registry);
 
    public EstimatorController(RobotSensorReader sensorReader, FullRobotModel fullRobotModel, double dt)
    {
@@ -38,7 +41,7 @@ public class EstimatorController extends SimpleRobotController
    @Override
    public void doControl()
    {
-      timer.startMeasurement();
+      long startTime = System.nanoTime();
 
       sensorReader.read();
 
@@ -55,6 +58,17 @@ public class EstimatorController extends SimpleRobotController
          yoState.get(stateIdx).set(stateVector.get(stateIdx));
       }
 
-      timer.stopMeasurement();
+      estimationTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
+   }
+
+   @Override
+   public void initialize()
+   {
+   }
+
+   @Override
+   public YoVariableRegistry getYoVariableRegistry()
+   {
+      return registry;
    }
 }

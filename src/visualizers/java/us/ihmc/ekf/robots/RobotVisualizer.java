@@ -11,12 +11,13 @@ import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
+import us.ihmc.simulationconstructionset.util.RobotController;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
-public class RobotVisualizer extends SimpleRobotController
+public class RobotVisualizer implements RobotController
 {
    private static final YoAppearanceRGBColor ghostApperance = new YoAppearanceRGBColor(Color.BLUE, 0.75);
 
@@ -70,5 +71,16 @@ public class RobotVisualizer extends SimpleRobotController
    public FloatingRootJointRobot getRobot()
    {
       return robot;
+   }
+
+   @Override
+   public void initialize()
+   {
+   }
+
+   @Override
+   public YoVariableRegistry getYoVariableRegistry()
+   {
+      return null;
    }
 }
