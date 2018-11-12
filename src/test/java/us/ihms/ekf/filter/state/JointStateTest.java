@@ -10,7 +10,6 @@ import org.junit.Test;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
-import us.ihmc.robotics.dataStructures.Polynomial;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -83,28 +82,32 @@ public class JointStateTest extends AbstractStateTest
 
       for (int test = 0; test < 10000; test++)
       {
+         // Polynomial is
+         // x = c0 t^2 + c1 t + c2
+         // xd = 2 * c0 t + c1
+         // xdd = 2 * c0
+
          double c0 = EuclidCoreRandomTools.nextDouble(random, 10.0);
          double c1 = EuclidCoreRandomTools.nextDouble(random, 10.0);
          double c2 = EuclidCoreRandomTools.nextDouble(random, 10.0);
-
-         Polynomial polynomial = new Polynomial(c0, c1, c2);
          double t0 = EuclidCoreRandomTools.nextDouble(random, 10.0);
          double dt = EuclidCoreRandomTools.nextDouble(random, 1.0);
+
          JointState state = new JointState("TestJoint", dt, new YoVariableRegistry("TestRegistry"));
 
          DenseMatrix64F stateVector = new DenseMatrix64F(state.getSize(), 1);
-         stateVector.set(0, polynomial.evaluate(t0));
-         stateVector.set(1, polynomial.evaluateDerivative(t0));
-         stateVector.set(2, polynomial.evaluateDoubleDerivative(t0));
+         stateVector.set(0, c0 * t0 * t0 + c1 * t0 + c2);
+         stateVector.set(1, 2.0 * c0 * t0 + c1);
+         stateVector.set(2, 2.0 * c0);
 
          state.setStateVector(stateVector);
          state.predict();
          state.getStateVector(stateVector);
 
          double t1 = t0 + dt;
-         Assert.assertEquals(polynomial.evaluate(t1), stateVector.get(0), EPSILON);
-         Assert.assertEquals(polynomial.evaluateDerivative(t1), stateVector.get(1), EPSILON);
-         Assert.assertEquals(polynomial.evaluateDoubleDerivative(t1), stateVector.get(2), EPSILON);
+         Assert.assertEquals(c0 * t1 * t1 + c1 * t1 + c2, stateVector.get(0), EPSILON);
+         Assert.assertEquals(2.0 * c0 * t1 + c1, stateVector.get(1), EPSILON);
+         Assert.assertEquals(2.0 * c0, stateVector.get(2), EPSILON);
       }
    }
 
