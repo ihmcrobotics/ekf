@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
+import us.ihmc.ekf.tempClasses.ContactPointDefinitionHolder;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.partNames.ContactPointDefinitionHolder;
 
 public class SimpleArmContactPoints implements ContactPointDefinitionHolder
 {
