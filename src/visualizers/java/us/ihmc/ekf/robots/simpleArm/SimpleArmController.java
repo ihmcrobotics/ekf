@@ -16,6 +16,8 @@ public class SimpleArmController implements RobotController
 {
    private static final Random random = new Random(4924982L);
 
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+
    private final YoDouble time;
 
    private final int numberOfJoints;
@@ -73,6 +75,6 @@ public class SimpleArmController implements RobotController
    @Override
    public YoVariableRegistry getYoVariableRegistry()
    {
-      return null;
+      return registry;
    }
 }

@@ -21,6 +21,8 @@ public class RobotVisualizer implements RobotController
 {
    private static final YoAppearanceRGBColor ghostApperance = new YoAppearanceRGBColor(Color.BLUE, 0.75);
 
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+
    private final FullRobotModel fullRobotModel;
    private final FloatingRootJointRobot robot;
 
@@ -81,6 +83,6 @@ public class RobotVisualizer implements RobotController
    @Override
    public YoVariableRegistry getYoVariableRegistry()
    {
-      return null;
+      return registry;
    }
 }
