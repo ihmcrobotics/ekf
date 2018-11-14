@@ -12,10 +12,10 @@ import us.ihmc.ekf.filter.sensor.implementations.AngularVelocitySensor;
 import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
 import us.ihmc.ekf.filter.sensor.implementations.LinearAccelerationSensor;
 import us.ihmc.ekf.filter.sensor.implementations.LinearVelocitySensor;
+import us.ihmc.ekf.tempClasses.IMUDefinition;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.sensors.IMUDefinition;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.PinJoint;
@@ -48,7 +48,7 @@ public class SimulationSensorReader implements RobotSensorReader
       // This adds a zero velocity sensor to the base of the robot.
       if (addBaseVelocitySensor)
       {
-         RigidBody baseBody = fullRobotModel.getRootJoint().getSuccessor();
+         RigidBodyBasics baseBody = fullRobotModel.getRootJoint().getSuccessor();
          String sensorName = FilterTools.stringToPrefix(baseBody.getName()) + "LinearVelocity";
          allSensors.add(new LinearVelocitySensor(sensorName, dt, baseBody, baseBody.getBodyFixedFrame(), false, registry));
       }
@@ -78,7 +78,7 @@ public class SimulationSensorReader implements RobotSensorReader
          throw new RuntimeException("Could not find IMU '" + imuName + "' in robot.");
       }
 
-      RigidBody imuBody = imu.getRigidBody();
+      RigidBodyBasics imuBody = imu.getRigidBody();
       ReferenceFrame imuFrame = imu.getIMUFrame();
 
       AngularVelocitySensor angularVelocitySensor = new AngularVelocitySensor(FilterTools.stringToPrefix(imuName) + "AngularVelocity", dt, imuBody, imuFrame,

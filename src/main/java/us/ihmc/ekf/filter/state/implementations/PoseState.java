@@ -18,7 +18,8 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
-import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.mecano.spatial.Twist;
+import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -103,9 +104,9 @@ public class PoseState extends State
       linearAccelerationVariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0);
    }
 
-   public void initialize(RigidBodyTransform transform, Twist twist)
+   public void initialize(RigidBodyTransform transform, TwistReadOnly twist)
    {
-      twist.checkReferenceFramesMatch(bodyFrame, bodyFrame.getParent(), bodyFrame);
+      twist.checkReferenceFrameMatch(bodyFrame, bodyFrame.getParent(), bodyFrame);
 
       transform.getRotation(orientation);
       stateVector.set(orientationStart + 0, 0.0);

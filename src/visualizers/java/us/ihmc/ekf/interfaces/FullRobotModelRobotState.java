@@ -8,11 +8,11 @@ import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.ekf.filter.state.implementations.PoseState;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.RevoluteJoint;
-import us.ihmc.robotics.screwTheory.ScrewTools;
-import us.ihmc.robotics.screwTheory.SixDoFJoint;
-import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
+import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
+import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
+import us.ihmc.mecano.spatial.Twist;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class FullRobotModelRobotState
@@ -30,8 +30,8 @@ public class FullRobotModelRobotState
    {
       this.fullRobotModel = fullRobotModel;
 
-      OneDoFJoint[] robotJoints = fullRobotModel.getBodyJointsInOrder();
-      RevoluteJoint[] revoluteJoints = ScrewTools.filterJoints(robotJoints, RevoluteJoint.class);
+      OneDoFJointBasics[] robotJoints = fullRobotModel.getBodyJointsInOrder();
+      RevoluteJoint[] revoluteJoints = MultiBodySystemTools.filterJoints(robotJoints, RevoluteJoint.class);
       if (robotJoints.length != revoluteJoints.length)
       {
          throw new RuntimeException("Can only handle revolute joints in a robot.");
@@ -46,8 +46,8 @@ public class FullRobotModelRobotState
          poseState = new PoseState(bodyName, dt, bodyFrame, registry);
 
          rootJoint.updateFramesRecursively();
-         rootJoint.getJointTransform3D(rootTransform);
-         rootJoint.getJointTwist(rootTwist);
+         rootJoint.getJointConfiguration(rootTransform);
+         rootTwist.setIncludingFrame(rootJoint.getJointTwist());
          poseState.initialize(rootTransform, rootTwist);
       }
       else
@@ -55,7 +55,7 @@ public class FullRobotModelRobotState
          poseState = null;
       }
 
-      for (OneDoFJoint joint : robotJoints)
+      for (OneDoFJointBasics joint : robotJoints)
       {
          JointState jointState = new JointState(joint.getName(), dt, registry);
          jointState.initialize(joint.getQ(), joint.getQd());
@@ -77,16 +77,16 @@ public class FullRobotModelRobotState
       if (isFloating)
       {
          poseState.getTransform(rootTransform);
-         rootJoint.setPositionAndRotation(rootTransform);
+         rootJoint.setJointConfiguration(rootTransform);
 
          poseState.getTwist(rootTwist);
          rootJoint.setJointTwist(rootTwist);
       }
 
-      OneDoFJoint[] robotJoints = fullRobotModel.getBodyJointsInOrder();
+      OneDoFJointBasics[] robotJoints = fullRobotModel.getBodyJointsInOrder();
       for (int i = 0; i < robotJoints.length; i++)
       {
-         OneDoFJoint joint = robotJoints[i];
+         OneDoFJointBasics joint = robotJoints[i];
          JointState jointState = jointStates.get(i);
          joint.setQ(jointState.getQ());
          joint.setQd(jointState.getQd());

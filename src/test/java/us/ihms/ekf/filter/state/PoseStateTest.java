@@ -18,7 +18,7 @@ import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.robotics.screwTheory.Twist;
+import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -33,8 +33,8 @@ public class PoseStateTest extends AbstractStateTest
       ReferenceFrame bodyFrame = EuclidFrameRandomTools.nextReferenceFrame(random);
       RigidBodyTransform expectedTransform = EuclidCoreRandomTools.nextRigidBodyTransform(random);
       Twist expectedTwist = new Twist(bodyFrame, bodyFrame.getParent(), bodyFrame);
-      expectedTwist.setAngularPart(EuclidCoreRandomTools.nextVector3D(random));
-      expectedTwist.setLinearPart(EuclidCoreRandomTools.nextVector3D(random));
+      expectedTwist.getAngularPart().set(EuclidCoreRandomTools.nextVector3D(random));
+      expectedTwist.getLinearPart().set(EuclidCoreRandomTools.nextVector3D(random));
       YoVariableRegistry registry = new YoVariableRegistry("Test");
 
       PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, registry);
@@ -52,8 +52,8 @@ public class PoseStateTest extends AbstractStateTest
       FrameVector3D actualLinearVelocity = new FrameVector3D();
       state.getAngularVelocity(actualAngularVelocity);
       state.getLinearVelocity(actualLinearVelocity);
-      EuclidCoreTestTools.assertTuple3DEquals(expectedTwist.getAngularPartCopy(), actualAngularVelocity, EPSILON);
-      EuclidCoreTestTools.assertTuple3DEquals(expectedTwist.getLinearPartCopy(), actualLinearVelocity, EPSILON);
+      EuclidCoreTestTools.assertTuple3DEquals(new Vector3D(expectedTwist.getAngularPart()), actualAngularVelocity, EPSILON);
+      EuclidCoreTestTools.assertTuple3DEquals(new Vector3D(expectedTwist.getLinearPart()), actualLinearVelocity, EPSILON);
 
       FrameVector3D zero = new FrameVector3D(bodyFrame);
       FrameVector3D actualAngularAcceleration = new FrameVector3D();

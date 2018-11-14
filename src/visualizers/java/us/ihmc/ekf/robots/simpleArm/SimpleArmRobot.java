@@ -4,8 +4,8 @@ import java.awt.Color;
 
 import us.ihmc.ekf.interfaces.FullRobotModel;
 import us.ihmc.ekf.robots.RobotTools;
+import us.ihmc.ekf.tempClasses.ContactPointDefinitionHolder;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
-import us.ihmc.robotics.partNames.ContactPointDefinitionHolder;
 import us.ihmc.robotics.robotDescription.RobotDescription;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 

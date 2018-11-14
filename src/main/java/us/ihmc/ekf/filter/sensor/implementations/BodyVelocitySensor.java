@@ -14,10 +14,10 @@ import us.ihmc.ekf.filter.state.implementations.BiasState;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.robotics.screwTheory.GeometricJacobianCalculator;
-import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.RigidBody;
-import us.ihmc.robotics.screwTheory.ScrewTools;
+import us.ihmc.mecano.algorithms.GeometricJacobianCalculator;
+import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -51,21 +51,21 @@ public abstract class BodyVelocitySensor extends Sensor
 
    private final double sqrtHz;
 
-   public BodyVelocitySensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
+   public BodyVelocitySensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
       this(sensorName, dt, body, measurementFrame, estimateBias, new DoubleParameter(sensorName + "Variance", registry, 1.0), registry);
    }
 
-   public BodyVelocitySensor(String sensorName, double dt, RigidBody body, ReferenceFrame measurementFrame, boolean estimateBias, DoubleProvider variance,
+   public BodyVelocitySensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, DoubleProvider variance,
                              YoVariableRegistry registry)
    {
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.variance = variance;
 
       measurement = new FrameVector3D(measurementFrame);
-      robotJacobian.setKinematicChain(ScrewTools.getRootBody(body), body);
+      robotJacobian.setKinematicChain(MultiBodySystemTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
-      List<OneDoFJoint> oneDofJoints = ScrewTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJoint.class);
+      List<OneDoFJointBasics> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJointBasics.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
 
       if (estimateBias)
@@ -106,8 +106,8 @@ public abstract class BodyVelocitySensor extends Sensor
    @Override
    public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
-      robotJacobian.computeJacobianMatrix();
-      robotJacobian.getJacobianMatrix(jacobianMatrix);
+      robotJacobian.reset();
+      jacobianMatrix.set(robotJacobian.getJacobianMatrix());
 
       packRelevantJacobianPart(jacobianRelevantPart, jacobianMatrix);
       FilterTools.insertForVelocity(jacobianToPack, oneDofJointNames, jacobianRelevantPart, robotState);

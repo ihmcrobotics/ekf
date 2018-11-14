@@ -7,18 +7,21 @@ import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
+import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
+import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
+import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.screwTheory.OneDoFJoint;
-import us.ihmc.robotics.screwTheory.SixDoFJoint;
-import us.ihmc.robotics.screwTheory.Twist;
-import us.ihmc.simulationConstructionSetTools.robotController.SimpleRobotController;
 import us.ihmc.simulationconstructionset.FloatingJoint;
 import us.ihmc.simulationconstructionset.FloatingRootJointRobot;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
+import us.ihmc.simulationconstructionset.util.RobotController;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
-public class RobotVisualizer extends SimpleRobotController
+public class RobotVisualizer implements RobotController
 {
    private static final YoAppearanceRGBColor ghostApperance = new YoAppearanceRGBColor(Color.BLUE, 0.75);
+
+   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
    private final FullRobotModel fullRobotModel;
    private final FloatingRootJointRobot robot;
@@ -46,21 +49,21 @@ public class RobotVisualizer extends SimpleRobotController
       if (rootJoint != null)
       {
          FloatingJoint robotRootJoint = robot.getRootJoint();
-         rootJoint.getJointTransform3D(rootTransform);
+         rootJoint.getJointConfiguration(rootTransform);
          robotRootJoint.setRotationAndTranslation(rootTransform);
 
-         rootJoint.getJointTwist(rootTwist);
-         rootTwist.getAngularPart(angularVelocity);
-         rootTwist.getLinearPart(linearVelocity);
+         rootTwist.setIncludingFrame(rootJoint.getJointTwist());
+         angularVelocity.setIncludingFrame(rootTwist.getAngularPart());
+         linearVelocity.setIncludingFrame(rootTwist.getLinearPart());
          linearVelocity.changeFrame(ReferenceFrame.getWorldFrame());
          robotRootJoint.setAngularVelocityInBody(angularVelocity);
          robotRootJoint.setVelocity(linearVelocity);
       }
 
-      OneDoFJoint[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
+      OneDoFJointBasics[] bodyJoints = fullRobotModel.getBodyJointsInOrder();
       for (int jointIdx = 0; jointIdx < bodyJoints.length; jointIdx++)
       {
-         OneDoFJoint idJoint = bodyJoints[jointIdx];
+         OneDoFJointBasics idJoint = bodyJoints[jointIdx];
          OneDegreeOfFreedomJoint scsJoint = robot.getOneDegreeOfFreedomJoint(idJoint.getName());
          scsJoint.setQ(idJoint.getQ());
          scsJoint.setQd(idJoint.getQd());
@@ -70,5 +73,16 @@ public class RobotVisualizer extends SimpleRobotController
    public FloatingRootJointRobot getRobot()
    {
       return robot;
+   }
+
+   @Override
+   public void initialize()
+   {
+   }
+
+   @Override
+   public YoVariableRegistry getYoVariableRegistry()
+   {
+      return registry;
    }
 }
