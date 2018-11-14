@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<parameters>
+    <registry name="EstimatorController">
+        <parameter name="BaseArm1AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
+        <parameter name="Arm1Arm2AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
+        <parameter name="Arm2Arm3AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
+        <parameter name="BaseAngularAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="10000.0"/>
+        <parameter name="BaseLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="10000.0"/>
+
+        <registry name="SimulationSensorReader">
+	        <parameter name="BaseArm1JointPositionVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
+	        <parameter name="Arm1Arm2JointPositionVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
+	        <parameter name="Arm2Arm3JointPositionVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
+
+	        <parameter name="BaseImuAngularVelocityVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0022563"/>
+	        <parameter name="Arm3ImuAngularVelocityVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.0022563"/>
+	        <parameter name="AaseImuLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.000235619449"/>
+	        <parameter name="Arm3ImuLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.000235619449"/>
+
+	        <parameter name="BaseImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-7"/>
+	        <parameter name="Arm3ImuAngularVelocityBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-7"/>
+	        <parameter name="BaseImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-6"/>
+	        <parameter name="Arm3ImuLinearAccelerationBiasVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0e-6"/>
+
+	        <parameter name="BaseLinearVelocityVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
+	    </registry>
+    </registry>
+</parameters>
