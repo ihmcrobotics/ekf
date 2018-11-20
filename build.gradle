@@ -27,11 +27,11 @@ mainDependencies {
     compile group: "org.ejml", name: "dense64", version: "0.30"
     compile group: "org.ejml", name: "core", version: "0.30"
 
-    compile group: "us.ihmc", name: "euclid", version: "0.8.2"
-    compile group: "us.ihmc", name: "mecano", version: "0.0.11"
+    compile group: "us.ihmc", name: "euclid", version: "0.10.0"
+    compile group: "us.ihmc", name: "mecano", version: "0.0.13"
     compile group: "us.ihmc", name: "ihmc-commons", version: "0.24.0"
     compile group: "us.ihmc", name: "IHMCNativeLibraryLoader", version: "1.0"
-    compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.5"
+    compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.6"
 }
 
 testDependencies {
@@ -43,5 +43,5 @@ testDependencies {
 visualizersDependencies {
     compile ihmc.sourceSetProject("main")
 
-    compile group: "us.ihmc", name: "simulation-construction-set", version: "0.12.6"
+    compile group: "us.ihmc", name: "simulation-construction-set", version: "0.12.7"
 }
