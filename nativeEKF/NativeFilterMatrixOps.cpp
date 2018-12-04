@@ -25,8 +25,8 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_comp
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, n, n) = ABAt;
 	env->SetDoubleArrayRegion(result, 0, n * n, resultDataArray);
 
-	delete aDataArray;
-	delete bDataArray;
+	env->ReleaseDoubleArrayElements(aData, aDataArray, 0);
+	env->ReleaseDoubleArrayElements(bData, bDataArray, 0);
 	delete resultDataArray;
 }
 
@@ -47,9 +47,9 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_pred
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, n, n) = errorCovariance;
 	env->SetDoubleArrayRegion(result, 0, n * n, resultDataArray);
 
-	delete fDataArray;
-	delete pDataArray;
-	delete qDataArray;
+	env->ReleaseDoubleArrayElements(fData, fDataArray, 0);
+	env->ReleaseDoubleArrayElements(pData, pDataArray, 0);
+	env->ReleaseDoubleArrayElements(qData, qDataArray, 0);
 	delete resultDataArray;
 }
 
@@ -69,9 +69,9 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_upda
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, m, m) = errorCovariance;
 	env->SetDoubleArrayRegion(result, 0, m * m, resultDataArray);
 
-	delete kDataArray;
-	delete hDataArray;
-	delete pDataArray;
+	env->ReleaseDoubleArrayElements(kData, kDataArray, 0);
+	env->ReleaseDoubleArrayElements(hData, hDataArray, 0);
+	env->ReleaseDoubleArrayElements(pData, pDataArray, 0);
 	delete resultDataArray;
 }
 
@@ -94,9 +94,9 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_comp
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, m, n) = kalmanGain;
 	env->SetDoubleArrayRegion(result, 0, m * n, resultDataArray);
 
-	delete pDataArray;
-	delete hDataArray;
-	delete rDataArray;
+	env->ReleaseDoubleArrayElements(pData, pDataArray, 0);
+	env->ReleaseDoubleArrayElements(hData, hDataArray, 0);
+	env->ReleaseDoubleArrayElements(rData, rDataArray, 0);
 	delete resultDataArray;
 }
 
@@ -116,8 +116,8 @@ JNIEXPORT void JNICALL Java_us_ihmc_ekf_filter_NativeFilterMatrixOpsWrapper_upda
 	Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(resultDataArray, n, 1) = state;
 	env->SetDoubleArrayRegion(result, 0, n, resultDataArray);
 
-	delete xDataArray;
-	delete kDataArray;
-	delete rDataArray;
+	env->ReleaseDoubleArrayElements(xData, xDataArray, 0);
+	env->ReleaseDoubleArrayElements(kData, kDataArray, 0);
+	env->ReleaseDoubleArrayElements(rData, rDataArray, 0);
 	delete resultDataArray;
 }
