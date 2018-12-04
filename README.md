@@ -52,9 +52,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-## Compiling Native Code (Compile for Mac and Win!)
+## Compiling Native Code
 
-To speed up the estimation the filter uses some native c++ code to perform the EKF specific matrix operations faster using Eigen. If it becomes necessary to modify / recompile these libraries follow the instructions here. To compile the c++ library on Ubuntu (assuming you are inside the ekf repository folder):
+To speed up the estimation the filter uses some native c++ code to perform the EKF specific matrix operations faster using Eigen. If it becomes necessary to modify / recompile these libraries follow the instructions here.
+
+### Ubuntu
+
+To compile the c++ library on Ubuntu (assuming you are inside the ekf repository folder):
 
 `cd nativeEKF`
 `mkdir build`
@@ -66,10 +70,29 @@ The dependencies for compiling are
  - Java
  - Eigen3
 
+### Changing the Native Code under Ubuntu
+
 If you need to modify or extend the functionality of the native libraries and you need to modify the java class `NativeFilterMatrixOpsWrapper` you will need to regenerate the header file by running the command
 
 `javac -h nativeEKF/ src/main/java/us/ihmc/ekf/filter/NativeFilterMatrixOpsWrapper.java`
 
 Then modify the c++ source files to reflect your changes and recompile.
 
+### Windows
 
+This tutorial assumes a fresh Windows 10 install and was tested in a virtual machine.
+
+Install [Visual Studio 2017 Community](https://visualstudio.microsoft.com/downloads/) and in the installer select "Desktop development with C++".
+
+Install [Java](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html), then open the Advanced System Settings and
+select the button "Environment Variables...". In the new Window create a new System variable `JAVA_HOME` and select the jdk directory e.g.
+`C:\Program Files\Java\jdk1.8.0_191`.
+
+Download [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page#Download) and extract the folder. Rename the folder containing the sub-folder
+"cmake" and move it to `C:\Program Files`. Inside the folder (next to the folder "cmake" and others) create a folder "build".
+Run the "x64 Native Tools Command Prompt for VS 2017" and navigate into the build folder you created. The run the command `cmake ..`. This will
+configure Eigen so it can be found later and can be used to link against.
+
+Finally, in the project folder create a directory called "build". Run the "x64 Native Tools Command Prompt for VS 2017" to compile the project and
+navigate into the build folder you created.
+Then run the command `cmake -G "Visual Studio 15 2017 Win64" ..` followed by `cmake --build . --target install --config Release`.
