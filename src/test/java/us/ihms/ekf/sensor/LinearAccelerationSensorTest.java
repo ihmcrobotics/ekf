@@ -4,7 +4,7 @@ import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.simple.SimpleMatrix;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.filter.sensor.implementations.LinearAccelerationSensor;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;

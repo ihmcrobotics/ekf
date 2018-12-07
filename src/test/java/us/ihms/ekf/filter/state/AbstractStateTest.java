@@ -3,8 +3,8 @@ package us.ihms.ekf.filter.state;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
-import org.junit.Assert;
-import org.junit.Test;
+import us.ihmc.robotics.Assert;
+import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;

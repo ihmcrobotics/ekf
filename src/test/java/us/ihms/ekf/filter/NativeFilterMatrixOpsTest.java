@@ -1,6 +1,6 @@
 package us.ihms.ekf.filter;
 
-import static org.junit.Assert.fail;
+import static us.ihmc.robotics.Assert.*;
 
 import java.util.Random;
 
@@ -8,7 +8,7 @@ import org.apache.commons.math3.util.Precision;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.filter.NativeFilterMatrixOps;

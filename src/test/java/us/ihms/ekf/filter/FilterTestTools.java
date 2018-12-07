@@ -3,8 +3,7 @@ package us.ihms.ekf.filter;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
-import org.junit.Assert;
-
+import us.ihmc.robotics.Assert;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 
 public class FilterTestTools

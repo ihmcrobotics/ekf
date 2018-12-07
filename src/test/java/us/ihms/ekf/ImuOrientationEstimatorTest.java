@@ -2,8 +2,8 @@ package us.ihms.ekf;
 
 import java.util.Random;
 
-import org.junit.Assert;
-import org.junit.Test;
+import us.ihmc.robotics.Assert;
+import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.ImuOrientationEstimator;
 import us.ihmc.ekf.filter.RobotState;
