@@ -22,7 +22,7 @@ mainDependencies {
     compile group: "us.ihmc", name: "mecano", version: "0.0.16"
     compile group: "us.ihmc", name: "ihmc-commons", version: "0.25.0"
     compile group: "us.ihmc", name: "IHMCNativeLibraryLoader", version: "1.0"
-    compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.6"
+    compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.7"
 }
 
 testDependencies {
