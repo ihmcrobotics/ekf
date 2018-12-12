@@ -34,5 +34,5 @@ testDependencies {
 visualizersDependencies {
     compile ihmc.sourceSetProject("main")
 
-    compile group: "us.ihmc", name: "simulation-construction-set", version: "0.12.7"
+    compile group: "us.ihmc", name: "simulation-construction-set", version: "0.12.8"
 }
