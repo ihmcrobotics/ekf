@@ -117,7 +117,7 @@ public class NativeFilterMatrixOpsTest
          SimpleMatrix toInvert = Hsimple.mult(Psimple.mult(Hsimple.transpose())).plus(Rsimple);
          if (Math.abs(toInvert.determinant()) < 1.0e-5)
          {
-            fail("Poorly conditioned matrix. Change random seed or skip. Determinant is " + toInvert.determinant());
+            org.junit.jupiter.api.Assertions.fail("Poorly conditioned matrix. Change random seed or skip. Determinant is " + toInvert.determinant());
          }
          SimpleMatrix inverse = toInvert.invert();
          DenseMatrix64F expected = Psimple.mult(Hsimple.transpose()).mult(inverse).getMatrix();

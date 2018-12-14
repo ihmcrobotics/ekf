@@ -22,12 +22,12 @@ public abstract class AbstractStateTest
       DenseMatrix64F matrix = new DenseMatrix64F(0, 0);
 
       state.getFMatrix(matrix);
-      Assert.assertEquals(state.getSize(), matrix.getNumRows());
-      Assert.assertEquals(state.getSize(), matrix.getNumCols());
+      org.junit.jupiter.api.Assertions.assertEquals((long) state.getSize(), (long) matrix.getNumRows());
+      org.junit.jupiter.api.Assertions.assertEquals((long) state.getSize(), (long) matrix.getNumCols());
 
       state.getQMatrix(matrix);
-      Assert.assertEquals(state.getSize(), matrix.getNumRows());
-      Assert.assertEquals(state.getSize(), matrix.getNumCols());
+      org.junit.jupiter.api.Assertions.assertEquals((long) state.getSize(), (long) matrix.getNumRows());
+      org.junit.jupiter.api.Assertions.assertEquals((long) state.getSize(), (long) matrix.getNumCols());
    }
 
 }

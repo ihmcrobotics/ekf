@@ -46,7 +46,7 @@ public class PoseStateTest extends AbstractStateTest
 
       Twist actualTwist = new Twist();
       state.getTwist(actualTwist);
-      Assert.assertTrue(expectedTwist.epsilonEquals(actualTwist, EPSILON));
+      org.junit.jupiter.api.Assertions.assertTrue(expectedTwist.epsilonEquals(actualTwist, EPSILON));
 
       FrameVector3D actualAngularVelocity = new FrameVector3D();
       FrameVector3D actualLinearVelocity = new FrameVector3D();
@@ -139,12 +139,12 @@ public class PoseStateTest extends AbstractStateTest
          for (int i = 0; i < PoseState.orientationStart; i++)
          {
             double difference = Math.abs(predicted.get(i) - linearized.get(i));
-            Assert.assertTrue("Failed on state " + i + " with difference " + difference, difference < EPSILON);
+            org.junit.jupiter.api.Assertions.assertTrue(difference < EPSILON, "Failed on state " + i + " with difference " + difference);
          }
          for (int i = PoseState.orientationStart + 3; i < state.getSize(); i++)
          {
             double difference = Math.abs(predicted.get(i) - linearized.get(i));
-            Assert.assertTrue("Failed on state " + i + " with difference " + difference, difference < EPSILON);
+            org.junit.jupiter.api.Assertions.assertTrue(difference < EPSILON, "Failed on state " + i + " with difference " + difference);
          }
 
          // Assert matching orientations

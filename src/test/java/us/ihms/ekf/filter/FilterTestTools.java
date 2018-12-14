@@ -53,8 +53,8 @@ public class FilterTestTools
 
    public static void assertMatricesEqual(DenseMatrix64F expectedState, DenseMatrix64F actualState, double epsilon)
    {
-      Assert.assertEquals(expectedState.getNumRows(), actualState.getNumRows());
-      Assert.assertEquals(expectedState.getNumCols(), actualState.getNumCols());
+      org.junit.jupiter.api.Assertions.assertEquals((long) expectedState.getNumRows(), (long) actualState.getNumRows());
+      org.junit.jupiter.api.Assertions.assertEquals((long) expectedState.getNumCols(), (long) actualState.getNumCols());
       for (int i = 0; i < expectedState.data.length; i++)
       {
          Assert.assertEquals(expectedState.data[i], actualState.data[i], epsilon);
