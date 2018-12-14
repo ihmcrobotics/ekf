@@ -4,7 +4,7 @@ import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import us.ihmc.robotics.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.filter.state.State;
@@ -46,7 +46,7 @@ public class PoseStateTest extends AbstractStateTest
 
       Twist actualTwist = new Twist();
       state.getTwist(actualTwist);
-      org.junit.jupiter.api.Assertions.assertTrue(expectedTwist.epsilonEquals(actualTwist, EPSILON));
+      assertTrue(expectedTwist.epsilonEquals(actualTwist, EPSILON));
 
       FrameVector3D actualAngularVelocity = new FrameVector3D();
       FrameVector3D actualLinearVelocity = new FrameVector3D();
@@ -86,15 +86,15 @@ public class PoseStateTest extends AbstractStateTest
          // Skip error state as it will be zero
          for (int i = 0; i < PoseState.orientationStart; i++)
          {
-            Assert.assertEquals(expectedState.get(i), actualState.get(i), Double.MIN_VALUE);
+            assertEquals(expectedState.get(i), actualState.get(i), Double.MIN_VALUE);
          }
          for (int i = PoseState.orientationStart; i < PoseState.orientationStart + 3; i++)
          {
-            Assert.assertEquals(0.0, actualState.get(i), Double.MIN_VALUE);
+            assertEquals(0.0, actualState.get(i), Double.MIN_VALUE);
          }
          for (int i = PoseState.orientationStart + 3; i < state.getSize(); i++)
          {
-            Assert.assertEquals(expectedState.get(i), actualState.get(i), Double.MIN_VALUE);
+            assertEquals(expectedState.get(i), actualState.get(i), Double.MIN_VALUE);
          }
       }
    }
@@ -139,18 +139,18 @@ public class PoseStateTest extends AbstractStateTest
          for (int i = 0; i < PoseState.orientationStart; i++)
          {
             double difference = Math.abs(predicted.get(i) - linearized.get(i));
-            org.junit.jupiter.api.Assertions.assertTrue(difference < EPSILON, "Failed on state " + i + " with difference " + difference);
+            assertTrue(difference < EPSILON, "Failed on state " + i + " with difference " + difference);
          }
          for (int i = PoseState.orientationStart + 3; i < state.getSize(); i++)
          {
             double difference = Math.abs(predicted.get(i) - linearized.get(i));
-            org.junit.jupiter.api.Assertions.assertTrue(difference < EPSILON, "Failed on state " + i + " with difference " + difference);
+            assertTrue(difference < EPSILON, "Failed on state " + i + " with difference " + difference);
          }
 
          // Assert matching orientations
          for (int i = PoseState.orientationStart; i < PoseState.orientationStart + 3; i++)
          {
-            Assert.assertEquals(predicted.get(i), 0.0, Double.MIN_VALUE);
+            assertEquals(predicted.get(i), 0.0, Double.MIN_VALUE);
          }
          Vector3D rotationVectorFromLinearization = new Vector3D();
          FrameQuaternion orientationFromLinearization = new FrameQuaternion();

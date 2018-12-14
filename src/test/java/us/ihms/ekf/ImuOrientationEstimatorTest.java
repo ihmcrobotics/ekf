@@ -2,7 +2,7 @@ package us.ihms.ekf;
 
 import java.util.Random;
 
-import us.ihmc.robotics.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.ImuOrientationEstimator;
@@ -63,8 +63,8 @@ public class ImuOrientationEstimatorTest
       }
 
       // Make sure the state estimator got the orientation right.
-      Assert.assertEquals(expectedPitch, actualPitch, BODY_ORIENTATION_EPSILON);
-      Assert.assertEquals(expectedRoll, actualRoll, BODY_ORIENTATION_EPSILON);
+      assertEquals(expectedPitch, actualPitch, BODY_ORIENTATION_EPSILON);
+      assertEquals(expectedRoll, actualRoll, BODY_ORIENTATION_EPSILON);
    }
 
    private static void loadParameters(YoVariableRegistry registry)
