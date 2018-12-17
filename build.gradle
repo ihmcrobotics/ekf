@@ -16,11 +16,13 @@ mainDependencies {
     compile group: "com.google.guava", name: "guava", version: "18.0"
     compile group: "org.ejml", name: "dense64", version: "0.30"
     compile group: "org.ejml", name: "core", version: "0.30"
-    compile group: "us.ihmc", name: "euclid", version: "0.10.0"
-    compile group: "us.ihmc", name: "mecano", version: "0.0.13"
+    compile group: "us.ihmc", name: "euclid", version: "0.11.0"
+    compile group: "us.ihmc", name: "euclid-geometry", version: "0.11.0"
+    compile group: "us.ihmc", name: "euclid-frame", version: "0.11.0"
+    compile group: "us.ihmc", name: "mecano", version: "0.0.16"
     compile group: "us.ihmc", name: "ihmc-commons", version: "0.25.0"
     compile group: "us.ihmc", name: "IHMCNativeLibraryLoader", version: "1.0"
-    compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.6"
+    compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.7"
 }
 
 testDependencies {
@@ -32,5 +34,5 @@ testDependencies {
 visualizersDependencies {
     compile ihmc.sourceSetProject("main")
 
-    compile group: "us.ihmc", name: "simulation-construction-set", version: "0.12.7"
+    compile group: "us.ihmc", name: "simulation-construction-set", version: "0.12.9"
 }
