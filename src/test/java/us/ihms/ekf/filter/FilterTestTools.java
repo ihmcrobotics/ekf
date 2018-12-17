@@ -3,8 +3,7 @@ package us.ihms.ekf.filter;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
-import org.junit.Assert;
-
+import static org.junit.jupiter.api.Assertions.*;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 
 public class FilterTestTools
@@ -54,11 +53,11 @@ public class FilterTestTools
 
    public static void assertMatricesEqual(DenseMatrix64F expectedState, DenseMatrix64F actualState, double epsilon)
    {
-      Assert.assertEquals(expectedState.getNumRows(), actualState.getNumRows());
-      Assert.assertEquals(expectedState.getNumCols(), actualState.getNumCols());
+      assertEquals(expectedState.getNumRows(), actualState.getNumRows());
+      assertEquals(expectedState.getNumCols(), actualState.getNumCols());
       for (int i = 0; i < expectedState.data.length; i++)
       {
-         Assert.assertEquals(expectedState.data[i], actualState.data[i], epsilon);
+         assertEquals(expectedState.data[i], actualState.data[i], epsilon);
       }
    }
 }

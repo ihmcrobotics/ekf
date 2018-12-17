@@ -3,8 +3,8 @@ package us.ihms.ekf.filter.state;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -22,12 +22,12 @@ public abstract class AbstractStateTest
       DenseMatrix64F matrix = new DenseMatrix64F(0, 0);
 
       state.getFMatrix(matrix);
-      Assert.assertEquals(state.getSize(), matrix.getNumRows());
-      Assert.assertEquals(state.getSize(), matrix.getNumCols());
+      assertEquals(state.getSize(), matrix.getNumRows());
+      assertEquals(state.getSize(), matrix.getNumCols());
 
       state.getQMatrix(matrix);
-      Assert.assertEquals(state.getSize(), matrix.getNumRows());
-      Assert.assertEquals(state.getSize(), matrix.getNumCols());
+      assertEquals(state.getSize(), matrix.getNumRows());
+      assertEquals(state.getSize(), matrix.getNumCols());
    }
 
 }
