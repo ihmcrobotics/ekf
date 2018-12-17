@@ -4,8 +4,8 @@ import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.ekf.filter.state.implementations.JointState;
@@ -27,9 +27,9 @@ public class JointStateTest extends AbstractStateTest
       JointState state = new JointState("TestJoint", Double.NaN, new YoVariableRegistry("TestRegistry"));
       state.initialize(qExpected, qdExpected);
 
-      Assert.assertEquals(qExpected, state.getQ(), Double.MIN_VALUE);
-      Assert.assertEquals(qdExpected, state.getQd(), Double.MIN_VALUE);
-      Assert.assertEquals(0.0, state.getQdd(), Double.MIN_VALUE);
+      assertEquals(qExpected, state.getQ(), Double.MIN_VALUE);
+      assertEquals(qdExpected, state.getQd(), Double.MIN_VALUE);
+      assertEquals(0.0, state.getQdd(), Double.MIN_VALUE);
    }
 
    @Test
@@ -52,7 +52,7 @@ public class JointStateTest extends AbstractStateTest
          state.getStateVector(actualState);
          for (int i = 0; i < state.getSize(); i++)
          {
-            Assert.assertEquals(expectedState.get(i), actualState.get(i), Double.MIN_VALUE);
+            assertEquals(expectedState.get(i), actualState.get(i), Double.MIN_VALUE);
          }
       }
    }
@@ -70,9 +70,9 @@ public class JointStateTest extends AbstractStateTest
 
       state.setStateVector(expectedState);
 
-      Assert.assertEquals(expectedState.get(0), state.getQ(), Double.MIN_VALUE);
-      Assert.assertEquals(expectedState.get(1), state.getQd(), Double.MIN_VALUE);
-      Assert.assertEquals(expectedState.get(2), state.getQdd(), Double.MIN_VALUE);
+      assertEquals(expectedState.get(0), state.getQ(), Double.MIN_VALUE);
+      assertEquals(expectedState.get(1), state.getQd(), Double.MIN_VALUE);
+      assertEquals(expectedState.get(2), state.getQdd(), Double.MIN_VALUE);
    }
 
    @Test
@@ -105,9 +105,9 @@ public class JointStateTest extends AbstractStateTest
          state.getStateVector(stateVector);
 
          double t1 = t0 + dt;
-         Assert.assertEquals(c0 * t1 * t1 + c1 * t1 + c2, stateVector.get(0), EPSILON);
-         Assert.assertEquals(2.0 * c0 * t1 + c1, stateVector.get(1), EPSILON);
-         Assert.assertEquals(2.0 * c0, stateVector.get(2), EPSILON);
+         assertEquals(c0 * t1 * t1 + c1 * t1 + c2, stateVector.get(0), EPSILON);
+         assertEquals(2.0 * c0 * t1 + c1, stateVector.get(1), EPSILON);
+         assertEquals(2.0 * c0, stateVector.get(2), EPSILON);
       }
    }
 
@@ -138,7 +138,7 @@ public class JointStateTest extends AbstractStateTest
 
          for (int i = 0; i < state.getSize(); i++)
          {
-            Assert.assertEquals(predicted.get(i), linearized.get(i), Double.MIN_VALUE);
+            assertEquals(predicted.get(i), linearized.get(i), Double.MIN_VALUE);
          }
       }
    }

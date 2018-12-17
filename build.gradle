@@ -1,5 +1,6 @@
 plugins {
    id("us.ihmc.ihmc-build") version "0.15.5"
+   id("us.ihmc.ihmc-ci") version "4.2"
 }
 
 ihmc {
@@ -17,7 +18,7 @@ mainDependencies {
     compile group: "org.ejml", name: "core", version: "0.30"
     compile group: "us.ihmc", name: "euclid", version: "0.10.0"
     compile group: "us.ihmc", name: "mecano", version: "0.0.13"
-    compile group: "us.ihmc", name: "ihmc-commons", version: "0.24.0"
+    compile group: "us.ihmc", name: "ihmc-commons", version: "0.25.0"
     compile group: "us.ihmc", name: "IHMCNativeLibraryLoader", version: "1.0"
     compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.6"
 }
