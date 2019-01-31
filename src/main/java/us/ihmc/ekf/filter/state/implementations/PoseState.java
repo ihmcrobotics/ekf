@@ -20,7 +20,6 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
-import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -100,8 +99,8 @@ public class PoseState extends State
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.bodyFrame = bodyFrame;
 
-      angularAccelerationVariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationVariance", registry, 1.0);
-      linearAccelerationVariance = new DoubleParameter(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0);
+      angularAccelerationVariance = FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationVariance", registry, 1.0);
+      linearAccelerationVariance = FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0);
    }
 
    public void initialize(RigidBodyTransform transform, TwistReadOnly twist)

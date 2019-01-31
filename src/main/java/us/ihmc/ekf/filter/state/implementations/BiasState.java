@@ -8,7 +8,6 @@ import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.State;
-import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -31,7 +30,7 @@ public class BiasState extends State
       {
          yoState.add(new YoDouble(prefix + "Bias" + i, registry));
       }
-      variance = new DoubleParameter(prefix + "BiasVariance", registry, 1.0);
+      variance = FilterTools.findOrCreate(prefix + "BiasVariance", registry, 1.0);
    }
 
    public double getBias(int index)

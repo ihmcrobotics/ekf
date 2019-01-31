@@ -8,7 +8,6 @@ import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -44,16 +43,21 @@ public class FootVelocitySensor extends LinearVelocitySensor
 
    public FootVelocitySensor(double dt, RigidBodyBasics foot, ReferenceFrame measurementFrame, YoVariableRegistry registry)
    {
+      this(dt, foot, measurementFrame, FilterTools.stringToPrefix(foot.getName()), registry);
+   }
+
+   public FootVelocitySensor(double dt, RigidBodyBasics foot, ReferenceFrame measurementFrame, String parameterGroup, YoVariableRegistry registry)
+   {
       super(FilterTools.stringToPrefix(foot.getName()) + "Velocity", dt, foot, measurementFrame, false, null, registry);
 
       this.sqrtHz = 1.0 / Math.sqrt(dt);
 
-      String footName = FilterTools.stringToPrefix(foot.getName());
-      weightFractionForFullTrust = new DoubleParameter(footName + "WeightFractionForFullTrust", registry, 0.5);
-      weightFractionForNoTrust = new DoubleParameter(footName + "WeightFractionForNoTrust", registry, 0.05);
-      maxVariance = new DoubleParameter(footName + "MaxVariance", registry, 1.0E10);
-      minVariance = new DoubleParameter(footName + "MinVariance", registry, 0.01);
+      weightFractionForFullTrust = FilterTools.findOrCreate(parameterGroup + "WeightFractionForFullTrust", registry, 0.5);
+      weightFractionForNoTrust = FilterTools.findOrCreate(parameterGroup + "WeightFractionForNoTrust", registry, 0.05);
+      maxVariance = FilterTools.findOrCreate(parameterGroup + "MaxVariance", registry, 1.0E10);
+      minVariance = FilterTools.findOrCreate(parameterGroup + "MinVariance", registry, 0.01);
 
+      String footName = FilterTools.stringToPrefix(foot.getName());
       loadPercentage = new YoDouble(footName + "LoadPercentage", registry);
       variance = new YoDouble(footName + "Variance", registry);
    }

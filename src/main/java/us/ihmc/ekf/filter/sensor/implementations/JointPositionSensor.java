@@ -7,7 +7,6 @@ import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.implementations.JointState;
-import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -28,10 +27,15 @@ public class JointPositionSensor extends Sensor
 
    public JointPositionSensor(String jointName, double dt, YoVariableRegistry registry)
    {
+      this(jointName, FilterTools.stringToPrefix(jointName), dt, registry);
+   }
+
+   public JointPositionSensor(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
+   {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
 
-      jointPositionVariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "JointPositionVariance", registry, 1.0);
+      jointPositionVariance = FilterTools.findOrCreate(parameterGroup + "JointPositionVariance", registry, 1.0);
 
       rawMeasurement = new YoDouble(FilterTools.stringToPrefix(jointName) + "raw", registry);
    }
