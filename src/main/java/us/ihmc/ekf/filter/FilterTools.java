@@ -1,6 +1,7 @@
 package us.ihmc.ekf.filter;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -8,6 +9,9 @@ import org.ejml.ops.CommonOps;
 import com.google.common.base.CaseFormat;
 
 import us.ihmc.mecano.spatial.Twist;
+import us.ihmc.yoVariables.parameters.DoubleParameter;
+import us.ihmc.yoVariables.parameters.YoParameter;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 /**
  * A set of static convenience methods used throughout the filter.
@@ -137,5 +141,15 @@ public class FilterTools
    {
       matrix.reshape(size, size);
       CommonOps.setIdentity(matrix);
+	}
+
+   public static DoubleParameter findOrCreate(String name, YoVariableRegistry registry, double initialValue)
+   {
+      Optional<YoParameter<?>> parameter = registry.getParametersInThisRegistry().stream().filter(p -> p.getName().equals(name)).findFirst();
+      if (parameter.isPresent())
+      {
+         return (DoubleParameter) parameter.get();
+      }
+      return new DoubleParameter(name, registry, initialValue);
    }
 }

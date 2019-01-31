@@ -23,7 +23,6 @@ import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
-import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -93,7 +92,7 @@ public class LinearAccelerationSensor extends Sensor
       robotJacobian.setJacobianFrame(measurementFrame);
       List<OneDoFJointBasics> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJointBasics.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
-      variance = new DoubleParameter(sensorName + "Variance", registry, 1.0);
+      variance = FilterTools.findOrCreate(sensorName + "Variance", registry, 1.0);
 
       if (estimateBias)
       {
