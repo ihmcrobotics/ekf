@@ -9,9 +9,10 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class AngularVelocitySensor extends BodyVelocitySensor
 {
-   public AngularVelocitySensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
+   public AngularVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias,
+                                YoVariableRegistry registry)
    {
-      super(sensorName, dt, body, measurementFrame, estimateBias, registry);
+      super(prefix, dt, body, measurementFrame, estimateBias, registry);
    }
 
    @Override

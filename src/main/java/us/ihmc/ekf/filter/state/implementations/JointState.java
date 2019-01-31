@@ -5,7 +5,6 @@ import org.ejml.ops.CommonOps;
 
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.State;
-import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -25,6 +24,11 @@ public class JointState extends State
 
    public JointState(String jointName, double dt, YoVariableRegistry registry)
    {
+      this(jointName, FilterTools.stringToPrefix(jointName), dt, registry);
+   }
+
+   public JointState(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
+   {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
 
@@ -33,7 +37,7 @@ public class JointState extends State
       F.set(0, 2, 0.5 * dt * dt);
       F.set(1, 2, dt);
 
-      accelerationVariance = new DoubleParameter(FilterTools.stringToPrefix(jointName) + "AccelerationVariance", registry, 1.0);
+      accelerationVariance = FilterTools.findOrCreate(parameterGroup + "AccelerationVariance", registry, 1.0);
    }
 
    public void initialize(double initialPosition, double initialVelocity)
