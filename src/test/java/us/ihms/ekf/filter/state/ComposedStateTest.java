@@ -29,21 +29,26 @@ public class ComposedStateTest
       }
    }
 
+   @Test
+   public void testAddingComposedState()
+   {
+      List<State> subStates = new ArrayList<State>();
+      ComposedState state = createComposedState(RANDOM, 100, 10, "Test", subStates);
+      ComposedState stateToAdd = createComposedState(RANDOM, 100, 10, "ToAdd", subStates);
+      state.addState(stateToAdd);
+
+      int startIndex = 0;
+      for (State subState : subStates)
+      {
+         Assert.assertEquals(startIndex, state.getStartIndex(subState));
+         startIndex += subState.getSize();
+      }
+   }
+
    public void testComposedState(Random random, int maxStates, int maxSubStateSize)
    {
-      ComposedState state = new ComposedState("Test");
       List<State> subStates = new ArrayList<State>();
-
-      int combinedSize = 0;
-      int numberOfStates = random.nextInt(maxStates);
-      for (int i = 0; i < numberOfStates; i++)
-      {
-         State subState = nextState(random, maxSubStateSize, "State" + i);
-         state.addState(subState);
-         subStates.add(subState);
-         combinedSize += subState.getSize();
-         Assert.assertEquals(combinedSize, state.getSize());
-      }
+      ComposedState state = createComposedState(random, maxStates, maxSubStateSize, "Test", subStates);
 
       DenseMatrix64F F = new DenseMatrix64F(0, 0);
       DenseMatrix64F Q = new DenseMatrix64F(0, 0);
@@ -52,8 +57,8 @@ public class ComposedStateTest
       state.getQMatrix(Q);
       state.getStateVector(x);
 
-      combinedSize = 0;
-      for (int i = 0; i < numberOfStates; i++)
+      int combinedSize = 0;
+      for (int i = 0; i < subStates.size(); i++)
       {
          State subState = subStates.get(i);
          int startIndex = state.getStartIndex(subState);
@@ -86,6 +91,25 @@ public class ComposedStateTest
       state.predict();
       state.getStateVector(x);
       FilterTestTools.assertNaN(x);
+   }
+
+   private static ComposedState createComposedState(Random random, int maxStates, int maxSubStateSize, String name, List<State> subStateListToModify)
+   {
+      ComposedState state = new ComposedState(name);
+      int combinedSize = 0;
+      int numberOfStates = random.nextInt(maxStates);
+      for (int i = 0; i < numberOfStates; i++)
+      {
+         State subState = nextState(random, maxSubStateSize, name + "SubState" + i);
+         state.addState(subState);
+         if (subStateListToModify != null)
+         {
+            subStateListToModify.add(subState);
+         }
+         combinedSize += subState.getSize();
+         Assert.assertEquals(combinedSize, state.getSize());
+      }
+      return state;
    }
 
    private static State nextState(Random random, int maxSize, String name)

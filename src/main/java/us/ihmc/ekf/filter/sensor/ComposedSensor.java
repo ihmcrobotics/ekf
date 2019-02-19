@@ -71,7 +71,12 @@ public class ComposedSensor extends Sensor
 
    public int getStartIndex(Sensor sensor)
    {
-      return sensorIndexMap.get(sensor).intValue();
+      MutableInt startIndex = sensorIndexMap.get(sensor);
+      if (startIndex == null)
+      {
+         throw new RuntimeException("Do not have sub sensor " + sensor.getName());
+      }
+      return startIndex.intValue();
    }
 
    @Override

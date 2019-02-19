@@ -55,7 +55,12 @@ public class ComposedState extends State
 
    public int getStartIndex(State state)
    {
-      return stateIndexMap.get(state).intValue();
+      MutableInt startIndex = stateIndexMap.get(state);
+      if (startIndex == null)
+      {
+         throw new RuntimeException("Do not have sub state " + state.getName());
+      }
+      return startIndex.intValue();
    }
 
    @Override
