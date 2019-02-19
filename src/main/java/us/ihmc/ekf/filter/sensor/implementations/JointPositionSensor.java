@@ -17,7 +17,9 @@ public class JointPositionSensor extends Sensor
 
    private double measurement = Double.NaN;
 
+   // TODO: merge?
    private final String jointName;
+   private final String name;
 
    private final DoubleProvider jointPositionVariance;
 
@@ -34,10 +36,17 @@ public class JointPositionSensor extends Sensor
    {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
+      this.name = FilterTools.stringToPrefix(jointName);
 
       jointPositionVariance = FilterTools.findOrCreate(parameterGroup + "JointPositionVariance", registry, 1.0);
 
-      rawMeasurement = new YoDouble(FilterTools.stringToPrefix(jointName) + "raw", registry);
+      rawMeasurement = new YoDouble(name + "raw", registry);
+   }
+
+   @Override
+   public String getName()
+   {
+      return name;
    }
 
    public void setJointPositionMeasurement(double jointPosition)

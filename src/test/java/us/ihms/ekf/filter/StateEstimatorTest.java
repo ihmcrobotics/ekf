@@ -81,13 +81,14 @@ public class StateEstimatorTest
       DenseMatrix64F residual = new DenseMatrix64F(0, 0);
 
       // This setup matches the filter constructor:
-      ComposedState state = new ComposedState();
-      ComposedSensor sensor = new ComposedSensor(sensors, robotState.getSize());
+      ComposedState state = new ComposedState("ReferenceState");
+      ComposedSensor sensor = new ComposedSensor("ReferenceSensor");
+      sensors.forEach(s -> sensor.addSensor(s));
       state.addState(robotState);
       state.addState(sensor.getSensorState());
       state.getFMatrix(F);
       state.getQMatrix(Q);
-      sensor.assembleFullJacobian(H, residual, robotState);
+      sensor.getRobotJacobianAndResidual(H, residual, robotState);
       sensor.getRMatrix(R);
 
       // Now assert that the covariance matches the steady state as the matrixes are not

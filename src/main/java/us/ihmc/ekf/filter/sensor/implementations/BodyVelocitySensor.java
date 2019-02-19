@@ -48,7 +48,11 @@ public abstract class BodyVelocitySensor extends Sensor
 
    private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
 
+   private final DenseMatrix64F biasStateJacobian = new DenseMatrix64F(0, 0);
+
    private final double sqrtHz;
+
+   private final String name;
 
    public BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
@@ -67,6 +71,8 @@ public abstract class BodyVelocitySensor extends Sensor
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.variance = variance;
 
+      name = prefix;
+
       measurement = new FrameVector3D(measurementFrame);
       robotJacobian.setKinematicChain(MultiBodySystemTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
@@ -76,6 +82,7 @@ public abstract class BodyVelocitySensor extends Sensor
       if (estimateBias)
       {
          biasState = new BiasState(prefix, dt, registry);
+         FilterTools.setIdentity(biasStateJacobian, 3);
       }
       else
       {
@@ -84,6 +91,12 @@ public abstract class BodyVelocitySensor extends Sensor
 
       int degreesOfFreedom = robotJacobian.getNumberOfDegreesOfFreedom();
       jacobianRelevantPart.reshape(getMeasurementSize(), degreesOfFreedom);
+   }
+
+   @Override
+   public String getName()
+   {
+      return name;
    }
 
    protected abstract void packRelevantJacobianPart(DenseMatrix64F relevantPartToPack, DenseMatrix64F fullJacobian);
@@ -95,22 +108,11 @@ public abstract class BodyVelocitySensor extends Sensor
    }
 
    @Override
-   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
-   {
-      if (biasState == null)
-      {
-         super.getSensorJacobian(jacobianToPack);
-      }
-      else
-      {
-         jacobianToPack.reshape(biasState.getSize(), biasState.getSize());
-         CommonOps.setIdentity(jacobianToPack);
-      }
-   }
-
-   @Override
    public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
    {
+      jacobianToPack.reshape(getMeasurementSize(), robotState.getSize());
+      jacobianToPack.zero();
+
       robotJacobian.reset();
       jacobianMatrix.set(robotJacobian.getJacobianMatrix());
 
@@ -132,6 +134,9 @@ public abstract class BodyVelocitySensor extends Sensor
          residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
          residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
          residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
+
+         int biasStartIndex = robotState.getStartIndex(biasState);
+         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
       }
    }
 

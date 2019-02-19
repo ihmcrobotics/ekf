@@ -21,6 +21,8 @@ public class RobotState extends ComposedState implements RobotStateIndexProvider
 
    public RobotState(PoseState poseState, List<JointState> jointStates)
    {
+      super("RobotState");
+
       isFloating = poseState != null;
       if (isFloating)
       {

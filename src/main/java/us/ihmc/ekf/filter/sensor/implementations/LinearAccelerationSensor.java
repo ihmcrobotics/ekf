@@ -81,12 +81,17 @@ public class LinearAccelerationSensor extends Sensor
    private final DenseMatrix64F AqdxL = new DenseMatrix64F(0, 0);
    private final DenseMatrix64F LqdxA = new DenseMatrix64F(0, 0);
 
+   private final DenseMatrix64F biasStateJacobian = new DenseMatrix64F(0, 0);
+
+   private final String name;
+
    public LinearAccelerationSensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias,
                                    YoVariableRegistry registry)
    {
       this.dt = dt;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.measurementFrame = measurementFrame;
+      this.name = sensorName;
 
       robotJacobian.setKinematicChain(MultiBodySystemTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
@@ -97,6 +102,7 @@ public class LinearAccelerationSensor extends Sensor
       if (estimateBias)
       {
          biasState = new BiasState(sensorName, dt, registry);
+         FilterTools.setIdentity(biasStateJacobian, 3);
       }
       else
       {
@@ -110,26 +116,19 @@ public class LinearAccelerationSensor extends Sensor
       crossProductLinearization.reshape(3, degreesOfFreedom);
       AqdxL.reshape(3, degreesOfFreedom);
       LqdxA.reshape(3, degreesOfFreedom);
+
+   }
+
+   @Override
+   public String getName()
+   {
+      return name;
    }
 
    @Override
    public State getSensorState()
    {
       return biasState == null ? super.getSensorState() : biasState;
-   }
-
-   @Override
-   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
-   {
-      if (biasState == null)
-      {
-         super.getSensorJacobian(jacobianToPack);
-      }
-      else
-      {
-         jacobianToPack.reshape(biasState.getSize(), biasState.getSize());
-         CommonOps.setIdentity(jacobianToPack);
-      }
    }
 
    @Override
@@ -182,15 +181,10 @@ public class LinearAccelerationSensor extends Sensor
       residualToPack.set(1, measurement.getY() - linearJointTerm.getY() - linearConvectiveTerm.getY() - centrifugalTerm.getY() - gravityTerm.getY());
       residualToPack.set(2, measurement.getZ() - linearJointTerm.getZ() - linearConvectiveTerm.getZ() - centrifugalTerm.getZ() - gravityTerm.getZ());
 
-      if (biasState != null)
-      {
-         residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
-         residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
-         residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
-      }
-
       // Now for assembling the linearized measurement model:
       // J * qdd
+      linearJointTermLinearization.reshape(jacobianLinearPart.getNumRows(), robotState.getSize());
+      linearJointTermLinearization.zero();
       FilterTools.insertForAcceleration(linearJointTermLinearization, oneDofJointNames, jacobianLinearPart, robotState);
 
       // Jd * qd (numerical)
@@ -204,12 +198,16 @@ public class LinearAccelerationSensor extends Sensor
          CommonOps.subtract(jacobianLinearPart, previousJacobianMatrixLinearPart, jacobianDotLinearPart);
          CommonOps.scale(1.0 / dt, jacobianDotLinearPart);
       }
+      convectiveTermLinearization.reshape(jacobianDotLinearPart.getNumRows(), robotState.getSize());
+      convectiveTermLinearization.zero();
       FilterTools.insertForVelocity(convectiveTermLinearization, oneDofJointNames, jacobianDotLinearPart, robotState);
       previousJacobianMatrixLinearPart.set(jacobianLinearPart);
 
       // w x v
       FilterTools.packQd(qd, oneDofJointNames, tempRobotState, robotState);
       linearizeCrossProduct(jacobianAngularPart, jacobianLinearPart, qd, crossProductLinearization);
+      centrifugalTermLinearization.reshape(crossProductLinearization.getNumRows(), robotState.getSize());
+      centrifugalTermLinearization.zero();
       FilterTools.insertForVelocity(centrifugalTermLinearization, oneDofJointNames, crossProductLinearization, robotState);
 
       // R * g (used only with floating joints) (skip the joint angles - only correct the base orientation)
@@ -233,6 +231,16 @@ public class LinearAccelerationSensor extends Sensor
       CommonOps.add(jacobianToPack, convectiveTermLinearization, jacobianToPack);
       CommonOps.add(jacobianToPack, centrifugalTermLinearization, jacobianToPack);
       CommonOps.add(jacobianToPack, gravityTermLinearization, jacobianToPack);
+
+      if (biasState != null)
+      {
+         residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
+         residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
+         residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
+
+         int biasStartIndex = robotState.getStartIndex(biasState);
+         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
+      }
    }
 
    @Override
@@ -249,14 +257,17 @@ public class LinearAccelerationSensor extends Sensor
    }
 
    /**
-    * This linearizes the cross product {@code f(qd)=[A*qd]x[L*qd]} around {@code qd0}. This allows a first
-    * order approximation of:
-    * <br>{@code f(qd1) = f(qd0) + J * [qd1 - qd0]}</br>
+    * This linearizes the cross product {@code f(qd)=[A*qd]x[L*qd]} around {@code qd0}. This allows
+    * a first order approximation of: <br>
+    * {@code f(qd1) = f(qd0) + J * [qd1 - qd0]}</br>
     * This approximation will be accurate for small values of {@code dqd = [qd1 - qd0]}.
     *
-    * @param A matrix in the above equation
-    * @param L matrix in the above equation
-    * @param qd0 the point to linearize about
+    * @param A
+    *           matrix in the above equation
+    * @param L
+    *           matrix in the above equation
+    * @param qd0
+    *           the point to linearize about
     * @return {@code J} is the Jacobian of the above cross product w.r.t. {@code qd}
     */
    public void linearizeCrossProduct(DenseMatrix64F A, DenseMatrix64F L, DenseMatrix64F qd0, DenseMatrix64F matrixToPack)

@@ -22,15 +22,24 @@ public class BiasState extends State
 
    private final double sqrtHz;
 
+   private final String name;
+
    public BiasState(String prefix, double dt, YoVariableRegistry registry)
    {
       this.sqrtHz = 1.0 / Math.sqrt(dt);
+      this.name = prefix + "Bias";
 
       for (int i = 0; i < size; i++)
       {
          yoState.add(new YoDouble(prefix + "Bias" + i, registry));
       }
       variance = FilterTools.findOrCreate(prefix + "BiasVariance", registry, 1.0);
+   }
+
+   @Override
+   public String getName()
+   {
+      return name;
    }
 
    public double getBias(int index)

@@ -8,16 +8,13 @@ import org.ejml.ops.CommonOps;
 import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
-import us.ihmc.ekf.filter.state.ComposedState;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class StateEstimator
 {
    private final RobotState robotState;
-
-   private final ComposedState state;
-   private final ComposedSensor sensor;
+   private final ComposedSensor sensor = new ComposedSensor("ComposedSensor");
 
    private final YoDouble predictionTime;
    private final YoDouble correctionTime;
@@ -27,13 +24,11 @@ public class StateEstimator
    public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
    {
       this.robotState = robotState;
-      this.state = new ComposedState();
-      this.sensor = new ComposedSensor(sensors, robotState.getSize());
 
-      state.addState(robotState);
-      state.addState(sensor.getSensorState());
+      sensors.forEach(s -> sensor.addSensor(s));
+      robotState.addState(sensor.getSensorState());
 
-      FilterTools.setIdentity(Pposterior, state.getSize());
+      FilterTools.setIdentity(Pposterior, robotState.getSize());
       CommonOps.scale(1.0E-05, Pposterior);
 
       predictionTime = new YoDouble("PredictionTimeMs", registry);
@@ -57,11 +52,11 @@ public class StateEstimator
       long startTime = System.nanoTime();
 
       // State prediction.
-      state.predict();
+      robotState.predict();
 
       // Get linearized plant model and predict error covariance.
-      state.getFMatrix(F);
-      state.getQMatrix(Q);
+      robotState.getFMatrix(F);
+      robotState.getQMatrix(Q);
       filterMatrixOps.predictErrorCovariance(Pprior, F, Pposterior, Q);
 
       predictionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
@@ -72,19 +67,19 @@ public class StateEstimator
       long startTime = System.nanoTime();
 
       // From the sensor get the linearized measurement model and the measurement residual
-      sensor.assembleFullJacobian(H, residual, robotState);
+      sensor.getRobotJacobianAndResidual(H, residual, robotState);
 
       // Compute the kalman gain and correct the state
       sensor.getRMatrix(R);
       filterMatrixOps.computeKalmanGain(K, Pprior, H, R);
-      state.getStateVector(Xprior);
+      robotState.getStateVector(Xprior);
       filterMatrixOps.updateState(Xposterior, Xprior, K, residual);
 
       // Update the error covariance.
       filterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
 
       // Update the state data structure after the correction step.
-      state.setStateVector(Xposterior);
+      robotState.setStateVector(Xposterior);
 
       correctionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
    }

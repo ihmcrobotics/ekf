@@ -1,29 +1,61 @@
 package us.ihmc.ekf.filter.state;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
 public class ComposedState extends State
 {
-   private final List<ImmutablePair<MutableInt, State>> subStateList = new ArrayList<>();
+   private final List<State> subStates = new ArrayList<>();
+   private final Map<State, MutableInt> stateIndexMap = new HashMap<>();
+
+   private final String name;
+
    private final DenseMatrix64F tempMatrix = new DenseMatrix64F(0, 0);
 
-   public int addState(State subStateToAdd)
+   public ComposedState(String name)
    {
-      int stateIndex = subStateList.size();
-      int oldSize = getSize();
-      subStateList.add(new ImmutablePair<>(new MutableInt(oldSize), subStateToAdd));
-      return stateIndex;
+      this.name = name;
    }
 
-   public int getStartIndex(int stateIndex)
+   @Override
+   public String getName()
    {
-      return subStateList.get(stateIndex).getLeft().intValue();
+      return name;
+   }
+
+   public void addState(State stateToAdd)
+   {
+      if (stateToAdd == null)
+      {
+         return;
+      }
+
+      if (stateIndexMap.containsKey(stateToAdd))
+      {
+         throw new RuntimeException("Trying to add a state with name " + stateToAdd.getName() + " twice.");
+      }
+
+      // Extract composed states to keep this data-structure flat.
+      if (stateToAdd instanceof ComposedState)
+      {
+         ((ComposedState) stateToAdd).subStates.forEach(this::addState);
+         return;
+      }
+
+      int oldSize = getSize();
+      stateIndexMap.put(stateToAdd, new MutableInt(oldSize));
+      subStates.add(stateToAdd);
+   }
+
+   public int getStartIndex(State state)
+   {
+      return stateIndexMap.get(state).intValue();
    }
 
    @Override
@@ -31,11 +63,10 @@ public class ComposedState extends State
    {
       vectorToPack.reshape(getSize(), 1);
 
-      for (int i = 0; i < subStateList.size(); i++)
+      for (int i = 0; i < subStates.size(); i++)
       {
-         ImmutablePair<MutableInt, State> pair = subStateList.get(i);
-         int startIndex = pair.getLeft().intValue();
-         State subState = pair.getRight();
+         State subState = subStates.get(i);
+         int startIndex = getStartIndex(subState);
 
          subState.getStateVector(tempMatrix);
          System.arraycopy(tempMatrix.data, 0, vectorToPack.data, startIndex, subState.getSize());
@@ -45,11 +76,10 @@ public class ComposedState extends State
    @Override
    public void setStateVector(DenseMatrix64F newState)
    {
-      for (int i = 0; i < subStateList.size(); i++)
+      for (int i = 0; i < subStates.size(); i++)
       {
-         ImmutablePair<MutableInt, State> pair = subStateList.get(i);
-         int startIndex = pair.getLeft().intValue();
-         State subState = pair.getRight();
+         State subState = subStates.get(i);
+         int startIndex = getStartIndex(subState);
 
          tempMatrix.reshape(subState.getSize(), 1);
          System.arraycopy(newState.data, startIndex, tempMatrix.data, 0, subState.getSize());
@@ -60,21 +90,21 @@ public class ComposedState extends State
    @Override
    public int getSize()
    {
-      if (subStateList.isEmpty())
+      if (subStates.isEmpty())
       {
          return 0;
       }
 
-      ImmutablePair<MutableInt, State> lastSubState = subStateList.get(subStateList.size() - 1);
-      return lastSubState.getLeft().intValue() + lastSubState.getRight().getSize();
+      State lastSubState = subStates.get(subStates.size() - 1);
+      return getStartIndex(lastSubState) + lastSubState.getSize();
    }
 
    @Override
    public void predict()
    {
-      for (int i = 0; i < subStateList.size(); i++)
+      for (int i = 0; i < subStates.size(); i++)
       {
-         subStateList.get(i).getRight().predict();
+         subStates.get(i).predict();
       }
    }
 
@@ -84,11 +114,10 @@ public class ComposedState extends State
       matrixToPack.reshape(getSize(), getSize());
       CommonOps.fill(matrixToPack, 0.0);
 
-      for (int i = 0; i < subStateList.size(); i++)
+      for (int i = 0; i < subStates.size(); i++)
       {
-         ImmutablePair<MutableInt, State> pair = subStateList.get(i);
-         int startIndex = pair.getLeft().intValue();
-         State subState = pair.getRight();
+         State subState = subStates.get(i);
+         int startIndex = getStartIndex(subState);
 
          subState.getFMatrix(tempMatrix);
          CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
@@ -101,11 +130,10 @@ public class ComposedState extends State
       matrixToPack.reshape(getSize(), getSize());
       CommonOps.fill(matrixToPack, 0.0);
 
-      for (int i = 0; i < subStateList.size(); i++)
+      for (int i = 0; i < subStates.size(); i++)
       {
-         ImmutablePair<MutableInt, State> pair = subStateList.get(i);
-         int startIndex = pair.getLeft().intValue();
-         State subState = pair.getRight();
+         State subState = subStates.get(i);
+         int startIndex = getStartIndex(subState);
 
          subState.getQMatrix(tempMatrix);
          CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);

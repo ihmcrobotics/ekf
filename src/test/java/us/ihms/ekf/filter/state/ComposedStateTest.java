@@ -31,15 +31,15 @@ public class ComposedStateTest
 
    public void testComposedState(Random random, int maxStates, int maxSubStateSize)
    {
-      ComposedState state = new ComposedState();
+      ComposedState state = new ComposedState("Test");
       List<State> subStates = new ArrayList<State>();
 
       int combinedSize = 0;
       int numberOfStates = random.nextInt(maxStates);
       for (int i = 0; i < numberOfStates; i++)
       {
-         State subState = nextState(random, maxSubStateSize);
-         Assert.assertEquals(i, state.addState(subState));
+         State subState = nextState(random, maxSubStateSize, "State" + i);
+         state.addState(subState);
          subStates.add(subState);
          combinedSize += subState.getSize();
          Assert.assertEquals(combinedSize, state.getSize());
@@ -56,7 +56,7 @@ public class ComposedStateTest
       for (int i = 0; i < numberOfStates; i++)
       {
          State subState = subStates.get(i);
-         int startIndex = state.getStartIndex(i);
+         int startIndex = state.getStartIndex(subState);
          Assert.assertEquals(combinedSize, startIndex);
 
          DenseMatrix64F subF = new DenseMatrix64F(0, 0);
@@ -88,7 +88,7 @@ public class ComposedStateTest
       FilterTestTools.assertNaN(x);
    }
 
-   private static State nextState(Random random, int maxSize)
+   private static State nextState(Random random, int maxSize, String name)
    {
       int size = random.nextInt(maxSize);
       DenseMatrix64F F = FilterTestTools.nextMatrix(size, size, random, -1.0, 1.0);
@@ -139,6 +139,12 @@ public class ComposedStateTest
          public void getFMatrix(DenseMatrix64F fMatrixToPack)
          {
             fMatrixToPack.set(F);
+         }
+
+         @Override
+         public String getName()
+         {
+            return name;
          }
       };
    }

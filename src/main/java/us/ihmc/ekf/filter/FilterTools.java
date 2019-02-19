@@ -24,8 +24,6 @@ public class FilterTools
                                         RobotStateIndexProvider indexProvider)
    {
       int rows = matrixToInsert.getNumRows();
-      matrixToPack.reshape(rows, indexProvider.getSize());
-      matrixToPack.zero();
       int index = 0;
 
       if (indexProvider.isFloating())
@@ -49,8 +47,6 @@ public class FilterTools
                                             RobotStateIndexProvider indexProvider)
    {
       int rows = matrixToInsert.getNumRows();
-      matrixToPack.reshape(rows, indexProvider.getSize());
-      matrixToPack.zero();
       int index = 0;
 
       if (indexProvider.isFloating())

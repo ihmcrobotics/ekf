@@ -92,15 +92,23 @@ public class PoseState extends State
    private final double dt;
    private final double sqrtHz;
    private final ReferenceFrame bodyFrame;
+   private final String name;
 
    public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, YoVariableRegistry registry)
    {
       this.dt = dt;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.bodyFrame = bodyFrame;
+      this.name = FilterTools.stringToPrefix(bodyName);
 
-      angularAccelerationVariance = FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationVariance", registry, 1.0);
-      linearAccelerationVariance = FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0);
+      angularAccelerationVariance = FilterTools.findOrCreate(name + "AngularAccelerationVariance", registry, 1.0);
+      linearAccelerationVariance = FilterTools.findOrCreate(name + "LinearAccelerationVariance", registry, 1.0);
+   }
+
+   @Override
+   public String getName()
+   {
+      return name;
    }
 
    public void initialize(RigidBodyTransform transform, TwistReadOnly twist)
