@@ -68,7 +68,7 @@ public class StateEstimatorTest
       // Make sure the estimated state is accurate.
       DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
       robotState.getStateVector(actualState);
-      FilterTestTools.assertMatricesEqual(expectedState, actualState, EPSILON);
+      FilterTestTools.assertEquals(expectedState, actualState, EPSILON);
 
       // The covariance should have converged to a steady state.
       DenseMatrix64F actualCovariance = new DenseMatrix64F(0, 0);
@@ -112,7 +112,7 @@ public class StateEstimatorTest
       Pinv = new SimpleMatrix(P).invert().getMatrix();
       P = invert(computeABAtPlusC(Htranspose, Rinv, Pinv));
 
-      FilterTestTools.assertMatricesEqual(P, actualCovariance, EPSILON);
+      FilterTestTools.assertEquals(P, actualCovariance, EPSILON);
    }
 
    private static DenseMatrix64F invert(DenseMatrix64F matrix)
