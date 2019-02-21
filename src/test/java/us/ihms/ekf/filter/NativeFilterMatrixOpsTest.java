@@ -1,6 +1,7 @@
 package us.ihms.ekf.filter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
+import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
 
 import java.util.Random;
 
@@ -17,14 +18,13 @@ public class NativeFilterMatrixOpsTest
 {
    private static final double EPSILON = 1.0E-10;
    private static final Random random = new Random(86526826L);
-   private static final int iterations = 100;
 
    @Test
    public void testABAt()
    {
       NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
 
-      for (int i = 0; i < iterations; i++)
+      for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;
@@ -47,7 +47,7 @@ public class NativeFilterMatrixOpsTest
    {
       NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
 
-      for (int i = 0; i < iterations; i++)
+      for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
 
@@ -72,7 +72,7 @@ public class NativeFilterMatrixOpsTest
    {
       NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
 
-      for (int i = 0; i < iterations; i++)
+      for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;
@@ -99,7 +99,7 @@ public class NativeFilterMatrixOpsTest
    {
       NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
 
-      for (int i = 0; i < iterations; i++)
+      for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;
@@ -131,7 +131,7 @@ public class NativeFilterMatrixOpsTest
    {
       NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
 
-      for (int i = 0; i < iterations; i++)
+      for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;

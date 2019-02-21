@@ -1,6 +1,7 @@
 package us.ihms.ekf.filter.state;
 
 import static org.junit.jupiter.api.Assertions.fail;
+import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,6 @@ import us.ihms.ekf.filter.FilterTestTools;
 public class ComposedStateTest
 {
    private static final Random RANDOM = new Random(14284L);
-   private static final int ITERATIONS = 1000;
 
    @Test
    public void testComposedState()

@@ -2,6 +2,7 @@ package us.ihms.ekf.filter.state;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
 
 import java.util.Random;
 
@@ -88,7 +89,7 @@ public class PoseStateTest
    {
       Random random = new Random(4922L);
 
-      for (int test = 0; test < 1000; test++)
+      for (int test = 0; test < ITERATIONS; test++)
       {
          State state = createState(random, new YoVariableRegistry("Test"));
          DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
@@ -124,7 +125,7 @@ public class PoseStateTest
       Random random = new Random(4922L);
       ReferenceFrame bodyFrame = EuclidFrameRandomTools.nextReferenceFrame(random);
 
-      for (int test = 0; test < 10000; test++)
+      for (int test = 0; test < ITERATIONS; test++)
       {
          PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, new YoVariableRegistry("Test"));
 

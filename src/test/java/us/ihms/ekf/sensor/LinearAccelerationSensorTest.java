@@ -1,5 +1,7 @@
 package us.ihms.ekf.sensor;
 
+import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
+
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
@@ -25,7 +27,6 @@ public class LinearAccelerationSensorTest
    public void testCrossProductDerivative()
    {
       int n = 10;
-      int runs = 1000;
       Random random = new Random(24359L);
 
       RigidBodyBasics rootBody = new RigidBody("RootBody", ReferenceFrame.getWorldFrame());
@@ -41,7 +42,7 @@ public class LinearAccelerationSensorTest
 
       DenseMatrix64F crossProductLinearization = new DenseMatrix64F(0, 0);
 
-      for (int i = 0; i < runs; i++)
+      for (int i = 0; i < ITERATIONS; i++)
       {
          DenseMatrix64F qd0 = FilterTestTools.nextMatrix(n, 1, random, -5.0, 5.0);
          DenseMatrix64F A = FilterTestTools.nextMatrix(3, n, random, -5.0, 5.0);

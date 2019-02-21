@@ -1,6 +1,7 @@
 package us.ihms.ekf.filter.state;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
 
 import java.util.Random;
 
@@ -55,7 +56,7 @@ public class JointStateTest
    {
       Random random = new Random(4922L);
 
-      for (int test = 0; test < 1000; test++)
+      for (int test = 0; test < ITERATIONS; test++)
       {
          State state = createState(random, new YoVariableRegistry("Test"));
          DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
@@ -98,7 +99,7 @@ public class JointStateTest
    {
       Random random = new Random(4922L);
 
-      for (int test = 0; test < 10000; test++)
+      for (int test = 0; test < ITERATIONS; test++)
       {
          // Polynomial is
          // x = c0 t^2 + c1 t + c2
@@ -134,7 +135,7 @@ public class JointStateTest
    {
       Random random = new Random(4922L);
 
-      for (int test = 0; test < 10000; test++)
+      for (int test = 0; test < ITERATIONS; test++)
       {
          State state = createState(random, new YoVariableRegistry("Test"));
 

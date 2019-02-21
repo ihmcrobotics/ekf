@@ -11,6 +11,8 @@ import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 
 public class FilterTestTools
 {
+   public static final int ITERATIONS = 1000;
+
    public static DenseMatrix64F nextDiagonalMatrix(int size, Random random, double min, double max)
    {
       DenseMatrix64F ret = new DenseMatrix64F(size, size);

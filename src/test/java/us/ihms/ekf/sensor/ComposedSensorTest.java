@@ -1,5 +1,7 @@
 package us.ihms.ekf.sensor;
 
+import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -16,7 +18,6 @@ import us.ihms.ekf.filter.FilterTestTools;
 public class ComposedSensorTest
 {
    private static final Random RANDOM = new Random(14284L);
-   private static final int ITERATIONS = 1000;
 
    @Test
    public void testComposedSensor()
