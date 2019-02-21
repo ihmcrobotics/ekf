@@ -3,10 +3,10 @@ package us.ihmc.ekf.tempClasses;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.log.LogTools;
 
 public class SDFJointHolder
 {
@@ -357,8 +357,8 @@ public class SDFJointHolder
          hasLimits = false;
          this.upperLimit = Double.POSITIVE_INFINITY;
          this.lowerLimit = Double.NEGATIVE_INFINITY;
-         PrintTools.debug(DEBUG, this, getName() + " has invalid joint limits.  LowerLimit = " + lowerLimit + ", UpperLimit = " + upperLimit
-               + ".  Using LowerLimit = " + lowerLimit + ", UpperLimit = " + upperLimit + " instead.");
+         LogTools.debug(getName() + " has invalid joint limits.  LowerLimit = " + lowerLimit + ", UpperLimit = " + upperLimit + ".  Using LowerLimit = "
+               + lowerLimit + ", UpperLimit = " + upperLimit + " instead.");
       }
    }
 }

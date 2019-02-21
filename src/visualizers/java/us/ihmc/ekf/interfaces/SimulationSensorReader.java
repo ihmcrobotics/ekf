@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.sensor.implementations.AngularVelocitySensor;
@@ -15,6 +14,7 @@ import us.ihmc.ekf.filter.sensor.implementations.LinearVelocitySensor;
 import us.ihmc.ekf.tempClasses.IMUDefinition;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
@@ -89,7 +89,7 @@ public class SimulationSensorReader implements RobotSensorReader
                                                                                        imuFrame, estimateBiases, registry);
       linearAccelerationSensors.add(new ImmutablePair<>(imuMount, linearAccelerationSensor));
 
-      PrintTools.info("Created IMU Sensor '" + imuName + "'");
+      LogTools.info("Created IMU Sensor '" + imuName + "'");
    }
 
    private static void addJointPositionSensorsRecursive(double dt, Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors,
@@ -101,11 +101,11 @@ public class SimulationSensorReader implements RobotSensorReader
          String jointName = pinJoint.getName();
          JointPositionSensor sensor = new JointPositionSensor(jointName, dt, registry);
          sensors.add(new ImmutablePair<>(pinJoint, sensor));
-         PrintTools.info("Created joint position sensor for '" + jointName + "'");
+         LogTools.info("Created joint position sensor for '" + jointName + "'");
       }
       else
       {
-         PrintTools.warn("Can not add joint position sensor for joint of type " + joint.getClass().getSimpleName());
+         LogTools.warn("Can not add joint position sensor for joint of type " + joint.getClass().getSimpleName());
       }
 
       for (Joint child : joint.getChildrenJoints())

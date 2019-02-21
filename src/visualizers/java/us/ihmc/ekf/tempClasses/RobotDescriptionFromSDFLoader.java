@@ -14,7 +14,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.math3.util.Precision;
 
-import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.tempClasses.SDFSensor.Camera;
 import us.ihmc.ekf.tempClasses.SDFSensor.IMU;
 import us.ihmc.ekf.tempClasses.SDFSensor.IMU.IMUNoise;
@@ -31,6 +30,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.log.LogTools;
 import us.ihmc.robotics.robotDescription.CameraSensorDescription;
 import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 import us.ihmc.robotics.robotDescription.ExternalForcePointDescription;
@@ -64,21 +64,21 @@ public class RobotDescriptionFromSDFLoader
    {
    }
 
-   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap jointNameMap, boolean useShapeCollision)
+   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap<?> jointNameMap, boolean useShapeCollision)
    {
       this.useShapeCollision = useShapeCollision;
       return loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointNameMap, null, false);
    }
 
    public RobotDescription loadRobotDescriptionFromSDF(String modelName, InputStream inputStream, List<String> resourceDirectories,
-                                                       SDFDescriptionMutator mutator, JointNameMap jointNameMap,
+                                                       SDFDescriptionMutator mutator, JointNameMap<?> jointNameMap,
                                                        ContactPointDefinitionHolder contactPointHolder, boolean useCollisionMeshes)
    {
       GeneralizedSDFRobotModel generalizedSDFRobotModel = loadSDFFile(modelName, inputStream, resourceDirectories, mutator);
       return loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointNameMap, contactPointHolder, useCollisionMeshes);
    }
 
-   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap jointNameMap,
+   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap<?> jointNameMap,
                                                        ContactPointDefinitionHolder contactPointHolder, boolean useCollisionMeshes)
    {
       this.resourceDirectories = generalizedSDFRobotModel.getResourceDirectories();
@@ -145,7 +145,7 @@ public class RobotDescriptionFromSDFLoader
       }
    }
 
-   private RobotDescription loadModelFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap jointNameMap, boolean useCollisionMeshes)
+   private RobotDescription loadModelFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap<?> jointNameMap, boolean useCollisionMeshes)
    {
       String name = generalizedSDFRobotModel.getName();
       RobotDescription robotDescription = new RobotDescription(name);
@@ -217,8 +217,8 @@ public class RobotDescriptionFromSDFLoader
          }
          catch (Throwable e)
          {
-            PrintTools.warn(this, e.getMessage());
-            PrintTools.warn(this, "Could not load visuals for link " + link.getName() + "! Using an empty LinkGraphicsDescription.");
+            LogTools.warn(e.getMessage());
+            LogTools.warn("Could not load visuals for link " + link.getName() + "! Using an empty LinkGraphicsDescription.");
 
             if (DEBUG)
             {
@@ -265,7 +265,7 @@ public class RobotDescriptionFromSDFLoader
    }
 
    protected void addJointsRecursively(SDFJointHolder joint, JointDescription scsParentJoint, boolean useCollisionMeshes, Set<String> lastSimulatedJoints,
-                                       boolean doNotSimulateJoint, JointNameMap jointNameMap)
+                                       boolean doNotSimulateJoint, JointNameMap<?> jointNameMap)
    {
       Vector3D jointAxis = new Vector3D(joint.getAxisInModelFrame());
       Vector3D offset = new Vector3D(joint.getOffsetFromParentJoint());
@@ -626,7 +626,7 @@ public class RobotDescriptionFromSDFLoader
       }
    }
 
-   private void addForceSensorsIncludingDescendants(SDFJointHolder joint, JointNameMap jointNameMap)
+   private void addForceSensorsIncludingDescendants(SDFJointHolder joint, JointNameMap<?> jointNameMap)
    {
       addForceSensor(joint, jointNameMap);
 
@@ -636,7 +636,7 @@ public class RobotDescriptionFromSDFLoader
       }
    }
 
-   private void addForceSensor(SDFJointHolder joint, JointNameMap jointNameMap)
+   private void addForceSensor(SDFJointHolder joint, JointNameMap<?> jointNameMap)
    {
       if (joint.getForceSensors().size() > 0)
       {

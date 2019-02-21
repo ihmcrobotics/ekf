@@ -136,24 +136,24 @@ public class JaxbSDFLoader
 //      return new FloatingRootJointRobot(description);
 //   }
 
-   public void addForceSensor(JointNameMap jointMap, String sensorName, String parentJointName, RigidBodyTransform transformToParentJoint)
+   public void addForceSensor(JointNameMap<?> jointMap, String sensorName, String parentJointName, RigidBodyTransform transformToParentJoint)
    {
       generalizedSDFRobotModels.get(jointMap.getModelName()).addForceSensor(sensorName, parentJointName, transformToParentJoint);
    }
 
-   public void addContactSensor(JointNameMap jointMap, String sensorName, String parentJointName, ContactSensorType type)
+   public void addContactSensor(JointNameMap<?> jointMap, String sensorName, String parentJointName, ContactSensorType type)
    {
       generalizedSDFRobotModels.get(jointMap.getModelName()).addContactSensor(sensorName, parentJointName, type);
    }
 
-   public RobotDescription createRobotDescription(JointNameMap jointNameMap, ContactPointDefinitionHolder contactDefinition)
+   public RobotDescription createRobotDescription(JointNameMap<?> jointNameMap, ContactPointDefinitionHolder contactDefinition)
    {
       boolean useCollisionMeshes = false;
 
       return createRobotDescription(jointNameMap, contactDefinition, useCollisionMeshes);
    }
 
-   public RobotDescription createRobotDescription(JointNameMap jointNameMap, ContactPointDefinitionHolder contactDefinition, boolean useCollisionMeshes)
+   public RobotDescription createRobotDescription(JointNameMap<?> jointNameMap, ContactPointDefinitionHolder contactDefinition, boolean useCollisionMeshes)
    {
       if (jointNameMap != null)
       {
