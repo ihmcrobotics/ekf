@@ -9,7 +9,7 @@ import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.filter.state.ComposedState;
@@ -40,7 +40,7 @@ public class ComposedStateTest
       int startIndex = 0;
       for (State subState : subStates)
       {
-         Assert.assertEquals(startIndex, state.getStartIndex(subState));
+         Assertions.assertEquals(startIndex, state.getStartIndex(subState));
          startIndex += subState.getSize();
       }
    }
@@ -62,7 +62,7 @@ public class ComposedStateTest
       {
          State subState = subStates.get(i);
          int startIndex = state.getStartIndex(subState);
-         Assert.assertEquals(combinedSize, startIndex);
+         Assertions.assertEquals(combinedSize, startIndex);
 
          DenseMatrix64F subF = new DenseMatrix64F(0, 0);
          subState.getFMatrix(subF);
@@ -107,7 +107,7 @@ public class ComposedStateTest
             subStateListToModify.add(subState);
          }
          combinedSize += subState.getSize();
-         Assert.assertEquals(combinedSize, state.getSize());
+         Assertions.assertEquals(combinedSize, state.getSize());
       }
       return state;
    }

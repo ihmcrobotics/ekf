@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.filter.RobotState;
@@ -40,7 +40,7 @@ public class ComposedSensorTest
       int startIndex = 0;
       for (Sensor subSensor : subSensors)
       {
-         Assert.assertEquals(startIndex, sensor.getStartIndex(subSensor));
+         Assertions.assertEquals(startIndex, sensor.getStartIndex(subSensor));
          startIndex += subSensor.getMeasurementSize();
       }
    }
@@ -73,7 +73,7 @@ public class ComposedSensorTest
       {
          Sensor subSensor = subSensors.get(i);
          int startIndex = sensor.getStartIndex(subSensor);
-         Assert.assertEquals(combinedSize, startIndex);
+         Assertions.assertEquals(combinedSize, startIndex);
 
          DenseMatrix64F subH = new DenseMatrix64F(0, 0);
          DenseMatrix64F subr = new DenseMatrix64F(0, 0);
@@ -108,7 +108,7 @@ public class ComposedSensorTest
             subSensorListToModify.add(subSensor);
          }
          combinedSize += subSensor.getMeasurementSize();
-         Assert.assertEquals(combinedSize, sensor.getMeasurementSize());
+         Assertions.assertEquals(combinedSize, sensor.getMeasurementSize());
       }
       return sensor;
    }

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.Random;
 
 import org.ejml.data.DenseMatrix64F;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 
@@ -63,11 +63,11 @@ public class FilterTestTools
 
    public static void assertEquals(DenseMatrix64F expected, DenseMatrix64F actual, double epsilon)
    {
-      Assert.assertEquals(expected.getNumRows(), actual.getNumRows());
-      Assert.assertEquals(expected.getNumCols(), actual.getNumCols());
+      Assertions.assertEquals(expected.getNumRows(), actual.getNumRows());
+      Assertions.assertEquals(expected.getNumCols(), actual.getNumCols());
       for (int i = 0; i < expected.getNumElements(); i++)
       {
-         Assert.assertEquals(expected.get(i), actual.get(i), epsilon);
+         Assertions.assertEquals(expected.get(i), actual.get(i), epsilon);
       }
    }
 
@@ -91,7 +91,7 @@ public class FilterTestTools
       {
          for (int j = 0; j < cols; j++)
          {
-            Assert.assertEquals(0.0, matrix.get(i + startRow, j + startCol), epsilon);
+            Assertions.assertEquals(0.0, matrix.get(i + startRow, j + startCol), epsilon);
          }
       }
    }
@@ -116,7 +116,7 @@ public class FilterTestTools
       {
          for (int j = 0; j < expected.getNumCols(); j++)
          {
-            Assert.assertEquals(expected.get(i, j), actual.get(i + startRow, j + startCol), epsilon);
+            Assertions.assertEquals(expected.get(i, j), actual.get(i + startRow, j + startCol), epsilon);
          }
       }
    }
@@ -125,7 +125,7 @@ public class FilterTestTools
    {
       for (int i = 0; i < matrix.getNumElements(); i++)
       {
-         Assert.assertTrue(Double.isNaN(matrix.get(i)));
+         Assertions.assertTrue(Double.isNaN(matrix.get(i)));
       }
    }
 }
