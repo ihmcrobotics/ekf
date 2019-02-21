@@ -65,7 +65,9 @@ public abstract class Sensor
     * @param robotState
     *           is the up to date state of the robot.
     */
-   public abstract void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState);
+   public abstract void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState);
+
+   public abstract void getResidual(DenseMatrix64F residualToPack, RobotState robotState);
 
    /**
     * This method packs the covariance of the observation noise {@code v}. As this value might not

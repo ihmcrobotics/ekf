@@ -46,7 +46,8 @@ public abstract class BodyVelocitySensor extends Sensor
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
    private final List<String> oneDofJointNames = new ArrayList<>();
 
-   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jacobian = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F stateVector = new DenseMatrix64F(0, 0);
 
    private final DenseMatrix64F biasStateJacobian = new DenseMatrix64F(0, 0);
 
@@ -108,7 +109,7 @@ public abstract class BodyVelocitySensor extends Sensor
    }
 
    @Override
-   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
+   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
    {
       jacobianToPack.reshape(getMeasurementSize(), robotState.getSize());
       jacobianToPack.zero();
@@ -119,10 +120,22 @@ public abstract class BodyVelocitySensor extends Sensor
       packRelevantJacobianPart(jacobianRelevantPart, jacobianMatrix);
       FilterTools.insertForVelocity(jacobianToPack, oneDofJointNames, jacobianRelevantPart, robotState);
 
+      if (biasState != null)
+      {
+         int biasStartIndex = robotState.getStartIndex(biasState);
+         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
+      }
+   }
+
+   @Override
+   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   {
+      getMeasurementJacobian(jacobian, robotState);
+
       // Compute the sensor measurement based on the robot state:
       residualToPack.reshape(getMeasurementSize(), 1);
-      robotState.getStateVector(tempRobotState);
-      CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
+      robotState.getStateVector(stateVector);
+      CommonOps.mult(jacobian, stateVector, residualToPack);
 
       // Compute the residual considering the sensor bias and the current measurement:
       residualToPack.set(0, measurement.getX() - residualToPack.get(0));
@@ -134,9 +147,6 @@ public abstract class BodyVelocitySensor extends Sensor
          residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
          residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
          residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
-
-         int biasStartIndex = robotState.getStartIndex(biasState);
-         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
       }
    }
 

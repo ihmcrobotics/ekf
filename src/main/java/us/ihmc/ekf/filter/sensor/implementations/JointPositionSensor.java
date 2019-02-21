@@ -62,12 +62,16 @@ public class JointPositionSensor extends Sensor
    }
 
    @Override
-   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
+   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
    {
       jacobianToPack.reshape(measurementSize, robotState.getSize());
       CommonOps.fill(jacobianToPack, 0.0);
       jacobianToPack.set(0, robotState.findJointPositionIndex(jointName), 1.0);
+   }
 
+   @Override
+   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   {
       residualToPack.reshape(measurementSize, 1);
       JointState jointState = robotState.getJointState(jointName);
       residualToPack.set(0, measurement - jointState.getQ());

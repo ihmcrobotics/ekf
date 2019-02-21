@@ -20,8 +20,7 @@ public class ComposedSensor extends Sensor
 
    private final ComposedState sensorState;
 
-   private final DenseMatrix64F tempJacobian = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F tempResidual = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F tempMatrix = new DenseMatrix64F(0, 0);
 
    private final String name;
 
@@ -92,11 +91,24 @@ public class ComposedSensor extends Sensor
    }
 
    @Override
-   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
+   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
    {
       jacobianToPack.reshape(getMeasurementSize(), robotState.getSize());
       CommonOps.fill(jacobianToPack, 0.0);
 
+      for (int i = 0; i < subSensors.size(); i++)
+      {
+         Sensor subSensor = subSensors.get(i);
+         int startIndex = getStartIndex(subSensor);
+
+         subSensor.getMeasurementJacobian(tempMatrix, robotState);
+         CommonOps.insert(tempMatrix, jacobianToPack, startIndex, 0);
+      }
+   }
+
+   @Override
+   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   {
       residualToPack.reshape(getMeasurementSize(), 1);
       CommonOps.fill(residualToPack, 0.0);
 
@@ -105,9 +117,8 @@ public class ComposedSensor extends Sensor
          Sensor subSensor = subSensors.get(i);
          int startIndex = getStartIndex(subSensor);
 
-         subSensor.getRobotJacobianAndResidual(tempJacobian, tempResidual, robotState);
-         CommonOps.insert(tempJacobian, jacobianToPack, startIndex, 0);
-         CommonOps.insert(tempResidual, residualToPack, startIndex, 0);
+         subSensor.getResidual(tempMatrix, robotState);
+         CommonOps.insert(tempMatrix, residualToPack, startIndex, 0);
       }
    }
 
@@ -122,8 +133,8 @@ public class ComposedSensor extends Sensor
          Sensor subSensor = subSensors.get(i);
          int startIndex = getStartIndex(subSensor);
 
-         subSensor.getRMatrix(tempJacobian);
-         CommonOps.insert(tempJacobian, matrixToPack, startIndex, startIndex);
+         subSensor.getRMatrix(tempMatrix);
+         CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
       }
    }
 }

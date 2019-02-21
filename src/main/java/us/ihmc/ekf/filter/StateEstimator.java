@@ -67,7 +67,8 @@ public class StateEstimator
       long startTime = System.nanoTime();
 
       // From the sensor get the linearized measurement model and the measurement residual
-      sensor.getRobotJacobianAndResidual(H, residual, robotState);
+      sensor.getMeasurementJacobian(H, robotState);
+      sensor.getResidual(residual, robotState);
 
       // Compute the kalman gain and correct the state
       sensor.getRMatrix(R);

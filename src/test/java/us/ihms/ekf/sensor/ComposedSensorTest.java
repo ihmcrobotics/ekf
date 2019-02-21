@@ -63,7 +63,8 @@ public class ComposedSensorTest
       DenseMatrix64F H = new DenseMatrix64F(0, 0);
       DenseMatrix64F r = new DenseMatrix64F(0, 0);
       DenseMatrix64F R = new DenseMatrix64F(0, 0);
-      sensor.getRobotJacobianAndResidual(H, r, dummyState);
+      sensor.getMeasurementJacobian(H, dummyState);
+      sensor.getResidual(r, dummyState);
       sensor.getRMatrix(R);
 
       int combinedSize = 0;
@@ -75,7 +76,9 @@ public class ComposedSensorTest
 
          DenseMatrix64F subH = new DenseMatrix64F(0, 0);
          DenseMatrix64F subr = new DenseMatrix64F(0, 0);
-         subSensor.getRobotJacobianAndResidual(subH, subr, dummyState);
+         subSensor.getMeasurementJacobian(subH, dummyState);
+         subSensor.getResidual(subr, dummyState);
+
          FilterTestTools.assertBlockEquals(startIndex, 0, subH, H);
          FilterTestTools.assertBlockEquals(startIndex, 0, subr, r);
 
@@ -119,9 +122,14 @@ public class ComposedSensorTest
       return new Sensor()
       {
          @Override
-         public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
+         public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
          {
             jacobianToPack.set(H);
+         }
+
+         @Override
+         public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+         {
             residualToPack.set(r);
          }
 

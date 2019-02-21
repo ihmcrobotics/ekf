@@ -88,7 +88,8 @@ public class StateEstimatorTest
       state.addState(sensor.getSensorState());
       state.getFMatrix(F);
       state.getQMatrix(Q);
-      sensor.getRobotJacobianAndResidual(H, residual, robotState);
+      sensor.getMeasurementJacobian(H, robotState);
+      sensor.getResidual(residual, robotState);
       sensor.getRMatrix(R);
 
       // Now assert that the covariance matches the steady state as the matrixes are not

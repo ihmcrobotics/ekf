@@ -145,41 +145,15 @@ public class LinearAccelerationSensor extends Sensor
     * </p>
     */
    @Override
-   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
+   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
    {
       robotState.getStateVector(tempRobotState);
+
       robotJacobian.reset();
       jacobianMatrix.set(robotJacobian.getJacobianMatrix());
+
       CommonOps.extract(jacobianMatrix, 0, 3, 0, jacobianMatrix.getNumCols(), jacobianAngularPart, 0, 0);
       CommonOps.extract(jacobianMatrix, 3, 6, 0, jacobianMatrix.getNumCols(), jacobianLinearPart, 0, 0);
-
-      // Compute the residual (non-linear)
-      // J * qdd
-      FilterTools.packQdd(qdd, oneDofJointNames, tempRobotState, robotState);
-      CommonOps.mult(jacobianMatrix, qdd, jointAccelerationTerm);
-      linearJointTerm.setIncludingFrame(measurementFrame, 3, jointAccelerationTerm);
-
-      // Jd * qd
-      convectiveTerm.set(robotJacobian.getConvectiveTermMatrix());
-      linearConvectiveTerm.setIncludingFrame(measurementFrame, 3, convectiveTerm);
-
-      // w x v
-      robotJacobian.getEndEffector().getBodyFixedFrame().getTwistOfFrame(sensorTwist);
-      sensorTwist.changeFrame(measurementFrame);
-      centrifugalTerm.setToZero(measurementFrame);
-      sensorAngularVelocity.setIncludingFrame(sensorTwist.getAngularPart());
-      sensorLinearVelocity.setIncludingFrame(sensorTwist.getLinearPart());
-      centrifugalTerm.cross(sensorAngularVelocity, sensorLinearVelocity);
-
-      // R * g
-      gravityTerm.setIncludingFrame(ReferenceFrame.getWorldFrame(), 0.0, 0.0, -robotState.getGravity());
-      gravityTerm.changeFrame(measurementFrame);
-
-      // Compute the residual by substracting all terms from the measurement:
-      residualToPack.reshape(measurementSize, 1);
-      residualToPack.set(0, measurement.getX() - linearJointTerm.getX() - linearConvectiveTerm.getX() - centrifugalTerm.getX() - gravityTerm.getX());
-      residualToPack.set(1, measurement.getY() - linearJointTerm.getY() - linearConvectiveTerm.getY() - centrifugalTerm.getY() - gravityTerm.getY());
-      residualToPack.set(2, measurement.getZ() - linearJointTerm.getZ() - linearConvectiveTerm.getZ() - centrifugalTerm.getZ() - gravityTerm.getZ());
 
       // Now for assembling the linearized measurement model:
       // J * qdd
@@ -220,6 +194,8 @@ public class LinearAccelerationSensor extends Sensor
          rootFrame.getTransformToDesiredFrame(rootToMeasurement, measurementFrame);
          baseFrame.getTransformToDesiredFrame(rootTransform, rootFrame);
 
+         gravityTerm.setIncludingFrame(ReferenceFrame.getWorldFrame(), 0.0, 0.0, -robotState.getGravity());
+         gravityTerm.changeFrame(measurementFrame);
          gravityPart.setToTildeForm(gravityTerm);
          gravityPart.multiply(rootToMeasurement.getRotationMatrix());
          gravityPart.multiply(rootTransform.getRotationMatrix());
@@ -234,12 +210,52 @@ public class LinearAccelerationSensor extends Sensor
 
       if (biasState != null)
       {
+         int biasStartIndex = robotState.getStartIndex(biasState);
+         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
+      }
+   }
+
+   @Override
+   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   {
+      robotState.getStateVector(tempRobotState);
+
+      robotJacobian.reset();
+      jacobianMatrix.set(robotJacobian.getJacobianMatrix());
+
+      // Compute the residual (non-linear)
+      // J * qdd
+      FilterTools.packQdd(qdd, oneDofJointNames, tempRobotState, robotState);
+      CommonOps.mult(jacobianMatrix, qdd, jointAccelerationTerm);
+      linearJointTerm.setIncludingFrame(measurementFrame, 3, jointAccelerationTerm);
+
+      // Jd * qd
+      convectiveTerm.set(robotJacobian.getConvectiveTermMatrix());
+      linearConvectiveTerm.setIncludingFrame(measurementFrame, 3, convectiveTerm);
+
+      // w x v
+      robotJacobian.getEndEffector().getBodyFixedFrame().getTwistOfFrame(sensorTwist);
+      sensorTwist.changeFrame(measurementFrame);
+      centrifugalTerm.setToZero(measurementFrame);
+      sensorAngularVelocity.setIncludingFrame(sensorTwist.getAngularPart());
+      sensorLinearVelocity.setIncludingFrame(sensorTwist.getLinearPart());
+      centrifugalTerm.cross(sensorAngularVelocity, sensorLinearVelocity);
+
+      // R * g
+      gravityTerm.setIncludingFrame(ReferenceFrame.getWorldFrame(), 0.0, 0.0, -robotState.getGravity());
+      gravityTerm.changeFrame(measurementFrame);
+
+      // Compute the residual by substracting all terms from the measurement:
+      residualToPack.reshape(measurementSize, 1);
+      residualToPack.set(0, measurement.getX() - linearJointTerm.getX() - linearConvectiveTerm.getX() - centrifugalTerm.getX() - gravityTerm.getX());
+      residualToPack.set(1, measurement.getY() - linearJointTerm.getY() - linearConvectiveTerm.getY() - centrifugalTerm.getY() - gravityTerm.getY());
+      residualToPack.set(2, measurement.getZ() - linearJointTerm.getZ() - linearConvectiveTerm.getZ() - centrifugalTerm.getZ() - gravityTerm.getZ());
+
+      if (biasState != null)
+      {
          residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
          residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
          residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
-
-         int biasStartIndex = robotState.getStartIndex(biasState);
-         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
       }
    }
 
