@@ -141,13 +141,6 @@ public abstract class BodyVelocitySensor extends Sensor
       residualToPack.set(0, measurement.getX() - residualToPack.get(0));
       residualToPack.set(1, measurement.getY() - residualToPack.get(1));
       residualToPack.set(2, measurement.getZ() - residualToPack.get(2));
-
-      if (biasState != null)
-      {
-         residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
-         residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
-         residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
-      }
    }
 
    @Override
