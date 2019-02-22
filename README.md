@@ -4,6 +4,8 @@ This package provides an implementation of an Extended Kalman Filter (EKF) for s
 
 ![Build Status](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-EKF)
 
+<img src="coverage.png" alt="Test Coverage" width="600"/>
+
 ## Using the Framework
 
 ### From Jar with Gradle
