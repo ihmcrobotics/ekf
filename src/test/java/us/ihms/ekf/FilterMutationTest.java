@@ -1,50 +1,29 @@
 package us.ihms.ekf;
 
+import java.io.IOException;
+import java.util.function.Predicate;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
+
 import us.ihmc.commons.MutationTestFacilitator;
-import us.ihmc.ekf.filter.FilterTools;
-import us.ihmc.ekf.filter.RobotState;
-import us.ihmc.ekf.filter.StateEstimator;
-import us.ihmc.ekf.filter.sensor.ComposedSensor;
-import us.ihmc.ekf.filter.sensor.implementations.BodyVelocitySensor;
-import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
-import us.ihmc.ekf.filter.sensor.implementations.LinearAccelerationSensor;
-import us.ihmc.ekf.filter.state.ComposedState;
-import us.ihmc.ekf.filter.state.implementations.BiasState;
-import us.ihmc.ekf.filter.state.implementations.JointState;
-import us.ihmc.ekf.filter.state.implementations.PoseState;
-import us.ihms.ekf.filter.StateEstimatorTest;
-import us.ihms.ekf.filter.state.ComposedStateTest;
-import us.ihms.ekf.filter.state.JointStateTest;
-import us.ihms.ekf.filter.state.PoseStateTest;
-import us.ihms.ekf.sensor.ComposedSensorTest;
-import us.ihms.ekf.sensor.LinearAccelerationSensorTest;
 
 public class FilterMutationTest
 {
-   public static void main(String[] args)
+   private static final Predicate<? super ClassInfo> testClassFilter = ci -> ci.getName().endsWith("Test") && ci.getName().startsWith("us.ihms.ekf")
+         && !ci.getName().equals(FilterMutationTest.class.getName());
+
+   public static void main(String[] args) throws IOException
    {
       MutationTestFacilitator mutationTestFacilitator = new MutationTestFacilitator();
+      mutationTestFacilitator.addPackagePathsToMutate("us.ihmc.ekf.*");
 
-      mutationTestFacilitator.addClassesToMutate(FilterTools.class);
-      mutationTestFacilitator.addClassesToMutate(RobotState.class);
-      mutationTestFacilitator.addClassesToMutate(StateEstimator.class);
-
-      mutationTestFacilitator.addClassesToMutate(ComposedSensor.class);
-      mutationTestFacilitator.addClassesToMutate(BodyVelocitySensor.class);
-      mutationTestFacilitator.addClassesToMutate(JointPositionSensor.class);
-      mutationTestFacilitator.addClassesToMutate(LinearAccelerationSensor.class);
-
-      mutationTestFacilitator.addClassesToMutate(ComposedState.class);
-      mutationTestFacilitator.addClassesToMutate(BiasState.class);
-      mutationTestFacilitator.addClassesToMutate(JointState.class);
-      mutationTestFacilitator.addClassesToMutate(PoseState.class);
-
-      mutationTestFacilitator.addTestClassesToRun(StateEstimatorTest.class);
-      mutationTestFacilitator.addTestClassesToRun(ComposedStateTest.class);
-      mutationTestFacilitator.addTestClassesToRun(JointStateTest.class);
-      mutationTestFacilitator.addTestClassesToRun(PoseStateTest.class);
-      mutationTestFacilitator.addTestClassesToRun(ComposedSensorTest.class);
-      mutationTestFacilitator.addTestClassesToRun(LinearAccelerationSensorTest.class);
+      ImmutableSet<ClassInfo> topLevelClasses = ClassPath.from(FilterMutationTest.class.getClassLoader()).getAllClasses();
+      topLevelClasses.stream().filter(testClassFilter).forEach(ci -> {
+         mutationTestFacilitator.addClassesToMutate(ci.load());
+         System.out.println("Adding test " + ci.getName());
+      });
 
       mutationTestFacilitator.doMutationTest();
    }
