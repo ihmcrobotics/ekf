@@ -21,6 +21,17 @@ public class StateEstimator
 
    private final NativeFilterMatrixOps filterMatrixOps = new NativeFilterMatrixOps();
 
+   private final DenseMatrix64F F = new DenseMatrix64F(0);
+   private final DenseMatrix64F Q = new DenseMatrix64F(0);
+   private final DenseMatrix64F H = new DenseMatrix64F(0);
+   private final DenseMatrix64F R = new DenseMatrix64F(0);
+   private final DenseMatrix64F K = new DenseMatrix64F(0);
+   private final DenseMatrix64F residual = new DenseMatrix64F(0);
+   private final DenseMatrix64F Xprior = new DenseMatrix64F(0);
+   private final DenseMatrix64F Pprior = new DenseMatrix64F(0);
+   private final DenseMatrix64F Xposterior = new DenseMatrix64F(0);
+   private final DenseMatrix64F Pposterior = new DenseMatrix64F(0);
+
    public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
    {
       this.robotState = robotState;
@@ -34,18 +45,6 @@ public class StateEstimator
       predictionTime = new YoDouble("PredictionTimeMs", registry);
       correctionTime = new YoDouble("CorrectionTimeMs", registry);
    }
-
-   private final DenseMatrix64F F = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F Q = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F H = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F R = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F K = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F residual = new DenseMatrix64F(0, 0);
-
-   private final DenseMatrix64F Xprior = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F Pprior = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F Xposterior = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F Pposterior = new DenseMatrix64F(0, 0);
 
    public void predict()
    {
