@@ -1,8 +1,8 @@
-package us.ihms.ekf.filter.state;
+package us.ihmc.ekf.filter.state;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
+import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.Random;
 

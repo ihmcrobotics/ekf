@@ -1,4 +1,4 @@
-package us.ihms.ekf.filter;
+package us.ihmc.ekf.filter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,7 @@ import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.ekf.filter.RobotState;
-import us.ihmc.ekf.filter.StateEstimator;
+import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
@@ -68,7 +67,7 @@ public class StateEstimatorTest
       // Make sure the estimated state is accurate.
       DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
       robotState.getStateVector(actualState);
-      FilterTestTools.assertEquals(expectedState, actualState, EPSILON);
+      TestTools.assertEquals(expectedState, actualState, EPSILON);
 
       // The covariance should have converged to a steady state.
       DenseMatrix64F actualCovariance = new DenseMatrix64F(0, 0);
@@ -114,7 +113,7 @@ public class StateEstimatorTest
       Pinv = new SimpleMatrix(P).invert().getMatrix();
       P = invert(computeABAtPlusC(Htranspose, Rinv, Pinv));
 
-      FilterTestTools.assertEquals(P, actualCovariance, EPSILON);
+      TestTools.assertEquals(P, actualCovariance, EPSILON);
    }
 
    private static DenseMatrix64F invert(DenseMatrix64F matrix)

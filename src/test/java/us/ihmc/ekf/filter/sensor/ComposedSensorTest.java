@@ -1,6 +1,6 @@
-package us.ihms.ekf.sensor;
+package us.ihmc.ekf.filter.sensor;
 
-import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
+import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +10,10 @@ import org.ejml.data.DenseMatrix64F;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
-import us.ihms.ekf.filter.FilterTestTools;
 
 public class ComposedSensorTest
 {
@@ -80,14 +80,14 @@ public class ComposedSensorTest
          subSensor.getMeasurementJacobian(subH, dummyState);
          subSensor.getResidual(subr, dummyState);
 
-         FilterTestTools.assertBlockEquals(startIndex, 0, subH, H);
-         FilterTestTools.assertBlockEquals(startIndex, 0, subr, r);
+         TestTools.assertBlockEquals(startIndex, 0, subH, H);
+         TestTools.assertBlockEquals(startIndex, 0, subr, r);
 
          DenseMatrix64F subR = new DenseMatrix64F(0, 0);
          subSensor.getRMatrix(subR);
-         FilterTestTools.assertBlockEquals(startIndex, startIndex, subR, R);
-         FilterTestTools.assertBlockZero(startIndex, 0, R, subSensor.getMeasurementSize(), startIndex);
-         FilterTestTools.assertBlockZero(0, startIndex, R, startIndex, subSensor.getMeasurementSize());
+         TestTools.assertBlockEquals(startIndex, startIndex, subR, R);
+         TestTools.assertBlockZero(startIndex, 0, R, subSensor.getMeasurementSize(), startIndex);
+         TestTools.assertBlockZero(0, startIndex, R, startIndex, subSensor.getMeasurementSize());
 
          combinedSize += subSensor.getMeasurementSize();
       }
@@ -116,9 +116,9 @@ public class ComposedSensorTest
    private static Sensor nextSensor(Random random, int maxSize, int stateSize, String name)
    {
       int size = random.nextInt(maxSize);
-      DenseMatrix64F H = FilterTestTools.nextMatrix(size, stateSize, random, -1.0, 1.0);
-      DenseMatrix64F r = FilterTestTools.nextMatrix(size, 1, random, -1.0, 1.0);
-      DenseMatrix64F R = FilterTestTools.nextMatrix(size, size, random, -1.0, 1.0);
+      DenseMatrix64F H = TestTools.nextMatrix(size, stateSize, random, -1.0, 1.0);
+      DenseMatrix64F r = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DenseMatrix64F R = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
 
       return new Sensor()
       {

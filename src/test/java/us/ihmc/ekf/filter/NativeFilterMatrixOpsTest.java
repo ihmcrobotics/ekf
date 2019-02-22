@@ -1,7 +1,7 @@
-package us.ihms.ekf.filter;
+package us.ihmc.ekf.filter;
 
 import static org.junit.jupiter.api.Assertions.fail;
-import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
+import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.Random;
 
@@ -12,6 +12,7 @@ import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.Conversions;
+import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.NativeFilterMatrixOps;
 
 public class NativeFilterMatrixOpsTest
@@ -28,8 +29,8 @@ public class NativeFilterMatrixOpsTest
       {
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;
-         DenseMatrix64F A = FilterTestTools.nextMatrix(n, m, random, -1.0, 1.0);
-         DenseMatrix64F B = FilterTestTools.nextMatrix(m, random, -1.0, 1.0);
+         DenseMatrix64F A = TestTools.nextMatrix(n, m, random, -1.0, 1.0);
+         DenseMatrix64F B = TestTools.nextMatrix(m, random, -1.0, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
          ops.computeABAt(actual, A, B);
@@ -38,7 +39,7 @@ public class NativeFilterMatrixOpsTest
          SimpleMatrix Bsimple = new SimpleMatrix(B);
          DenseMatrix64F expected = Asimple.mult(Bsimple.mult(Asimple.transpose())).getMatrix();
 
-         FilterTestTools.assertEquals(expected, actual, EPSILON);
+         TestTools.assertEquals(expected, actual, EPSILON);
       }
    }
 
@@ -51,9 +52,9 @@ public class NativeFilterMatrixOpsTest
       {
          int n = random.nextInt(100) + 1;
 
-         DenseMatrix64F F = FilterTestTools.nextMatrix(n, random, -1.0, 1.0);
-         DenseMatrix64F P = FilterTestTools.nextSymmetricMatrix(n, random, 0.1, 1.0);
-         DenseMatrix64F Q = FilterTestTools.nextDiagonalMatrix(n, random, 0.1, 1.0);
+         DenseMatrix64F F = TestTools.nextMatrix(n, random, -1.0, 1.0);
+         DenseMatrix64F P = TestTools.nextSymmetricMatrix(n, random, 0.1, 1.0);
+         DenseMatrix64F Q = TestTools.nextDiagonalMatrix(n, random, 0.1, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
          ops.predictErrorCovariance(actual, F, P, Q);
@@ -63,7 +64,7 @@ public class NativeFilterMatrixOpsTest
          SimpleMatrix Qsimple = new SimpleMatrix(Q);
          DenseMatrix64F expected = Fsimple.mult(Psimple.mult(Fsimple.transpose())).plus(Qsimple).getMatrix();
 
-         FilterTestTools.assertEquals(expected, actual, EPSILON);
+         TestTools.assertEquals(expected, actual, EPSILON);
       }
    }
 
@@ -77,9 +78,9 @@ public class NativeFilterMatrixOpsTest
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;
 
-         DenseMatrix64F K = FilterTestTools.nextMatrix(m, n, random, -1.0, 1.0);
-         DenseMatrix64F H = FilterTestTools.nextMatrix(n, m, random, -1.0, 1.0);
-         DenseMatrix64F P = FilterTestTools.nextSymmetricMatrix(m, random, 0.1, 1.0);
+         DenseMatrix64F K = TestTools.nextMatrix(m, n, random, -1.0, 1.0);
+         DenseMatrix64F H = TestTools.nextMatrix(n, m, random, -1.0, 1.0);
+         DenseMatrix64F P = TestTools.nextSymmetricMatrix(m, random, 0.1, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
          ops.updateErrorCovariance(actual, K, H, P);
@@ -90,7 +91,7 @@ public class NativeFilterMatrixOpsTest
          SimpleMatrix IKH = SimpleMatrix.identity(m).minus(Ksimple.mult(Hsimple));
          DenseMatrix64F expected = IKH.mult(Psimple).getMatrix();
 
-         FilterTestTools.assertEquals(expected, actual, EPSILON);
+         TestTools.assertEquals(expected, actual, EPSILON);
       }
    }
 
@@ -104,9 +105,9 @@ public class NativeFilterMatrixOpsTest
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;
 
-         DenseMatrix64F P = FilterTestTools.nextSymmetricMatrix(m, random, 0.1, 1.0);
-         DenseMatrix64F H = FilterTestTools.nextMatrix(n, m, random, -1.0, 1.0);
-         DenseMatrix64F R = FilterTestTools.nextDiagonalMatrix(n, random, 1.0, 100.0);
+         DenseMatrix64F P = TestTools.nextSymmetricMatrix(m, random, 0.1, 1.0);
+         DenseMatrix64F H = TestTools.nextMatrix(n, m, random, -1.0, 1.0);
+         DenseMatrix64F R = TestTools.nextDiagonalMatrix(n, random, 1.0, 100.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
          ops.computeKalmanGain(actual, P, H, R);
@@ -122,7 +123,7 @@ public class NativeFilterMatrixOpsTest
          SimpleMatrix inverse = toInvert.invert();
          DenseMatrix64F expected = Psimple.mult(Hsimple.transpose()).mult(inverse).getMatrix();
 
-         FilterTestTools.assertEquals(expected, actual, EPSILON);
+         TestTools.assertEquals(expected, actual, EPSILON);
       }
    }
 
@@ -136,9 +137,9 @@ public class NativeFilterMatrixOpsTest
          int n = random.nextInt(100) + 1;
          int m = random.nextInt(100) + 1;
 
-         DenseMatrix64F x = FilterTestTools.nextMatrix(n, 1, random, -1.0, 1.0);
-         DenseMatrix64F K = FilterTestTools.nextMatrix(n, m, random, -1.0, 1.0);
-         DenseMatrix64F r = FilterTestTools.nextMatrix(m, 1, random, -1.0, 1.0);
+         DenseMatrix64F x = TestTools.nextMatrix(n, 1, random, -1.0, 1.0);
+         DenseMatrix64F K = TestTools.nextMatrix(n, m, random, -1.0, 1.0);
+         DenseMatrix64F r = TestTools.nextMatrix(m, 1, random, -1.0, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
          ops.updateState(actual, x, K, r);
@@ -148,7 +149,7 @@ public class NativeFilterMatrixOpsTest
          SimpleMatrix xSimple = new SimpleMatrix(x);
          DenseMatrix64F expected = xSimple.plus(Ksimple.mult(rSimple)).getMatrix();
 
-         FilterTestTools.assertEquals(expected, actual, EPSILON);
+         TestTools.assertEquals(expected, actual, EPSILON);
       }
    }
 
@@ -159,8 +160,8 @@ public class NativeFilterMatrixOpsTest
       int m = 100;
       int iterations = 1000;
 
-      DenseMatrix64F A = FilterTestTools.nextMatrix(n, m, random, -1.0, 1.0);
-      DenseMatrix64F B = FilterTestTools.nextMatrix(m, random, -1.0, 1.0);
+      DenseMatrix64F A = TestTools.nextMatrix(n, m, random, -1.0, 1.0);
+      DenseMatrix64F B = TestTools.nextMatrix(m, random, -1.0, 1.0);
 
       // Warmup the JIT
       for (int i = 0; i < iterations; i++)

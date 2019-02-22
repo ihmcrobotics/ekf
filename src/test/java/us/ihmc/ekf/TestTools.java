@@ -1,4 +1,4 @@
-package us.ihms.ekf.filter;
+package us.ihmc.ekf;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Assertions;
 
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 
-public class FilterTestTools
+public class TestTools
 {
    public static final int ITERATIONS = 50;
 

@@ -1,7 +1,7 @@
-package us.ihms.ekf.filter.state;
+package us.ihmc.ekf.filter.state;
 
 import static org.junit.jupiter.api.Assertions.fail;
-import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
+import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +12,9 @@ import org.ejml.ops.CommonOps;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.state.ComposedState;
 import us.ihmc.ekf.filter.state.State;
-import us.ihms.ekf.filter.FilterTestTools;
 
 public class ComposedStateTest
 {
@@ -66,31 +66,31 @@ public class ComposedStateTest
 
          DenseMatrix64F subF = new DenseMatrix64F(0, 0);
          subState.getFMatrix(subF);
-         FilterTestTools.assertBlockEquals(startIndex, startIndex, subF, F);
-         FilterTestTools.assertBlockZero(startIndex, 0, F, subState.getSize(), startIndex);
-         FilterTestTools.assertBlockZero(0, startIndex, F, startIndex, subState.getSize());
+         TestTools.assertBlockEquals(startIndex, startIndex, subF, F);
+         TestTools.assertBlockZero(startIndex, 0, F, subState.getSize(), startIndex);
+         TestTools.assertBlockZero(0, startIndex, F, startIndex, subState.getSize());
 
          DenseMatrix64F subQ = new DenseMatrix64F(0, 0);
          subState.getQMatrix(subQ);
-         FilterTestTools.assertBlockEquals(startIndex, startIndex, subQ, Q);
-         FilterTestTools.assertBlockZero(startIndex, 0, Q, subState.getSize(), startIndex);
-         FilterTestTools.assertBlockZero(0, startIndex, Q, startIndex, subState.getSize());
+         TestTools.assertBlockEquals(startIndex, startIndex, subQ, Q);
+         TestTools.assertBlockZero(startIndex, 0, Q, subState.getSize(), startIndex);
+         TestTools.assertBlockZero(0, startIndex, Q, startIndex, subState.getSize());
 
          DenseMatrix64F subx = new DenseMatrix64F(0, 0);
          subState.getStateVector(subx);
-         FilterTestTools.assertBlockEquals(startIndex, 0, subx, x);
+         TestTools.assertBlockEquals(startIndex, 0, subx, x);
 
          combinedSize += subState.getSize();
       }
 
-      DenseMatrix64F xNew = FilterTestTools.nextMatrix(combinedSize, 1, random, -1.0, 1.0);
+      DenseMatrix64F xNew = TestTools.nextMatrix(combinedSize, 1, random, -1.0, 1.0);
       state.setStateVector(xNew);
       state.getStateVector(x);
-      FilterTestTools.assertEquals(xNew, x);
+      TestTools.assertEquals(xNew, x);
 
       state.predict();
       state.getStateVector(x);
-      FilterTestTools.assertNaN(x);
+      TestTools.assertNaN(x);
    }
 
    private static ComposedState createComposedState(Random random, int maxStates, int maxSubStateSize, String name, List<State> subStateListToModify)
@@ -115,9 +115,9 @@ public class ComposedStateTest
    private static State nextState(Random random, int maxSize, String name)
    {
       int size = random.nextInt(maxSize);
-      DenseMatrix64F F = FilterTestTools.nextMatrix(size, size, random, -1.0, 1.0);
-      DenseMatrix64F Q = FilterTestTools.nextMatrix(size, size, random, -1.0, 1.0);
-      DenseMatrix64F x = FilterTestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DenseMatrix64F F = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
+      DenseMatrix64F Q = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
+      DenseMatrix64F x = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
 
       return new State()
       {

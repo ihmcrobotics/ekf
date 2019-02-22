@@ -1,4 +1,4 @@
-package us.ihms.ekf;
+package us.ihmc.ekf;
 
 import java.util.Random;
 

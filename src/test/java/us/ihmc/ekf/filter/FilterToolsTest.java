@@ -1,6 +1,6 @@
-package us.ihms.ekf.filter;
+package us.ihmc.ekf.filter;
 
-import static us.ihms.ekf.filter.FilterTestTools.ITERATIONS;
+import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import us.ihmc.commons.MutationTestFacilitator;
+import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.RobotStateIndexProvider;
 
@@ -41,7 +42,7 @@ public class FilterToolsTest
       Random random = new Random(23);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, false, size);
-      DenseMatrix64F matrixToPack = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F matrixToPack = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
       DenseMatrix64F matrixToInsert = new DenseMatrix64F(rows, 3);
 
       matrixToInsert.set(0, 0, 1.0);
@@ -62,7 +63,7 @@ public class FilterToolsTest
       expected.set(0, 7 + 1, 1.0);
       expected.set(1, 7 + 1, 9.0);
 
-      FilterTestTools.assertEquals(expected, matrixToPack);
+      TestTools.assertEquals(expected, matrixToPack);
    }
 
    @Test
@@ -80,7 +81,7 @@ public class FilterToolsTest
       Random random = new Random(2837);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, true, size);
-      DenseMatrix64F matrixToPack = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F matrixToPack = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
       DenseMatrix64F matrixToInsert = new DenseMatrix64F(rows, 7);
 
       matrixToInsert.set(0, 0, 1.0);
@@ -103,7 +104,7 @@ public class FilterToolsTest
       expected.set(0, 14, 1.0);
       expected.set(0, 22 + 1, 9.0);
 
-      FilterTestTools.assertEquals(expected, matrixToPack);
+      TestTools.assertEquals(expected, matrixToPack);
    }
 
    @Test
@@ -129,7 +130,7 @@ public class FilterToolsTest
       Random random = new Random(23);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, false, size);
-      DenseMatrix64F matrixToPack = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F matrixToPack = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
       DenseMatrix64F matrixToInsert = new DenseMatrix64F(rows, 3);
 
       matrixToInsert.set(0, 0, 1.0);
@@ -150,7 +151,7 @@ public class FilterToolsTest
       expected.set(0, 7 + 2, 1.0);
       expected.set(1, 7 + 2, 9.0);
 
-      FilterTestTools.assertEquals(expected, matrixToPack);
+      TestTools.assertEquals(expected, matrixToPack);
    }
 
    @Test
@@ -168,7 +169,7 @@ public class FilterToolsTest
       Random random = new Random(2837);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, true, size);
-      DenseMatrix64F matrixToPack = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F matrixToPack = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
       DenseMatrix64F matrixToInsert = new DenseMatrix64F(rows, 7);
 
       matrixToInsert.set(0, 0, 1.0);
@@ -191,7 +192,7 @@ public class FilterToolsTest
       expected.set(0, 17, 1.0);
       expected.set(0, 22 + 2, 9.0);
 
-      FilterTestTools.assertEquals(expected, matrixToPack);
+      TestTools.assertEquals(expected, matrixToPack);
    }
 
    @Test
@@ -216,8 +217,8 @@ public class FilterToolsTest
       Random random = new Random(23);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, false, size);
-      DenseMatrix64F qdVector = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
-      DenseMatrix64F stateVector = FilterTestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DenseMatrix64F qdVector = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F stateVector = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
 
       FilterTools.packQd(qdVector, jointNames, stateVector, indexProvider);
 
@@ -227,7 +228,7 @@ public class FilterToolsTest
       expected.set(1, 0, stateVector.get(3 + 1));
       expected.set(2, 0, stateVector.get(7 + 1));
 
-      FilterTestTools.assertEquals(expected, qdVector);
+      TestTools.assertEquals(expected, qdVector);
    }
 
    @Test
@@ -244,8 +245,8 @@ public class FilterToolsTest
       Random random = new Random(23);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, true, size);
-      DenseMatrix64F qdVector = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
-      DenseMatrix64F stateVector = FilterTestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DenseMatrix64F qdVector = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F stateVector = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
 
       FilterTools.packQd(qdVector, jointNames, stateVector, indexProvider);
 
@@ -259,7 +260,7 @@ public class FilterToolsTest
       expected.set(5, 0, stateVector.get(14));
       expected.set(6, 0, stateVector.get(35 + 1));
 
-      FilterTestTools.assertEquals(expected, qdVector);
+      TestTools.assertEquals(expected, qdVector);
    }
 
    @Test
@@ -284,8 +285,8 @@ public class FilterToolsTest
       Random random = new Random(23);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, false, size);
-      DenseMatrix64F qdVector = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
-      DenseMatrix64F stateVector = FilterTestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DenseMatrix64F qdVector = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F stateVector = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
 
       FilterTools.packQdd(qdVector, jointNames, stateVector, indexProvider);
 
@@ -295,7 +296,7 @@ public class FilterToolsTest
       expected.set(1, 0, stateVector.get(3 + 2));
       expected.set(2, 0, stateVector.get(7 + 2));
 
-      FilterTestTools.assertEquals(expected, qdVector);
+      TestTools.assertEquals(expected, qdVector);
    }
 
    @Test
@@ -312,8 +313,8 @@ public class FilterToolsTest
       Random random = new Random(23);
 
       IndexProvider indexProvider = new IndexProvider(indexMap, true, size);
-      DenseMatrix64F qdVector = FilterTestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
-      DenseMatrix64F stateVector = FilterTestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DenseMatrix64F qdVector = TestTools.nextMatrix(random.nextInt(200), random.nextInt(200), random, -1.0, 1.0);
+      DenseMatrix64F stateVector = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
 
       FilterTools.packQdd(qdVector, jointNames, stateVector, indexProvider);
 
@@ -327,7 +328,7 @@ public class FilterToolsTest
       expected.set(5, 0, stateVector.get(17));
       expected.set(6, 0, stateVector.get(35 + 2));
 
-      FilterTestTools.assertEquals(expected, qdVector);
+      TestTools.assertEquals(expected, qdVector);
    }
 
    @Test
@@ -337,7 +338,7 @@ public class FilterToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       {
          int size = random.nextInt(100);
-         DenseMatrix64F actual = FilterTestTools.nextMatrix(random.nextInt(100), random.nextInt(100), random, -1.0, 1.0);
+         DenseMatrix64F actual = TestTools.nextMatrix(random.nextInt(100), random.nextInt(100), random, -1.0, 1.0);
          FilterTools.setIdentity(actual , size);
 
          DenseMatrix64F expected = new DenseMatrix64F(size, size);
@@ -347,7 +348,7 @@ public class FilterToolsTest
             expected.set(j, j, 1.0);
          }
 
-         FilterTestTools.assertEquals(expected, actual);
+         TestTools.assertEquals(expected, actual);
       }
    }
 
