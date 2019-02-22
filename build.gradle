@@ -28,7 +28,9 @@ mainDependencies {
 testDependencies {
     compile ihmc.sourceSetProject("main")
 
+    compile group: "us.ihmc", name: "ihmc-commons-testing", version: "0.25.4"
     compile group: "org.ejml", name: "simple", version: "0.30"
+    compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
 }
 
 visualizersDependencies {

@@ -2,10 +2,6 @@ package us.ihmc.ekf.tempClasses;
 
 import java.util.List;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import us.ihmc.commons.PrintTools;
-import us.ihmc.ekf.tempClasses.SDFGeometry.Mesh;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -14,8 +10,6 @@ import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
 
 public class SDFCollisionMeshDescription extends CollisionMeshDescription
 {
-   private static final boolean verbose = false;
-
    public SDFCollisionMeshDescription(List<? extends AbstractSDFMesh> sdfVisuals)
    {
       this(sdfVisuals, new RigidBodyTransform());
@@ -44,12 +38,7 @@ public class SDFCollisionMeshDescription extends CollisionMeshDescription
             rotate(modelRotation);
 
             SDFGeometry geometry = sdfVisual.getGeometry();
-            Mesh mesh = geometry.getMesh();
-            if(verbose && mesh != null)
-            {
-               PrintTools.error("Meshes not implemented yet for CollisionMeshes!! Skipping " + mesh.getUri());
-            }
-            else if(geometry.getCylinder() != null)
+            if(geometry.getCylinder() != null)
             {
                double length = Double.parseDouble(geometry.getCylinder().getLength());
                double radius = Double.parseDouble(geometry.getCylinder().getRadius());
@@ -85,14 +74,6 @@ public class SDFCollisionMeshDescription extends CollisionMeshDescription
             else if(geometry.getHeightMap() != null)
             {
                throw new RuntimeException("Height Map not implemented for CollisionMeshes!!");
-            }
-            else
-            {
-               if(verbose)
-               {
-                  PrintTools.error("Visual for " + sdfVisual.getName() + " not implemented yet");
-                  PrintTools.error("Defined visual" + ToStringBuilder.reflectionToString(geometry));
-               }
             }
          }
       }

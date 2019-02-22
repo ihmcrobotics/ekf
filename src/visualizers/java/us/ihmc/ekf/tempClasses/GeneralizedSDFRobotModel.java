@@ -157,16 +157,12 @@ public class GeneralizedSDFRobotModel implements GraphicsObjectsHolder
       {
          if(linkHolder.getName().equals(name))
          {
-            SDFGraphics3DObject sdfGraphics3DObject = new SDFGraphics3DObject(linkHolder.getCollisions(), resourceDirectories);
             ArrayList<CollisionMeshDescription> collisionMeshDescriptions = new ArrayList<CollisionMeshDescription>();
 
             //TODO: Figure out and add the collision meshes...
             return collisionMeshDescriptions;
          }
       }
-
-      SDFGraphics3DObject sdfGraphics3DObject = new SDFGraphics3DObject(joints.get(name).getChildLinkHolder().getCollisions(), resourceDirectories);
-      CollisionMeshDescription collisionMeshDescription = new CollisionMeshDescription();
 
       ArrayList<CollisionMeshDescription> collisionMeshDescriptions = new ArrayList<CollisionMeshDescription>();
       //TODO: Figure out and add the collision meshes...

@@ -1,4 +1,6 @@
-package us.ihms.ekf.sensor;
+package us.ihmc.ekf.filter.sensor;
+
+import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.Random;
 
@@ -6,6 +8,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
+import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.sensor.implementations.LinearAccelerationSensor;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -14,7 +17,6 @@ import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihms.ekf.filter.FilterTestTools;
 
 public class LinearAccelerationSensorTest
 {
@@ -25,7 +27,6 @@ public class LinearAccelerationSensorTest
    public void testCrossProductDerivative()
    {
       int n = 10;
-      int runs = 1000;
       Random random = new Random(24359L);
 
       RigidBodyBasics rootBody = new RigidBody("RootBody", ReferenceFrame.getWorldFrame());
@@ -41,15 +42,15 @@ public class LinearAccelerationSensorTest
 
       DenseMatrix64F crossProductLinearization = new DenseMatrix64F(0, 0);
 
-      for (int i = 0; i < runs; i++)
+      for (int i = 0; i < ITERATIONS; i++)
       {
-         DenseMatrix64F qd0 = FilterTestTools.createRandomMatrix(n, 1, random, -5.0, 5.0);
-         DenseMatrix64F A = FilterTestTools.createRandomMatrix(3, n, random, -5.0, 5.0);
-         DenseMatrix64F L = FilterTestTools.createRandomMatrix(3, n, random, -5.0, 5.0);
+         DenseMatrix64F qd0 = TestTools.nextMatrix(n, 1, random, -5.0, 5.0);
+         DenseMatrix64F A = TestTools.nextMatrix(3, n, random, -5.0, 5.0);
+         DenseMatrix64F L = TestTools.nextMatrix(3, n, random, -5.0, 5.0);
          crossProductLinearization.reshape(3, n);
 
          // we would like to linearize "w x v = A*qd x L qd"
-         DenseMatrix64F qd_pertubation = FilterTestTools.createRandomMatrix(n, 1, random, MAX_PERTUBATION, MAX_PERTUBATION);
+         DenseMatrix64F qd_pertubation = TestTools.nextMatrix(n, 1, random, MAX_PERTUBATION, MAX_PERTUBATION);
          DenseMatrix64F qd1 = simple(qd0).plus(simple(qd_pertubation)).getMatrix();
 
          // compute the nominal and expected result
@@ -64,7 +65,7 @@ public class LinearAccelerationSensorTest
          try
          {
             // make sure we don't just pass because the perturbation is small.
-            FilterTestTools.assertMatricesEqual(expected, nominal, EPSILON);
+            TestTools.assertEquals(expected, nominal, EPSILON);
             throw new RuntimeException("Change epsilon the test is not actually testing what we want.");
          }
          catch (AssertionError e)
@@ -72,7 +73,7 @@ public class LinearAccelerationSensorTest
             // all good
          }
 
-         FilterTestTools.assertMatricesEqual(expected, actual, EPSILON);
+         TestTools.assertEquals(expected, actual, EPSILON);
       }
    }
 

@@ -2,6 +2,8 @@ package us.ihmc.ekf.filter;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntSupplier;
+import java.util.function.ToIntFunction;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -20,87 +22,145 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
  */
 public class FilterTools
 {
+   /**
+    * This method provides the functionality to convert a velocity jacobian into the overall filter
+    * state jacobian.
+    * <p>
+    * In some cases the geometric velocity jacobian of a sensor is computed and needs to be inserted
+    * into the sensor jacobian considering the whole state. This method provides that functionality.
+    * For a simple example consider this joint state: [position, velocity, acceleration]. The
+    * computed geometric jacobian of the end effector for a 1DoF robot has one entry [-2.1]. This
+    * method would pack a matrix such that the result is [0.0, -2.1, 0.0].
+    * <p>
+    * Note, that the provided matrix will re reshaped and zeroed.
+    *
+    * @param matrixToPack
+    *           the overall state jacobian to pack (modified).
+    * @param oneDofJointNames
+    *           the list of joint names used to obtain the matching indices from
+    *           {@code indexProvider}.
+    * @param matrixToInsert
+    *           the velocity jacobian to insert into the state jacobian.
+    * @param indexProvider
+    *           provides matrix indices mappings.
+    * @see #insertForAcceleration(DenseMatrix64F, List, DenseMatrix64F, RobotStateIndexProvider)
+    */
    public static void insertForVelocity(DenseMatrix64F matrixToPack, List<String> oneDofJointNames, DenseMatrix64F matrixToInsert,
                                         RobotStateIndexProvider indexProvider)
    {
-      int rows = matrixToInsert.getNumRows();
-      matrixToPack.reshape(rows, indexProvider.getSize());
-      matrixToPack.zero();
-      int index = 0;
-
-      if (indexProvider.isFloating())
-      {
-         int angularIndex = indexProvider.findAngularVelocityIndex();
-         int linearIndex = indexProvider.findLinearVelocityIndex();
-         CommonOps.extract(matrixToInsert, 0, rows, 0, 3, matrixToPack, 0, angularIndex);
-         CommonOps.extract(matrixToInsert, 0, rows, 3, 6, matrixToPack, 0, linearIndex);
-         index += Twist.SIZE;
-      }
-
-      for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
-      {
-         int indexInState = indexProvider.findJointVelocityIndex(oneDofJointNames.get(jointIndex));
-         CommonOps.extract(matrixToInsert, 0, rows, index, index + 1, matrixToPack, 0, indexInState);
-         index++;
-      }
+      insertInternal(matrixToPack, oneDofJointNames, matrixToInsert, indexProvider.getSize(), indexProvider::findJointVelocityIndex, indexProvider.isFloating(),
+                     indexProvider::findAngularVelocityIndex, indexProvider::findLinearVelocityIndex);
    }
 
+   /**
+    * This method provides the functionality to convert an acceleration jacobian into the overall
+    * filter state jacobian.
+    * <p>
+    * In some cases the jacobian of a sensor wrt the accelerations is computed and needs to be
+    * inserted into the sensor jacobian considering the whole state. This method provides that
+    * functionality. For a simple example consider this joint state: [position, velocity,
+    * acceleration]. The computed acceleration jacobian of the end effector for a 1DoF robot has one
+    * entry [0.7]. This method would pack a matrix such that the result is [0.0, 0.0, 0.7].
+    * <p>
+    * Note, that the provided matrix will re reshaped and zeroed.
+    *
+    * @param matrixToPack
+    *           the overall state jacobian to pack (modified).
+    * @param oneDofJointNames
+    *           the list of joint names used to obtain the matching indices from
+    *           {@code indexProvider}.
+    * @param matrixToInsert
+    *           the acceleration jacobian to insert into the state jacobian.
+    * @param indexProvider
+    *           provides matrix indices mappings.
+    * @see #insertForVelocity(DenseMatrix64F, List, DenseMatrix64F, RobotStateIndexProvider)
+    */
    public static void insertForAcceleration(DenseMatrix64F matrixToPack, List<String> oneDofJointNames, DenseMatrix64F matrixToInsert,
                                             RobotStateIndexProvider indexProvider)
    {
+      insertInternal(matrixToPack, oneDofJointNames, matrixToInsert, indexProvider.getSize(), indexProvider::findJointAccelerationIndex,
+                     indexProvider.isFloating(), indexProvider::findAngularAccelerationIndex, indexProvider::findLinearAccelerationIndex);
+   }
+
+   private static void insertInternal(DenseMatrix64F matrixToPack, List<String> oneDofJointNames, DenseMatrix64F matrixToInsert, int size,
+                                      ToIntFunction<String> jointIndexMap, boolean floating, IntSupplier angularStart, IntSupplier linearStart)
+   {
       int rows = matrixToInsert.getNumRows();
-      matrixToPack.reshape(rows, indexProvider.getSize());
+      matrixToPack.reshape(rows, size);
       matrixToPack.zero();
       int index = 0;
 
-      if (indexProvider.isFloating())
+      if (floating)
       {
-         int angularIndex = indexProvider.findAngularAccelerationIndex();
-         int linearIndex = indexProvider.findLinearAccelerationIndex();
-         CommonOps.extract(matrixToInsert, 0, rows, 0, 3, matrixToPack, 0, angularIndex);
-         CommonOps.extract(matrixToInsert, 0, rows, 3, 6, matrixToPack, 0, linearIndex);
+         CommonOps.extract(matrixToInsert, 0, rows, 0, 3, matrixToPack, 0, angularStart.getAsInt());
+         CommonOps.extract(matrixToInsert, 0, rows, 3, 6, matrixToPack, 0, linearStart.getAsInt());
          index += Twist.SIZE;
       }
 
       for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
       {
-         int indexInState = indexProvider.findJointAccelerationIndex(oneDofJointNames.get(jointIndex));
+         int indexInState = jointIndexMap.applyAsInt(oneDofJointNames.get(jointIndex));
          CommonOps.extract(matrixToInsert, 0, rows, index, index + 1, matrixToPack, 0, indexInState);
          index++;
       }
    }
 
+   /**
+    * Provides the functionality to extract only the velocities from an overall robot state.
+    * <p>
+    * E.g. for a single joint state [position, velocity, acceleration] of [1.2, 0.5, -0.1] this
+    * method would pack the matrix [0.5].
+    *
+    * @param qdToPack
+    *           velocity matrix to pack (modified).
+    * @param oneDofJointNames
+    *           the list of joint names used to obtain the matching indices from
+    *           {@code indexProvider}.
+    * @param stateVector
+    *           the full state vector that velocities will be extracted from.
+    * @param indexProvider
+    *           provides matrix indices mappings.
+    * @see #packQdd(DenseMatrix64F, List, DenseMatrix64F, RobotStateIndexProvider)
+    */
    public static void packQd(DenseMatrix64F qdToPack, List<String> oneDofJointNames, DenseMatrix64F stateVector, RobotStateIndexProvider indexProvider)
    {
-      qdToPack.reshape(oneDofJointNames.size() + (indexProvider.isFloating() ? Twist.SIZE : 0), 1);
-      int index = 0;
-
-      if (indexProvider.isFloating())
-      {
-         int angularIndex = indexProvider.findAngularVelocityIndex();
-         int linearIndex = indexProvider.findLinearVelocityIndex();
-         CommonOps.extract(stateVector, angularIndex, angularIndex + 3, 0, 1, qdToPack, 0, 0);
-         CommonOps.extract(stateVector, linearIndex, linearIndex + 3, 0, 1, qdToPack, 3, 0);
-         index += 6;
-      }
-
-      for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
-      {
-         int indexInState = indexProvider.findJointVelocityIndex(oneDofJointNames.get(jointIndex));
-         qdToPack.set(index, stateVector.get(indexInState));
-         index++;
-      }
+      packInternal(qdToPack, oneDofJointNames, stateVector, indexProvider::findJointVelocityIndex, indexProvider.isFloating(),
+                   indexProvider::findAngularVelocityIndex, indexProvider::findLinearVelocityIndex);
    }
 
+   /**
+    * Provides the functionality to extract only the accelerations from an overall robot state.
+    * <p>
+    * E.g. for a single joint state [position, velocity, acceleration] of [1.2, 0.5, -0.1] this
+    * method would pack the matrix [-0.1].
+    *
+    * @param qdToPack
+    *           velocity matrix to pack (modified).
+    * @param oneDofJointNames
+    *           the list of joint names used to obtain the matching indices from
+    *           {@code indexProvider}.
+    * @param stateVector
+    *           the full state vector that velocities will be extracted from.
+    * @param indexProvider
+    *           provides matrix indices mappings.
+    * @see #packQd(DenseMatrix64F, List, DenseMatrix64F, RobotStateIndexProvider)
+    */
    public static void packQdd(DenseMatrix64F qddToPack, List<String> oneDofJointNames, DenseMatrix64F stateVector, RobotStateIndexProvider indexProvider)
    {
-      qddToPack.reshape(oneDofJointNames.size() + (indexProvider.isFloating() ? Twist.SIZE : 0), 1);
+      packInternal(qddToPack, oneDofJointNames, stateVector, indexProvider::findJointAccelerationIndex, indexProvider.isFloating(),
+                   indexProvider::findAngularAccelerationIndex, indexProvider::findLinearAccelerationIndex);
+   }
+
+   public static void packInternal(DenseMatrix64F qddToPack, List<String> oneDofJointNames, DenseMatrix64F stateVector, ToIntFunction<String> jointIndexMap,
+                                   boolean floating, IntSupplier angularStart, IntSupplier linearStart)
+   {
+      qddToPack.reshape(oneDofJointNames.size() + (floating ? Twist.SIZE : 0), 1);
       int index = 0;
 
-      if (indexProvider.isFloating())
+      if (floating)
       {
-         int angularIndex = indexProvider.findAngularAccelerationIndex();
-         int linearIndex = indexProvider.findLinearAccelerationIndex();
+         int angularIndex = angularStart.getAsInt();
+         int linearIndex = linearStart.getAsInt();
          CommonOps.extract(stateVector, angularIndex, angularIndex + 3, 0, 1, qddToPack, 0, 0);
          CommonOps.extract(stateVector, linearIndex, linearIndex + 3, 0, 1, qddToPack, 3, 0);
          index += 6;
@@ -108,12 +168,19 @@ public class FilterTools
 
       for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
       {
-         int indexInState = indexProvider.findJointAccelerationIndex(oneDofJointNames.get(jointIndex));
+         int indexInState = jointIndexMap.applyAsInt(oneDofJointNames.get(jointIndex));
          qddToPack.set(index, stateVector.get(indexInState));
          index++;
       }
    }
 
+   /**
+    * Checks that the provided matrices are row vectors of the same size.
+    *
+    * @param A matrix to be checked.
+    * @param B matrix to be checked.
+    * @throws RuntimeException if the check fails
+    */
    public static void checkVectorDimensions(DenseMatrix64F A, DenseMatrix64F B)
    {
       if (A.getNumRows() != B.getNumRows())
@@ -126,22 +193,24 @@ public class FilterTools
       }
    }
 
-   public static String stringToPrefix(String string)
-   {
-      return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, string);
-   }
-
    /**
     * Sets the provided matrix to a square identity matrix of the given size.
     *
-    * @param matrix (modified)
-    * @param size is the the desired number of rows and columns for the matrix
+    * @param matrix
+    *           (modified)
+    * @param size
+    *           is the the desired number of rows and columns for the matrix
     */
    public static void setIdentity(DenseMatrix64F matrix, int size)
    {
       matrix.reshape(size, size);
       CommonOps.setIdentity(matrix);
-	}
+   }
+
+   public static String stringToPrefix(String string)
+   {
+      return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, string);
+   }
 
    public static DoubleParameter findOrCreate(String name, YoVariableRegistry registry, double initialValue)
    {

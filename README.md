@@ -2,19 +2,33 @@
 
 This package provides an implementation of an Extended Kalman Filter (EKF) for state estimation in robotics. It depends on the [Mecano](https://stash.ihmc.us/projects/LIBS/repos/mecano/browse) package that provides a rigid-body and multi-body tools to compute Jacobians and other useful quantities related to rigid body systems. The visualization in this package relies on the [Simulation Construction Set](https://stash.ihmc.us/projects/LIBS/repos/simulation-construction-set/browse) package by IHMC.
 
-I hope to make the final filter implementation depend on more lightweight packages and make it generic, such that it can be used with other robotics applications in Java. The filter will be allocation free and fast enough to run at 1kHz on an average computer.
+![Build Status](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-EKF)
+
+The test coverage for the package `us.ihmc.ekf.filter`
+
+![Test Coverage](coverage.png)
 
 ## Using the Framework
 
+### From Jar with Gradle
+
 To use the release of this package add the following to your gradle dependencies:
 
-`compile group: "us.ihmc", name: "ekf", version: "0.1.0"`
+`compile group: "us.ihmc", name: "ekf", version: "0.2.2"`
 
-Note, that the release does not include the test and visualization but only the main framework.
+`compile group: "us.ihmc", name: "ekf-test", version: "0.2.2"`
+
+`compile group: "us.ihmc", name: "ekf-visualizers", version: "0.2.2"`
+
+Note, that usually you will only need the main dependency. The others will provide you with tests and some example simulations.
 
 ### From Source
 
-To get set up and run the filter demonstration on your computer you will need Gradle ([instructions](https://ihmcrobotics.github.io/ihmc-open-robotics-software/docs/installgradle)) and Java ([instructions](https://ihmcrobotics.github.io/ihmc-open-robotics-software/docs/installjava)) installed on your system. Install your favorite IDE and import this repository as a gradle project. The import will download the dependencies. Now you can run the [SimpleArmSimulation](https://stash.ihmc.us/projects/LIBS/repos/ekf/browse/src/visualizers/java/us/ihmc/ekf/robots/simpleArm/SimpleArmSimulation.java). As the robot moves the estimated robot state is visualizes as a ghost. You may also observe and plot state variables and compare them to the real values.
+To compile and run the code you need Gradle ([instructions](https://ihmcrobotics.github.io/ihmc-open-robotics-software/docs/installgradle)) and Java ([instructions](https://ihmcrobotics.github.io/ihmc-open-robotics-software/docs/installjava)) installed on your system. Install your favorite IDE and import this repository as a gradle project. Gradle will download the dependencies. Now you can run one of the example simulations such as `SimpleArmSimulation`, `FlyingBoxSimulation`, or `FixedBaseArmSimulation`. As the robot moves the estimated robot state is visualizes as a ghost. You may also observe and plot state variables and compare them to the real values.
+
+The gif shows the flying box simulation. It is a simple robot containing only an IMU and a single 6DoF floating joint. At the beginning of the video the estimator is initialized to the true state of the box. You can see that the estimate (blue ghost) starts to diverge from the robot after some time.
+
+![The Flying Box Simulation](flying_box.gif)
 
 ## Structure of the Framework
 
@@ -32,8 +46,8 @@ A good introductory paper for Kalman filters can be found [here](https://www.cs.
  
 ### Supported States
 
- - Revolute Joint (incl. Acceleration)
- - Floating Joint (incl. Acceleration)
+ - Revolute Joint
+ - Floating Joint
  - Sensor Bias State
 
 ## License
@@ -70,14 +84,6 @@ The dependencies for compiling are
  - Java
  - Eigen3
 
-### Changing the Native Code under Ubuntu
-
-If you need to modify or extend the functionality of the native libraries and you need to modify the java class `NativeFilterMatrixOpsWrapper` you will need to regenerate the header file by running the command
-
-`javac -h nativeEKF/ src/main/java/us/ihmc/ekf/filter/NativeFilterMatrixOpsWrapper.java`
-
-Then modify the c++ source files to reflect your changes and recompile.
-
 ### Windows
 
 This tutorial assumes a fresh Windows 10 install and was tested in a virtual machine.
@@ -96,3 +102,11 @@ configure Eigen so it can be found later and can be used to link against.
 Finally, in the project folder create a directory called "build". Run the "x64 Native Tools Command Prompt for VS 2017" to compile the project and
 navigate into the build folder you created.
 Then run the command `cmake -G "Visual Studio 15 2017 Win64" ..` followed by `cmake --build . --target install --config Release`.
+
+### Changing the Native Code API (Ubuntu instructions only)
+
+If you need to modify or extend the functionality of the native libraries and you need to modify the java class `NativeFilterMatrixOpsWrapper` you will need to regenerate the header file by running the command
+
+`javac -h nativeEKF/ src/main/java/us/ihmc/ekf/filter/NativeFilterMatrixOpsWrapper.java`
+
+Then modify the c++ source file to reflect your changes and recompile.

@@ -17,7 +17,9 @@ public class JointPositionSensor extends Sensor
 
    private double measurement = Double.NaN;
 
+   // TODO: merge?
    private final String jointName;
+   private final String name;
 
    private final DoubleProvider jointPositionVariance;
 
@@ -34,10 +36,17 @@ public class JointPositionSensor extends Sensor
    {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
+      this.name = FilterTools.stringToPrefix(jointName);
 
       jointPositionVariance = FilterTools.findOrCreate(parameterGroup + "JointPositionVariance", registry, 1.0);
 
-      rawMeasurement = new YoDouble(FilterTools.stringToPrefix(jointName) + "raw", registry);
+      rawMeasurement = new YoDouble(name + "raw", registry);
+   }
+
+   @Override
+   public String getName()
+   {
+      return name;
    }
 
    public void setJointPositionMeasurement(double jointPosition)
@@ -53,12 +62,16 @@ public class JointPositionSensor extends Sensor
    }
 
    @Override
-   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
+   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
    {
       jacobianToPack.reshape(measurementSize, robotState.getSize());
       CommonOps.fill(jacobianToPack, 0.0);
       jacobianToPack.set(0, robotState.findJointPositionIndex(jointName), 1.0);
+   }
 
+   @Override
+   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   {
       residualToPack.reshape(measurementSize, 1);
       JointState jointState = robotState.getJointState(jointName);
       residualToPack.set(0, measurement - jointState.getQ());

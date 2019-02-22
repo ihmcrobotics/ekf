@@ -1,4 +1,4 @@
-package us.ihms.ekf.filter;
+package us.ihmc.ekf.filter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,7 @@ import org.ejml.ops.CommonOps;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.ekf.filter.RobotState;
-import us.ihmc.ekf.filter.StateEstimator;
+import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
@@ -68,7 +67,7 @@ public class StateEstimatorTest
       // Make sure the estimated state is accurate.
       DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
       robotState.getStateVector(actualState);
-      FilterTestTools.assertMatricesEqual(expectedState, actualState, EPSILON);
+      TestTools.assertEquals(expectedState, actualState, EPSILON);
 
       // The covariance should have converged to a steady state.
       DenseMatrix64F actualCovariance = new DenseMatrix64F(0, 0);
@@ -81,13 +80,15 @@ public class StateEstimatorTest
       DenseMatrix64F residual = new DenseMatrix64F(0, 0);
 
       // This setup matches the filter constructor:
-      ComposedState state = new ComposedState();
-      ComposedSensor sensor = new ComposedSensor(sensors, robotState.getSize());
+      ComposedState state = new ComposedState("ReferenceState");
+      ComposedSensor sensor = new ComposedSensor("ReferenceSensor");
+      sensors.forEach(s -> sensor.addSensor(s));
       state.addState(robotState);
       state.addState(sensor.getSensorState());
       state.getFMatrix(F);
       state.getQMatrix(Q);
-      sensor.assembleFullJacobian(H, residual, robotState);
+      sensor.getMeasurementJacobian(H, robotState);
+      sensor.getResidual(residual, robotState);
       sensor.getRMatrix(R);
 
       // Now assert that the covariance matches the steady state as the matrixes are not
@@ -112,7 +113,7 @@ public class StateEstimatorTest
       Pinv = new SimpleMatrix(P).invert().getMatrix();
       P = invert(computeABAtPlusC(Htranspose, Rinv, Pinv));
 
-      FilterTestTools.assertMatricesEqual(P, actualCovariance, EPSILON);
+      TestTools.assertEquals(P, actualCovariance, EPSILON);
    }
 
    private static DenseMatrix64F invert(DenseMatrix64F matrix)

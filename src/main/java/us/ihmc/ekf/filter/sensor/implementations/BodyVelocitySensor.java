@@ -46,9 +46,14 @@ public abstract class BodyVelocitySensor extends Sensor
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
    private final List<String> oneDofJointNames = new ArrayList<>();
 
-   private final DenseMatrix64F tempRobotState = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F jacobian = new DenseMatrix64F(0, 0);
+   private final DenseMatrix64F stateVector = new DenseMatrix64F(0, 0);
+
+   private final DenseMatrix64F biasStateJacobian = new DenseMatrix64F(0, 0);
 
    private final double sqrtHz;
+
+   private final String name;
 
    public BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
    {
@@ -67,6 +72,8 @@ public abstract class BodyVelocitySensor extends Sensor
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.variance = variance;
 
+      name = prefix;
+
       measurement = new FrameVector3D(measurementFrame);
       robotJacobian.setKinematicChain(MultiBodySystemTools.getRootBody(body), body);
       robotJacobian.setJacobianFrame(measurementFrame);
@@ -76,6 +83,7 @@ public abstract class BodyVelocitySensor extends Sensor
       if (estimateBias)
       {
          biasState = new BiasState(prefix, dt, registry);
+         FilterTools.setIdentity(biasStateJacobian, 3);
       }
       else
       {
@@ -84,6 +92,12 @@ public abstract class BodyVelocitySensor extends Sensor
 
       int degreesOfFreedom = robotJacobian.getNumberOfDegreesOfFreedom();
       jacobianRelevantPart.reshape(getMeasurementSize(), degreesOfFreedom);
+   }
+
+   @Override
+   public String getName()
+   {
+      return name;
    }
 
    protected abstract void packRelevantJacobianPart(DenseMatrix64F relevantPartToPack, DenseMatrix64F fullJacobian);
@@ -95,44 +109,38 @@ public abstract class BodyVelocitySensor extends Sensor
    }
 
    @Override
-   public void getSensorJacobian(DenseMatrix64F jacobianToPack)
+   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
    {
-      if (biasState == null)
-      {
-         super.getSensorJacobian(jacobianToPack);
-      }
-      else
-      {
-         jacobianToPack.reshape(biasState.getSize(), biasState.getSize());
-         CommonOps.setIdentity(jacobianToPack);
-      }
-   }
+      jacobianToPack.reshape(getMeasurementSize(), robotState.getSize());
+      jacobianToPack.zero();
 
-   @Override
-   public void getRobotJacobianAndResidual(DenseMatrix64F jacobianToPack, DenseMatrix64F residualToPack, RobotState robotState)
-   {
       robotJacobian.reset();
       jacobianMatrix.set(robotJacobian.getJacobianMatrix());
 
       packRelevantJacobianPart(jacobianRelevantPart, jacobianMatrix);
       FilterTools.insertForVelocity(jacobianToPack, oneDofJointNames, jacobianRelevantPart, robotState);
 
+      if (biasState != null)
+      {
+         int biasStartIndex = robotState.getStartIndex(biasState);
+         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
+      }
+   }
+
+   @Override
+   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   {
+      getMeasurementJacobian(jacobian, robotState);
+
       // Compute the sensor measurement based on the robot state:
       residualToPack.reshape(getMeasurementSize(), 1);
-      robotState.getStateVector(tempRobotState);
-      CommonOps.mult(jacobianToPack, tempRobotState, residualToPack);
+      robotState.getStateVector(stateVector);
+      CommonOps.mult(jacobian, stateVector, residualToPack);
 
       // Compute the residual considering the sensor bias and the current measurement:
       residualToPack.set(0, measurement.getX() - residualToPack.get(0));
       residualToPack.set(1, measurement.getY() - residualToPack.get(1));
       residualToPack.set(2, measurement.getZ() - residualToPack.get(2));
-
-      if (biasState != null)
-      {
-         residualToPack.set(0, residualToPack.get(0) - biasState.getBias(0));
-         residualToPack.set(1, residualToPack.get(1) - biasState.getBias(1));
-         residualToPack.set(2, residualToPack.get(2) - biasState.getBias(2));
-      }
    }
 
    @Override
