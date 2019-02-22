@@ -45,21 +45,9 @@ public class RobotState extends ComposedState implements RobotStateIndexProvider
    }
 
    @Override
-   public int findJointPositionIndex(String jointName)
+   public int getJointStartIndex(String jointName)
    {
       return jointIndecesByName.get(jointName).intValue();
-   }
-
-   @Override
-   public int findJointVelocityIndex(String jointName)
-   {
-      return jointIndecesByName.get(jointName).intValue() + 1;
-   }
-
-   @Override
-   public int findJointAccelerationIndex(String jointName)
-   {
-      return jointIndecesByName.get(jointName).intValue() + 2;
    }
 
    @Override
@@ -68,58 +56,8 @@ public class RobotState extends ComposedState implements RobotStateIndexProvider
       return isFloating;
    }
 
-   @Override
-   public int findOrientationIndex()
-   {
-      checkFloating();
-      return PoseState.orientationStart;
-   }
-
-   @Override
-   public int findAngularVelocityIndex()
-   {
-      checkFloating();
-      return PoseState.angularVelocityStart;
-   }
-
-   @Override
-   public int findAngularAccelerationIndex()
-   {
-      checkFloating();
-      return PoseState.angularAccelerationStart;
-   }
-
-   @Override
-   public int findPositionIndex()
-   {
-      checkFloating();
-      return PoseState.positionStart;
-   }
-
-   @Override
-   public int findLinearVelocityIndex()
-   {
-      checkFloating();
-      return PoseState.linearVelocityStart;
-   }
-
-   @Override
-   public int findLinearAccelerationIndex()
-   {
-      checkFloating();
-      return PoseState.linearAccelerationStart;
-   }
-
    public double getGravity()
    {
       return GRAVITY;
-   }
-
-   private void checkFloating()
-   {
-      if (!isFloating)
-      {
-         throw new RuntimeException("Robot is not a floating base robot. Can not get pose indices.");
-      }
    }
 }
