@@ -4,6 +4,8 @@ This package provides an implementation of an Extended Kalman Filter (EKF) for s
 
 ![Build Status](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-EKF)
 
+The test coverage for the package `us.ihmc.ekf.filter`
+
 ![Test Coverage](coverage.png)
 
 ## Using the Framework
