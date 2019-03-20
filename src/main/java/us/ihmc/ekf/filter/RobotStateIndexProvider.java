@@ -1,26 +1,71 @@
 package us.ihmc.ekf.filter;
 
+import us.ihmc.ekf.filter.state.implementations.PoseState;
+
 public interface RobotStateIndexProvider
 {
    int getSize();
 
-   int findJointPositionIndex(String jointName);
-
-   int findJointVelocityIndex(String jointName);
-
-   int findJointAccelerationIndex(String jointName);
-
    boolean isFloating();
 
-   int findOrientationIndex();
+   int getJointStartIndex(String jointName);
 
-   int findAngularVelocityIndex();
+   public default int findJointPositionIndex(String jointName)
+   {
+      return getJointStartIndex(jointName);
+   }
 
-   int findAngularAccelerationIndex();
+   public default int findJointVelocityIndex(String jointName)
+   {
+      return getJointStartIndex(jointName) + 1;
+   }
 
-   int findPositionIndex();
+   public default int findJointAccelerationIndex(String jointName)
+   {
+      return getJointStartIndex(jointName) + 2;
+   }
 
-   int findLinearVelocityIndex();
+   public default int findOrientationIndex()
+   {
+      checkFloating();
+      return PoseState.orientationStart;
+   }
 
-   int findLinearAccelerationIndex();
+   public default int findAngularVelocityIndex()
+   {
+      checkFloating();
+      return PoseState.angularVelocityStart;
+   }
+
+   public default int findAngularAccelerationIndex()
+   {
+      checkFloating();
+      return PoseState.angularAccelerationStart;
+   }
+
+   public default int findPositionIndex()
+   {
+      checkFloating();
+      return PoseState.positionStart;
+   }
+
+   public default int findLinearVelocityIndex()
+   {
+      checkFloating();
+      return PoseState.linearVelocityStart;
+   }
+
+   public default int findLinearAccelerationIndex()
+   {
+      checkFloating();
+      return PoseState.linearAccelerationStart;
+   }
+
+   public default void checkFloating()
+   {
+      if (!isFloating())
+      {
+         throw new RuntimeException("Robot is not a floating base robot. Can not get pose indices.");
+      }
+   }
 }

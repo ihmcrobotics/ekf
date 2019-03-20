@@ -1,11 +1,11 @@
 plugins {
-   id("us.ihmc.ihmc-build") version "0.15.5"
-   id("us.ihmc.ihmc-ci") version "4.2"
+   id("us.ihmc.ihmc-build") version "0.15.6"
+   id("us.ihmc.ihmc-ci") version "4.23"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.2.2"
+   version = "0.2.3"
    openSource = true
    
    configureDependencyResolution()
@@ -20,15 +20,17 @@ mainDependencies {
     compile group: "us.ihmc", name: "euclid-geometry", version: "0.11.0"
     compile group: "us.ihmc", name: "euclid-frame", version: "0.11.0"
     compile group: "us.ihmc", name: "mecano", version: "0.0.16"
-    compile group: "us.ihmc", name: "ihmc-commons", version: "0.25.0"
-    compile group: "us.ihmc", name: "IHMCNativeLibraryLoader", version: "1.0"
+    compile group: "us.ihmc", name: "ihmc-commons", version: "0.25.4"
+    compile group: "us.ihmc", name: "ihmc-native-library-loader", version: "1.1"
     compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.7"
 }
 
 testDependencies {
     compile ihmc.sourceSetProject("main")
 
+    compile group: "us.ihmc", name: "ihmc-commons-testing", version: "0.25.4"
     compile group: "org.ejml", name: "simple", version: "0.30"
+    compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
 }
 
 visualizersDependencies {

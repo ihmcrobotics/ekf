@@ -47,9 +47,16 @@ public class JointState extends State
       stateVector.set(2, 0.0);
    }
 
+   // TODO: remove?
    public String getJointName()
    {
       return jointName;
+   }
+
+   @Override
+   public String getName()
+   {
+      return getJointName();
    }
 
    @Override
