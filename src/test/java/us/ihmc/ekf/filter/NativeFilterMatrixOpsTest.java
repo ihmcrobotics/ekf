@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.TestTools;
-import us.ihmc.ekf.filter.NativeFilterMatrixOps;
 
 public class NativeFilterMatrixOpsTest
 {
@@ -23,8 +22,6 @@ public class NativeFilterMatrixOpsTest
    @Test
    public void testABAt()
    {
-      NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
-
       for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
@@ -33,7 +30,7 @@ public class NativeFilterMatrixOpsTest
          DenseMatrix64F B = TestTools.nextMatrix(m, random, -1.0, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
-         ops.computeABAt(actual, A, B);
+         NativeFilterMatrixOps.computeABAt(actual, A, B);
 
          SimpleMatrix Asimple = new SimpleMatrix(A);
          SimpleMatrix Bsimple = new SimpleMatrix(B);
@@ -46,8 +43,6 @@ public class NativeFilterMatrixOpsTest
    @Test
    public void testPredictErrorCovariance()
    {
-      NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
-
       for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
@@ -57,7 +52,7 @@ public class NativeFilterMatrixOpsTest
          DenseMatrix64F Q = TestTools.nextDiagonalMatrix(n, random, 0.1, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
-         ops.predictErrorCovariance(actual, F, P, Q);
+         NativeFilterMatrixOps.predictErrorCovariance(actual, F, P, Q);
 
          SimpleMatrix Psimple = new SimpleMatrix(P);
          SimpleMatrix Fsimple = new SimpleMatrix(F);
@@ -71,8 +66,6 @@ public class NativeFilterMatrixOpsTest
    @Test
    public void testUpdateErrorCovariance()
    {
-      NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
-
       for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
@@ -83,7 +76,7 @@ public class NativeFilterMatrixOpsTest
          DenseMatrix64F P = TestTools.nextSymmetricMatrix(m, random, 0.1, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
-         ops.updateErrorCovariance(actual, K, H, P);
+         NativeFilterMatrixOps.updateErrorCovariance(actual, K, H, P);
 
          SimpleMatrix Psimple = new SimpleMatrix(P);
          SimpleMatrix Hsimple = new SimpleMatrix(H);
@@ -98,8 +91,6 @@ public class NativeFilterMatrixOpsTest
    @Test
    public void testComputeKalmanGain()
    {
-      NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
-
       for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
@@ -110,7 +101,7 @@ public class NativeFilterMatrixOpsTest
          DenseMatrix64F R = TestTools.nextDiagonalMatrix(n, random, 1.0, 100.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
-         ops.computeKalmanGain(actual, P, H, R);
+         NativeFilterMatrixOps.computeKalmanGain(actual, P, H, R);
 
          SimpleMatrix Psimple = new SimpleMatrix(P);
          SimpleMatrix Hsimple = new SimpleMatrix(H);
@@ -130,8 +121,6 @@ public class NativeFilterMatrixOpsTest
    @Test
    public void testUpdateState()
    {
-      NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
-
       for (int i = 0; i < ITERATIONS; i++)
       {
          int n = random.nextInt(100) + 1;
@@ -142,7 +131,7 @@ public class NativeFilterMatrixOpsTest
          DenseMatrix64F r = TestTools.nextMatrix(m, 1, random, -1.0, 1.0);
 
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
-         ops.updateState(actual, x, K, r);
+         NativeFilterMatrixOps.updateState(actual, x, K, r);
 
          SimpleMatrix rSimple = new SimpleMatrix(r);
          SimpleMatrix Ksimple = new SimpleMatrix(K);
@@ -155,7 +144,6 @@ public class NativeFilterMatrixOpsTest
 
    public static void main(String[] args)
    {
-      NativeFilterMatrixOps ops = new NativeFilterMatrixOps();
       int n = 100;
       int m = 100;
       int iterations = 1000;
@@ -167,7 +155,7 @@ public class NativeFilterMatrixOpsTest
       for (int i = 0; i < iterations; i++)
       {
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
-         ops.computeABAt(actual, A, B);
+         NativeFilterMatrixOps.computeABAt(actual, A, B);
          DenseMatrix64F BAt = new DenseMatrix64F(m, n);
          DenseMatrix64F expected = new DenseMatrix64F(n, n);
          CommonOps.multTransB(B, A, BAt);
@@ -178,7 +166,7 @@ public class NativeFilterMatrixOpsTest
       for (int i = 0; i < iterations; i++)
       {
          DenseMatrix64F actual = new DenseMatrix64F(0, 0);
-         ops.computeABAt(actual, A, B);
+         NativeFilterMatrixOps.computeABAt(actual, A, B);
       }
       long duration = System.nanoTime() - startTime;
       double durationInMs = Conversions.nanosecondsToMilliseconds((double) duration / iterations);
