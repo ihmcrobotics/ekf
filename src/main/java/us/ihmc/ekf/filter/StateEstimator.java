@@ -3,7 +3,6 @@ package us.ihmc.ekf.filter;
 import java.util.List;
 
 import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
@@ -37,11 +36,16 @@ public class StateEstimator
       sensors.forEach(s -> sensor.addSensor(s));
       robotState.addState(sensor.getSensorState());
 
-      FilterTools.setIdentity(Pposterior, robotState.getSize());
-      CommonOps.scale(1.0E-05, Pposterior);
+      Pposterior.reshape(robotState.getSize(), robotState.getSize());
+      reset();
 
       predictionTime = new YoDouble("PredictionTimeMs", registry);
       correctionTime = new YoDouble("CorrectionTimeMs", registry);
+   }
+
+   public void reset()
+   {
+      Pposterior.zero();
    }
 
    public void predict()
