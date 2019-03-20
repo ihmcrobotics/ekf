@@ -14,11 +14,11 @@ The test coverage for the package `us.ihmc.ekf.filter`
 
 To use the release of this package add the following to your gradle dependencies:
 
-`compile group: "us.ihmc", name: "ekf", version: "0.2.2"`
+`compile group: "us.ihmc", name: "ekf", version: "0.2.3"`
 
-`compile group: "us.ihmc", name: "ekf-test", version: "0.2.2"`
+`compile group: "us.ihmc", name: "ekf-test", version: "0.2.3"`
 
-`compile group: "us.ihmc", name: "ekf-visualizers", version: "0.2.2"`
+`compile group: "us.ihmc", name: "ekf-visualizers", version: "0.2.3"`
 
 Note, that usually you will only need the main dependency. The others will provide you with tests and some example simulations.
 
