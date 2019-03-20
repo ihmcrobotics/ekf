@@ -19,8 +19,6 @@ public class StateEstimator
    private final YoDouble predictionTime;
    private final YoDouble correctionTime;
 
-   private final NativeFilterMatrixOps filterMatrixOps = new NativeFilterMatrixOps();
-
    private final DenseMatrix64F F = new DenseMatrix64F(0);
    private final DenseMatrix64F Q = new DenseMatrix64F(0);
    private final DenseMatrix64F H = new DenseMatrix64F(0);
@@ -56,7 +54,7 @@ public class StateEstimator
       // Get linearized plant model and predict error covariance.
       robotState.getFMatrix(F);
       robotState.getQMatrix(Q);
-      filterMatrixOps.predictErrorCovariance(Pprior, F, Pposterior, Q);
+      NativeFilterMatrixOps.predictErrorCovariance(Pprior, F, Pposterior, Q);
 
       predictionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
    }
@@ -71,12 +69,12 @@ public class StateEstimator
 
       // Compute the kalman gain and correct the state
       sensor.getRMatrix(R);
-      filterMatrixOps.computeKalmanGain(K, Pprior, H, R);
+      NativeFilterMatrixOps.computeKalmanGain(K, Pprior, H, R);
       robotState.getStateVector(Xprior);
-      filterMatrixOps.updateState(Xposterior, Xprior, K, residual);
+      NativeFilterMatrixOps.updateState(Xposterior, Xprior, K, residual);
 
       // Update the error covariance.
-      filterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
+      NativeFilterMatrixOps.updateErrorCovariance(Pposterior, K, H, Pprior);
 
       // Update the state data structure after the correction step.
       robotState.setStateVector(Xposterior);
