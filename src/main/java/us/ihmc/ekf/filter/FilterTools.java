@@ -227,6 +227,8 @@ public class FilterTools
          packQForContinuousAcceleration(dt, Qref, dim);
          break;
       case ONLY_ACCELERATION_VARIANCE:
+         packQForOnlyAccelerationVariance(Qref, dim);
+         break;
       default:
          throw new RuntimeException("Implement " + proccessNoiseModel + " model.");
       }
@@ -296,7 +298,7 @@ public class FilterTools
     * @param Qref
     * @param dim
     */
-   public static void packQForOnlyAccelerationVariance(double dt, DenseMatrix64F Qref, int dim)
+   public static void packQForOnlyAccelerationVariance(DenseMatrix64F Qref, int dim)
    {
       Qref.reshape(dim * 3, dim * 3);
       Qref.zero();

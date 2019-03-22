@@ -10,6 +10,7 @@ import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.TestTools;
+import us.ihmc.ekf.filter.FilterTools.ProccessNoiseModel;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;
@@ -26,6 +27,8 @@ public class StateEstimatorTest
    @Test
    public void testStadyStateValues()
    {
+      FilterTools.proccessNoiseModel = ProccessNoiseModel.ONLY_ACCELERATION_VARIANCE;
+
       YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
       Random random = new Random(358L);
       double dt = 0.001;
