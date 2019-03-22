@@ -22,6 +22,8 @@ public class JointState extends State
 
    private final double sqrtHz;
 
+   private final DenseMatrix64F Qref = new DenseMatrix64F(size, size);
+
    public JointState(String jointName, double dt, YoVariableRegistry registry)
    {
       this(jointName, FilterTools.stringToPrefix(jointName), dt, registry);
@@ -36,6 +38,8 @@ public class JointState extends State
       F.set(0, 1, dt);
       F.set(0, 2, 0.5 * dt * dt);
       F.set(1, 2, dt);
+
+      FilterTools.packQref(dt, Qref, 1);
 
       accelerationVariance = FilterTools.findOrCreate(parameterGroup + "AccelerationVariance", registry, 1.0);
    }
@@ -94,9 +98,8 @@ public class JointState extends State
    @Override
    public void getQMatrix(DenseMatrix64F matrixToPack)
    {
-      matrixToPack.reshape(size, size);
-      CommonOps.fill(matrixToPack, 0.0);
-      matrixToPack.set(2, 2, accelerationVariance.getValue() * sqrtHz);
+      matrixToPack.set(Qref);
+      CommonOps.scale(accelerationVariance.getValue() * sqrtHz, matrixToPack);
    }
 
    public double getQ()
