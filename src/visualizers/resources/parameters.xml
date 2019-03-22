@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <parameters>
     <registry name="EstimatorController">
-        <parameter name="BaseArm1AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
-        <parameter name="Arm1Arm2AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
-        <parameter name="Arm2Arm3AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.1"/>
-        <parameter name="BaseAngularAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="10000.0"/>
-        <parameter name="BaseLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="10000.0"/>
+        <parameter name="BaseArm1AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.01"/>
+        <parameter name="Arm1Arm2AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.01"/>
+        <parameter name="Arm2Arm3AccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.01"/>
+        <parameter name="BaseAngularAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.01"/>
+        <parameter name="BaseLinearAccelerationVariance" type="DoubleParameter" min="0.0" max="1.0" value="0.01"/>
 
         <registry name="SimulationSensorReader">
 	        <parameter name="BaseArm1JointPositionVariance" type="DoubleParameter" min="0.0" max="1.0" value="1.0E-10"/>
