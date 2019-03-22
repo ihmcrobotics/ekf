@@ -88,6 +88,7 @@ public class PoseState extends State
 
    private final DoubleProvider angularAccelerationVariance;
    private final DoubleProvider linearAccelerationVariance;
+   private final DenseMatrix64F Qref = new DenseMatrix64F(9, 9);
 
    private final double dt;
    private final double sqrtHz;
@@ -226,13 +227,13 @@ public class PoseState extends State
       matrixToPack.reshape(size, size);
       CommonOps.fill(matrixToPack, 0.0);
 
-      matrixToPack.set(angularAccelerationStart + 0, angularAccelerationStart + 0, angularAccelerationVariance.getValue() * sqrtHz);
-      matrixToPack.set(angularAccelerationStart + 1, angularAccelerationStart + 1, angularAccelerationVariance.getValue() * sqrtHz);
-      matrixToPack.set(angularAccelerationStart + 2, angularAccelerationStart + 2, angularAccelerationVariance.getValue() * sqrtHz);
+      FilterTools.packQref(dt, Qref, 3);
+      CommonOps.scale(angularAccelerationVariance.getValue() * sqrtHz, Qref);
+      CommonOps.insert(Qref, matrixToPack, 0, 0);
 
-      matrixToPack.set(linearAccelerationStart + 0, linearAccelerationStart + 0, linearAccelerationVariance.getValue() * sqrtHz);
-      matrixToPack.set(linearAccelerationStart + 1, linearAccelerationStart + 1, linearAccelerationVariance.getValue() * sqrtHz);
-      matrixToPack.set(linearAccelerationStart + 2, linearAccelerationStart + 2, linearAccelerationVariance.getValue() * sqrtHz);
+      FilterTools.packQref(dt, Qref, 3);
+      CommonOps.scale(linearAccelerationVariance.getValue() * sqrtHz, Qref);
+      CommonOps.insert(Qref, matrixToPack, 9, 9);
    }
 
    public void getOrientation(FrameQuaternion orientationToPack)
