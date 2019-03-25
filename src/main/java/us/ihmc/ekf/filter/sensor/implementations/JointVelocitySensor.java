@@ -11,7 +11,7 @@ import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class JointPositionSensor extends Sensor
+public class JointVelocitySensor extends Sensor
 {
    private static final int measurementSize = 1;
 
@@ -21,24 +21,24 @@ public class JointPositionSensor extends Sensor
    private final String jointName;
    private final String name;
 
-   private final DoubleProvider jointPositionVariance;
+   private final DoubleProvider jointVelocityVariance;
 
    private final double sqrtHz;
 
    private final YoDouble rawMeasurement;
 
-   public JointPositionSensor(String jointName, double dt, YoVariableRegistry registry)
+   public JointVelocitySensor(String jointName, double dt, YoVariableRegistry registry)
    {
       this(jointName, FilterTools.stringToPrefix(jointName), dt, registry);
    }
 
-   public JointPositionSensor(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
+   JointVelocitySensor(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
    {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
-      this.name = FilterTools.stringToPrefix(jointName + "Position");
+      this.name = FilterTools.stringToPrefix(jointName + "Velocity");
 
-      jointPositionVariance = FilterTools.findOrCreate(parameterGroup + "JointPositionVariance", registry, 1.0);
+      jointVelocityVariance = FilterTools.findOrCreate(parameterGroup + "JointVelocityVariance", registry, 1.0);
 
       rawMeasurement = new YoDouble(name + "raw", registry);
    }
@@ -49,9 +49,9 @@ public class JointPositionSensor extends Sensor
       return name;
    }
 
-   public void setJointPositionMeasurement(double jointPosition)
+   public void setJointVelocityMeasurement(double jointVelocity)
    {
-      measurement = jointPosition;
+      measurement = jointVelocity;
       rawMeasurement.set(measurement);
    }
 
@@ -66,7 +66,7 @@ public class JointPositionSensor extends Sensor
    {
       jacobianToPack.reshape(measurementSize, robotState.getSize());
       CommonOps.fill(jacobianToPack, 0.0);
-      jacobianToPack.set(0, robotState.findJointPositionIndex(jointName), 1.0);
+      jacobianToPack.set(0, robotState.findJointVelocityIndex(jointName), 1.0);
    }
 
    @Override
@@ -74,13 +74,14 @@ public class JointPositionSensor extends Sensor
    {
       residualToPack.reshape(measurementSize, 1);
       JointState jointState = robotState.getJointState(jointName);
-      residualToPack.set(0, measurement - jointState.getQ());
+      residualToPack.set(0, measurement - jointState.getQd());
    }
 
    @Override
-   public void getRMatrix(DenseMatrix64F matrixToPack)
+   public void getRMatrix(DenseMatrix64F noiseCovarianceToPack)
    {
-      matrixToPack.reshape(measurementSize, measurementSize);
-      matrixToPack.set(0, 0, jointPositionVariance.getValue() * sqrtHz);
+      noiseCovarianceToPack.reshape(measurementSize, measurementSize);
+      noiseCovarianceToPack.set(0, 0, jointVelocityVariance.getValue() * sqrtHz);
    }
+
 }

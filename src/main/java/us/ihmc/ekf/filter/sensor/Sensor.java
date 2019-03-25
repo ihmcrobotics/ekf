@@ -47,26 +47,31 @@ public abstract class Sensor
    public abstract int getMeasurementSize();
 
    /**
-    * This method provides the estimator with the current measurement residual as well as the
-    * linearized measurement matrix.
+    * This method provides the estimator with the linearized measurement matrix.
     * <p>
     * The linearized measurement equation of the filter is {@code z = H * x + v}. The {@code x}
     * vector is the full estimator state. This method needs to pack the part of the {@code H} matrix
-    * that corresponds to this sensor. In addition the measurement residual must be computed and
-    * packed by this method. The measurement residual is computed as {@code r = z - h(x)} where
-    * {@code h(x)} is the (possibly nonlinear) function to compute the expected measurement from the
-    * state {@code x}.
-    * </p>
+    * that corresponds to this sensor.
     *
     * @param jacobianToPack
     *           the part of the {@code H} matrix corresponding to the robot state.
-    * @param residualToPack
-    *           the measurement residual.
     * @param robotState
     *           is the up to date state of the robot.
     */
    public abstract void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState);
 
+   /**
+    * Provides the estimator with the measurement residual.
+    * <p>
+    * The measurement residual is computed as {@code r = z - h(x)} where {@code h(x)} is the
+    * (possibly nonlinear) function to compute the expected measurement from the state {@code x} and
+    * {@code z} is the measured value.
+    *
+    * @param residualToPack
+    *           is where the measurement residual is stored. (modified)
+    * @param robotState
+    *           is the up to date state of the robot.
+    */
    public abstract void getResidual(DenseMatrix64F residualToPack, RobotState robotState);
 
    /**
