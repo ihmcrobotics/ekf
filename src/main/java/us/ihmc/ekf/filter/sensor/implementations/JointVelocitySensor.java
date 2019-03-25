@@ -32,7 +32,7 @@ public class JointVelocitySensor extends Sensor
       this(jointName, FilterTools.stringToPrefix(jointName), dt, registry);
    }
 
-   JointVelocitySensor(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
+   public JointVelocitySensor(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
    {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
