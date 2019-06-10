@@ -29,7 +29,7 @@ public class FilterTools
       ONLY_ACCELERATION_VARIANCE
    }
 
-   public static ProccessNoiseModel proccessNoiseModel = ProccessNoiseModel.PIECEWISE_CONTINUOUS_ACCELERATION;
+   public static ProccessNoiseModel proccessNoiseModel = ProccessNoiseModel.ONLY_ACCELERATION_VARIANCE;
 
    /**
     * This method provides the functionality to convert a velocity jacobian into the overall filter

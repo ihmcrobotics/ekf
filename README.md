@@ -14,11 +14,11 @@ The test coverage for the package `us.ihmc.ekf.filter`
 
 To use the release of this package add the following to your gradle dependencies:
 
-`compile group: "us.ihmc", name: "ekf", version: "0.2.6"`
+`compile group: "us.ihmc", name: "ekf", version: "0.2.8"`
 
-`compile group: "us.ihmc", name: "ekf-test", version: "0.2.6"`
+`compile group: "us.ihmc", name: "ekf-test", version: "0.2.8"`
 
-`compile group: "us.ihmc", name: "ekf-visualizers", version: "0.2.6"`
+`compile group: "us.ihmc", name: "ekf-visualizers", version: "0.2.8"`
 
 Note, that usually you will only need the main dependency. The others will provide you with tests and some example simulations.
 
@@ -43,6 +43,7 @@ A good introductory paper for Kalman filters can be found [here](https://www.cs.
  - Linear Body Velocity (e.g. Fixed Points, Cameras)
  - Angular Body Velocity (e.g. IMU Sensors)
  - Linear Body Acceleration (e.g. IMU Sensors)
+ - Heading (e.g. Magnetometer in IMU Sensors)
  
 ### Supported States
 

@@ -1,12 +1,12 @@
 plugins {
    id("us.ihmc.ihmc-build") version "0.15.7"
-   id("us.ihmc.ihmc-ci") version "4.23"
+   id("us.ihmc.ihmc-ci") version "4.25"
    id("us.ihmc.ihmc-cd") version "0.1"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.2.7"
+   version = "0.2.8"
    openSource = true
    
    configureDependencyResolution()
