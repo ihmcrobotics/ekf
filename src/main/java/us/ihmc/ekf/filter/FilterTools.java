@@ -2,8 +2,6 @@ package us.ihmc.ekf.filter;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.IntSupplier;
-import java.util.function.ToIntFunction;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -57,8 +55,24 @@ public class FilterTools
    public static void insertForVelocity(DenseMatrix64F matrixToPack, List<String> oneDofJointNames, DenseMatrix64F matrixToInsert,
                                         RobotStateIndexProvider indexProvider)
    {
-      insertInternal(matrixToPack, oneDofJointNames, matrixToInsert, indexProvider.getSize(), indexProvider::findJointVelocityIndex, indexProvider.isFloating(),
-                     indexProvider::findAngularVelocityIndex, indexProvider::findLinearVelocityIndex);
+      int rows = matrixToInsert.getNumRows();
+      matrixToPack.reshape(rows, indexProvider.getSize());
+      matrixToPack.zero();
+      int index = 0;
+
+      if (indexProvider.isFloating())
+      {
+         CommonOps.extract(matrixToInsert, 0, rows, 0, 3, matrixToPack, 0, indexProvider.findAngularVelocityIndex());
+         CommonOps.extract(matrixToInsert, 0, rows, 3, 6, matrixToPack, 0, indexProvider.findLinearVelocityIndex());
+         index += Twist.SIZE;
+      }
+
+      for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
+      {
+         int indexInState = indexProvider.findJointVelocityIndex(oneDofJointNames.get(jointIndex));
+         CommonOps.extract(matrixToInsert, 0, rows, index, index + 1, matrixToPack, 0, indexInState);
+         index++;
+      }
    }
 
    /**
@@ -87,28 +101,21 @@ public class FilterTools
    public static void insertForAcceleration(DenseMatrix64F matrixToPack, List<String> oneDofJointNames, DenseMatrix64F matrixToInsert,
                                             RobotStateIndexProvider indexProvider)
    {
-      insertInternal(matrixToPack, oneDofJointNames, matrixToInsert, indexProvider.getSize(), indexProvider::findJointAccelerationIndex,
-                     indexProvider.isFloating(), indexProvider::findAngularAccelerationIndex, indexProvider::findLinearAccelerationIndex);
-   }
-
-   private static void insertInternal(DenseMatrix64F matrixToPack, List<String> oneDofJointNames, DenseMatrix64F matrixToInsert, int size,
-                                      ToIntFunction<String> jointIndexMap, boolean floating, IntSupplier angularStart, IntSupplier linearStart)
-   {
       int rows = matrixToInsert.getNumRows();
-      matrixToPack.reshape(rows, size);
+      matrixToPack.reshape(rows, indexProvider.getSize());
       matrixToPack.zero();
       int index = 0;
 
-      if (floating)
+      if (indexProvider.isFloating())
       {
-         CommonOps.extract(matrixToInsert, 0, rows, 0, 3, matrixToPack, 0, angularStart.getAsInt());
-         CommonOps.extract(matrixToInsert, 0, rows, 3, 6, matrixToPack, 0, linearStart.getAsInt());
+         CommonOps.extract(matrixToInsert, 0, rows, 0, 3, matrixToPack, 0, indexProvider.findAngularAccelerationIndex());
+         CommonOps.extract(matrixToInsert, 0, rows, 3, 6, matrixToPack, 0, indexProvider.findLinearAccelerationIndex());
          index += Twist.SIZE;
       }
 
       for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
       {
-         int indexInState = jointIndexMap.applyAsInt(oneDofJointNames.get(jointIndex));
+         int indexInState = indexProvider.findJointAccelerationIndex(oneDofJointNames.get(jointIndex));
          CommonOps.extract(matrixToInsert, 0, rows, index, index + 1, matrixToPack, 0, indexInState);
          index++;
       }
@@ -133,8 +140,24 @@ public class FilterTools
     */
    public static void packQd(DenseMatrix64F qdToPack, List<String> oneDofJointNames, DenseMatrix64F stateVector, RobotStateIndexProvider indexProvider)
    {
-      packInternal(qdToPack, oneDofJointNames, stateVector, indexProvider::findJointVelocityIndex, indexProvider.isFloating(),
-                   indexProvider::findAngularVelocityIndex, indexProvider::findLinearVelocityIndex);
+      qdToPack.reshape(oneDofJointNames.size() + (indexProvider.isFloating() ? Twist.SIZE : 0), 1);
+      int index = 0;
+
+      if (indexProvider.isFloating())
+      {
+         int angularIndex = indexProvider.findAngularVelocityIndex();
+         int linearIndex = indexProvider.findLinearVelocityIndex();
+         CommonOps.extract(stateVector, angularIndex, angularIndex + 3, 0, 1, qdToPack, 0, 0);
+         CommonOps.extract(stateVector, linearIndex, linearIndex + 3, 0, 1, qdToPack, 3, 0);
+         index += 6;
+      }
+
+      for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
+      {
+         int indexInState = indexProvider.findJointVelocityIndex(oneDofJointNames.get(jointIndex));
+         qdToPack.set(index, stateVector.get(indexInState));
+         index++;
+      }
    }
 
    /**
@@ -156,20 +179,13 @@ public class FilterTools
     */
    public static void packQdd(DenseMatrix64F qddToPack, List<String> oneDofJointNames, DenseMatrix64F stateVector, RobotStateIndexProvider indexProvider)
    {
-      packInternal(qddToPack, oneDofJointNames, stateVector, indexProvider::findJointAccelerationIndex, indexProvider.isFloating(),
-                   indexProvider::findAngularAccelerationIndex, indexProvider::findLinearAccelerationIndex);
-   }
-
-   public static void packInternal(DenseMatrix64F qddToPack, List<String> oneDofJointNames, DenseMatrix64F stateVector, ToIntFunction<String> jointIndexMap,
-                                   boolean floating, IntSupplier angularStart, IntSupplier linearStart)
-   {
-      qddToPack.reshape(oneDofJointNames.size() + (floating ? Twist.SIZE : 0), 1);
+      qddToPack.reshape(oneDofJointNames.size() + (indexProvider.isFloating() ? Twist.SIZE : 0), 1);
       int index = 0;
 
-      if (floating)
+      if (indexProvider.isFloating())
       {
-         int angularIndex = angularStart.getAsInt();
-         int linearIndex = linearStart.getAsInt();
+         int angularIndex = indexProvider.findAngularAccelerationIndex();
+         int linearIndex = indexProvider.findLinearAccelerationIndex();
          CommonOps.extract(stateVector, angularIndex, angularIndex + 3, 0, 1, qddToPack, 0, 0);
          CommonOps.extract(stateVector, linearIndex, linearIndex + 3, 0, 1, qddToPack, 3, 0);
          index += 6;
@@ -177,7 +193,7 @@ public class FilterTools
 
       for (int jointIndex = 0; jointIndex < oneDofJointNames.size(); jointIndex++)
       {
-         int indexInState = jointIndexMap.applyAsInt(oneDofJointNames.get(jointIndex));
+         int indexInState = indexProvider.findJointAccelerationIndex(oneDofJointNames.get(jointIndex));
          qddToPack.set(index, stateVector.get(indexInState));
          index++;
       }
