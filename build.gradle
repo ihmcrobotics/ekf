@@ -1,12 +1,12 @@
 plugins {
-   id("us.ihmc.ihmc-build") version "0.16.5"
-   id("us.ihmc.ihmc-ci") version "4.25"
-   id("us.ihmc.ihmc-cd") version "0.1"
+   id("us.ihmc.ihmc-build") version "0.20.1"
+   id("us.ihmc.ihmc-ci") version "5.3"
+   id("us.ihmc.ihmc-cd") version "1.8"
 }
 
 ihmc {
    group = "us.ihmc"
-   version = "0.2.10"
+   version = "0.3.0"
    openSource = true
    
    configureDependencyResolution()
@@ -14,28 +14,29 @@ ihmc {
 }
 
 mainDependencies {
-    compile group: "com.google.guava", name: "guava", version: "18.0"
-    compile group: "org.ejml", name: "dense64", version: "0.30"
-    compile group: "org.ejml", name: "core", version: "0.30"
-    compile group: "us.ihmc", name: "euclid", version: "0.12.0"
-    compile group: "us.ihmc", name: "euclid-geometry", version: "0.12.0"
-    compile group: "us.ihmc", name: "euclid-frame", version: "0.12.0"
-    compile group: "us.ihmc", name: "mecano", version: "0.0.20"
-    compile group: "us.ihmc", name: "ihmc-commons", version: "0.26.3"
-    compile group: "us.ihmc", name: "ihmc-native-library-loader", version: "1.1"
-    compile group: "us.ihmc", name: "ihmc-yovariables", version: "0.3.11"
+    api("com.google.guava:guava:18.0")
+    api("org.ejml:dense64:0.30")
+    api("org.ejml:core:0.30")
+
+    api("us.ihmc:euclid:0.12.2")
+    api("us.ihmc:euclid-geometry:0.12.2")
+    api("us.ihmc:euclid-frame:0.12.2")
+    api("us.ihmc:mecano:0.0.22")
+    api("us.ihmc:ihmc-commons:0.26.6")
+    api("us.ihmc:ihmc-native-library-loader:1.2.1")
+    api("us.ihmc:ihmc-yovariables:0.4.0")
 }
 
 testDependencies {
     compile ihmc.sourceSetProject("main")
 
-    compile group: "us.ihmc", name: "ihmc-commons-testing", version: "0.26.3"
-    compile group: "org.ejml", name: "simple", version: "0.30"
-    compile group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
+    api("us.ihmc:ihmc-commons-testing:0.26.6")
+    api("org.ejml:simple:0.30")
+    api("net.sf.trove4j:trove4j:3.0.3")
 }
 
 visualizersDependencies {
     compile ihmc.sourceSetProject("main")
 
-    compile group: "us.ihmc", name: "simulation-construction-set", version: "0.12.13"
+    api("us.ihmc:simulation-construction-set:0.13.0")
 }
