@@ -19,14 +19,8 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.ModelFileType;
-import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphicsDescription.appearance.HeightBasedTerrainBlend;
-import us.ihmc.graphicsDescription.appearance.SDFAppearance;
-import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.graphicsDescription.appearance.YoAppearanceMaterial;
-import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
+import us.ihmc.graphicsDescription.appearance.*;
 import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
-
 
 public class SDFGraphics3DObject extends LinkGraphicsDescription
 {
@@ -39,18 +33,29 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
 
    public SDFGraphics3DObject(List<? extends AbstractSDFMesh> sdfVisuals, List<String> resourceDirectories)
    {
-      this(sdfVisuals, resourceDirectories, new RigidBodyTransform());
+      this(sdfVisuals, resourceDirectories, (ClassLoader) null);
+   }
+
+   public SDFGraphics3DObject(List<? extends AbstractSDFMesh> sdfVisuals, List<String> resourceDirectories, ClassLoader resourceClassLoader)
+   {
+      this(sdfVisuals, resourceDirectories, resourceClassLoader, new RigidBodyTransform());
    }
 
    public SDFGraphics3DObject(List<? extends AbstractSDFMesh> sdfVisuals, List<String> resourceDirectories, RigidBodyTransform graphicsTransform)
+   {
+      this(sdfVisuals, resourceDirectories, null, graphicsTransform);
+   }
+
+   public SDFGraphics3DObject(List<? extends AbstractSDFMesh> sdfVisuals, List<String> resourceDirectories, ClassLoader resourceClassLoader,
+                              RigidBodyTransform graphicsTransform)
    {
       RotationMatrix rotation = new RotationMatrix();
       Vector3D offset = new Vector3D();
       graphicsTransform.get(rotation, offset);
 
-      if(sdfVisuals != null)
+      if (sdfVisuals != null)
       {
-         for(AbstractSDFMesh sdfVisual : sdfVisuals)
+         for (AbstractSDFMesh sdfVisual : sdfVisuals)
          {
             identity();
             translate(offset);
@@ -68,23 +73,23 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
             translate(modelOffset);
             rotate(modelRotation);
             AppearanceDefinition appearance = null;
-            if(sdfVisual.getMaterial() != null)
+            if (sdfVisual.getMaterial() != null)
             {
-               if(sdfVisual.getMaterial().getScript() != null)
+               if (sdfVisual.getMaterial().getScript() != null)
                {
                   ArrayList<String> resourceUrls = new ArrayList<>();
 
-                  if(sdfVisual.getMaterial().getScript().getUri() != null)
+                  if (sdfVisual.getMaterial().getScript().getUri() != null)
                   {
-                     for(String uri : sdfVisual.getMaterial().getScript().getUri())
+                     for (String uri : sdfVisual.getMaterial().getScript().getUri())
                      {
-                        if(uri.equals("__default__"))
+                        if (uri.equals("__default__"))
                         {
                            resourceUrls.add("/scripts/gazebo.material");
                         }
                         else
                         {
-                           String id = convertToResourceIdentifier(resourceDirectories, uri);
+                           String id = convertToResourceIdentifier(resourceDirectories, resourceClassLoader, uri);
                            resourceUrls.add(id);
                         }
                      }
@@ -118,45 +123,45 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
 
             SDFGeometry geometry = sdfVisual.getGeometry();
             Mesh mesh = geometry.getMesh();
-            if(mesh != null)
+            if (mesh != null)
             {
-               String resourceUrl = convertToResourceIdentifier(resourceDirectories, mesh.getUri());
-               if(mesh.getScale() != null)
+               String resourceUrl = convertToResourceIdentifier(resourceDirectories, resourceClassLoader, mesh.getUri());
+               if (mesh.getScale() != null)
                {
                   Vector3D scale = ModelFileLoaderConversionsHelper.stringToVector3d(mesh.getScale());
                   scale(scale);
                }
                String submesh = null;
                boolean centerSubmesh = false;
-               if(mesh.getSubmesh() != null)
+               if (mesh.getSubmesh() != null)
                {
                   submesh = mesh.getSubmesh().getName().trim();
                   centerSubmesh = mesh.getSubmesh().getCenter().trim().equals("1") || mesh.getSubmesh().getCenter().trim().equals("true");
                }
-               addMesh(resourceUrl, submesh, centerSubmesh, visualPose, appearance, resourceDirectories);
+               addMesh(resourceUrl, submesh, centerSubmesh, visualPose, appearance, resourceDirectories, resourceClassLoader);
             }
-            else if(geometry.getCylinder() != null)
+            else if (geometry.getCylinder() != null)
             {
                double length = Double.parseDouble(geometry.getCylinder().getLength());
                double radius = Double.parseDouble(geometry.getCylinder().getRadius());
-               translate(0.0, 0.0, -length/2.0);
+               translate(0.0, 0.0, -length / 2.0);
                addCylinder(length, radius, getDefaultAppearanceIfNull(appearance));
             }
-            else if(geometry.getBox() != null)
+            else if (geometry.getBox() != null)
             {
                String[] boxDimensions = geometry.getBox().getSize().split(" ");
                double bx = Double.parseDouble(boxDimensions[0]);
                double by = Double.parseDouble(boxDimensions[1]);
                double bz = Double.parseDouble(boxDimensions[2]);
-               translate(0.0, 0.0, -bz/2.0);
+               translate(0.0, 0.0, -bz / 2.0);
                addCube(bx, by, bz, getDefaultAppearanceIfNull(appearance));
             }
-            else if(geometry.getSphere() != null)
+            else if (geometry.getSphere() != null)
             {
                double radius = Double.parseDouble(geometry.getSphere().getRadius());
                addSphere(radius, getDefaultAppearanceIfNull(appearance));
             }
-            else if(geometry.getPlane() != null)
+            else if (geometry.getPlane() != null)
             {
                Vector3D normal = ModelFileLoaderConversionsHelper.stringToNormalizedVector3d(geometry.getPlane().getNormal());
                Vector2D size = ModelFileLoaderConversionsHelper.stringToVector2d(geometry.getPlane().getSize());
@@ -165,26 +170,26 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
                rotate(planeRotation);
                addCube(size.getX(), size.getY(), 0.005, getDefaultAppearanceIfNull(appearance));
             }
-            else if(geometry.getHeightMap() != null)
+            else if (geometry.getHeightMap() != null)
             {
-               String id = convertToResourceIdentifier(resourceDirectories, geometry.getHeightMap().getUri());
+               String id = convertToResourceIdentifier(resourceDirectories, resourceClassLoader, geometry.getHeightMap().getUri());
                SDFHeightMap heightMap = new SDFHeightMap(id, geometry.getHeightMap());
 
-
                AppearanceDefinition app = DEFAULT_APPEARANCE;
-               if(geometry.getHeightMap().getTextures() != null)
+               if (geometry.getHeightMap().getTextures() != null)
                {
                   double width = heightMap.getBoundingBox().getMaxX() - heightMap.getBoundingBox().getMinX();
                   HeightBasedTerrainBlend sdfTerrainBlend = new HeightBasedTerrainBlend(heightMap);
-                  for(Texture text : geometry.getHeightMap().getTextures())
+                  for (Texture text : geometry.getHeightMap().getTextures())
                   {
                      double size = Double.parseDouble(text.getSize());
-                     double scale = width/size;
-                     sdfTerrainBlend.addTexture(scale, convertToResourceIdentifier(resourceDirectories, text.getDiffuse()),
-                           convertToResourceIdentifier(resourceDirectories, text.getNormal()));
+                     double scale = width / size;
+                     sdfTerrainBlend.addTexture(scale,
+                                                convertToResourceIdentifier(resourceDirectories, resourceClassLoader, text.getDiffuse()),
+                                                convertToResourceIdentifier(resourceDirectories, resourceClassLoader, text.getNormal()));
                   }
 
-                  for(Blend blend : geometry.getHeightMap().getBlends())
+                  for (Blend blend : geometry.getHeightMap().getBlends())
                   {
                      sdfTerrainBlend.addBlend(Double.parseDouble(blend.getMinHeight()), Double.parseDouble(blend.getFadeDist()));
                   }
@@ -201,14 +206,13 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
 
             }
 
-
          }
       }
    }
 
    private static AppearanceDefinition getDefaultAppearanceIfNull(AppearanceDefinition appearance)
    {
-      if(appearance == null)
+      if (appearance == null)
       {
          return DEFAULT_APPEARANCE;
       }
@@ -218,7 +222,8 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
       }
    }
 
-   private void addMesh(String mesh, String submesh, boolean centerSubmesh, RigidBodyTransform visualPose, AppearanceDefinition appearance, List<String> resourceDirectories)
+   private void addMesh(String mesh, String submesh, boolean centerSubmesh, RigidBodyTransform visualPose, AppearanceDefinition appearance,
+                        List<String> resourceDirectories, ClassLoader resourceClassLoader)
    {
 
       // STL files do not have appearances
@@ -226,12 +231,12 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
       {
          appearance = getDefaultAppearanceIfNull(appearance);
       }
-      addModelFile(mesh, submesh, centerSubmesh, resourceDirectories, appearance);
+      addModelFile(mesh, submesh, centerSubmesh, resourceDirectories, resourceClassLoader, appearance);
    }
 
-   private String convertToResourceIdentifier(List<String> resourceDirectories, String meshPath)
+   private String convertToResourceIdentifier(List<String> resourceDirectories, ClassLoader resourceClassLoader, String meshPath)
    {
-      if(meshPath.equals("__default__"))
+      if (meshPath.equals("__default__"))
       {
          meshPath = "file://media/materials/scripts/gazebo.material";
       }
@@ -241,21 +246,23 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
 
       if (resourceDirectories.size() == 0)
       {
-         String id = tryConversion(meshPath, "");
-         if (id != null) return id;
+         String id = tryConversion(meshPath, "", resourceClassLoader);
+         if (id != null)
+            return id;
       }
 
       for (String resourceDirectory : resourceDirectories)
       {
-         String id = tryConversion(meshPath, resourceDirectory);
-         if (id != null) return id;
+         String id = tryConversion(meshPath, resourceDirectory, resourceClassLoader);
+         if (id != null)
+            return id;
       }
 
       System.out.println(meshPath);
       throw new RuntimeException("Resource not found: " + meshPath);
    }
 
-   private String tryConversion(String meshPath, String resourceDirectory)
+   private String tryConversion(String meshPath, String resourceDirectory, ClassLoader resourceClassLoader)
    {
       try
       {
@@ -263,10 +270,12 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
 
          String authority = meshURI.getAuthority() == null ? "" : meshURI.getAuthority();
          String id = resourceDirectory + authority + meshURI.getPath();
-//            System.out.println("PATH: " + meshURI.getPath());
-//            System.out.println("AUTH: " + meshURI.getAuthority());
-//            System.out.println("ID: " + id);
-         URL resource = getClass().getClassLoader().getResource(id);
+         //            System.out.println("PATH: " + meshURI.getPath());
+         //            System.out.println("AUTH: " + meshURI.getAuthority());
+         //            System.out.println("ID: " + id);
+         if (resourceClassLoader == null)
+            resourceClassLoader = getClass().getClassLoader();
+         URL resource = resourceClassLoader.getResource(id);
          // Path relative to class root
          if (resource != null)
          {
@@ -276,7 +285,7 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
          File f = new File(id);
          if (f.exists())
          {
-          return id;
+            return id;
          }
       }
       catch (URISyntaxException e)
@@ -287,4 +296,3 @@ public class SDFGraphics3DObject extends LinkGraphicsDescription
       return null;
    }
 }
-
