@@ -116,7 +116,7 @@ public class PoseState extends State
    {
       twist.checkReferenceFrameMatch(bodyFrame, bodyFrame.getParent(), bodyFrame);
 
-      transform.getRotation(orientation);
+      orientation.set(transform.getRotation());
       stateVector.set(orientationStart + 0, 0.0);
       stateVector.set(orientationStart + 1, 0.0);
       stateVector.set(orientationStart + 2, 0.0);
@@ -129,7 +129,7 @@ public class PoseState extends State
       stateVector.set(angularAccelerationStart + 1, 0.0);
       stateVector.set(angularAccelerationStart + 2, 0.0);
 
-      transform.getTranslationVector().get(positionStart, stateVector);
+      transform.getTranslation().get(positionStart, stateVector);
 
       stateVector.set(linearVelocityStart + 0, twist.getLinearPartX());
       stateVector.set(linearVelocityStart + 1, twist.getLinearPartY());
@@ -273,10 +273,10 @@ public class PoseState extends State
 
    public void getTransform(RigidBodyTransform transformToPack)
    {
-      transformToPack.setRotation(orientation);
-      transformToPack.setTranslationX(stateVector.get(positionStart + 0));
-      transformToPack.setTranslationY(stateVector.get(positionStart + 1));
-      transformToPack.setTranslationZ(stateVector.get(positionStart + 2));
+      transformToPack.getRotation().set(orientation);
+      transformToPack.getTranslation().setX(stateVector.get(positionStart + 0));
+      transformToPack.getTranslation().setY(stateVector.get(positionStart + 1));
+      transformToPack.getTranslation().setZ(stateVector.get(positionStart + 2));
    }
 
    public void getTwist(Twist twistToPack)
