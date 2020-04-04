@@ -201,7 +201,7 @@ public class SDFJointHolder
 
       transformToParentJoint = parentJointToChildJoint;
 
-      parentJointToChildJoint.getTranslation(offsetFromParentJoint);
+      offsetFromParentJoint.set(parentJointToChildJoint.getTranslation());
       rotationTransform.transform(offsetFromParentJoint);
 
       linkRotation.transform(axisInModelFrame, axisInParentFrame);
