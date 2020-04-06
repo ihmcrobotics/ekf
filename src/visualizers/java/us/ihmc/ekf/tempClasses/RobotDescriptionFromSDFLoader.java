@@ -2,18 +2,14 @@ package us.ihmc.ekf.tempClasses;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.math3.util.Precision;
 
+import us.ihmc.commons.PrintTools;
 import us.ihmc.ekf.tempClasses.SDFSensor.Camera;
 import us.ihmc.ekf.tempClasses.SDFSensor.IMU;
 import us.ihmc.ekf.tempClasses.SDFSensor.IMU.IMUNoise;
@@ -30,22 +26,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.log.LogTools;
-import us.ihmc.robotics.robotDescription.CameraSensorDescription;
-import us.ihmc.robotics.robotDescription.CollisionMeshDescription;
-import us.ihmc.robotics.robotDescription.ExternalForcePointDescription;
-import us.ihmc.robotics.robotDescription.FloatingJointDescription;
-import us.ihmc.robotics.robotDescription.ForceSensorDescription;
-import us.ihmc.robotics.robotDescription.GroundContactPointDescription;
-import us.ihmc.robotics.robotDescription.IMUSensorDescription;
-import us.ihmc.robotics.robotDescription.InertiaTools;
-import us.ihmc.robotics.robotDescription.JointDescription;
-import us.ihmc.robotics.robotDescription.LidarSensorDescription;
-import us.ihmc.robotics.robotDescription.LinkDescription;
-import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
-import us.ihmc.robotics.robotDescription.PinJointDescription;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.robotics.robotDescription.SliderJointDescription;
+import us.ihmc.robotics.robotDescription.*;
 
 public class RobotDescriptionFromSDFLoader
 {
@@ -59,38 +40,47 @@ public class RobotDescriptionFromSDFLoader
    private LinkedHashMap<String, JointDescription> jointDescriptions = new LinkedHashMap<>();
 
    private boolean useShapeCollision = false;
+   private ClassLoader resourceClassLoader;
 
    public RobotDescriptionFromSDFLoader()
    {
    }
 
-   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap<?> jointNameMap, boolean useShapeCollision)
+   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap jointNameMap, boolean useShapeCollision)
    {
       this.useShapeCollision = useShapeCollision;
       return loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointNameMap, null, false);
    }
 
    public RobotDescription loadRobotDescriptionFromSDF(String modelName, InputStream inputStream, List<String> resourceDirectories,
-                                                       SDFDescriptionMutator mutator, JointNameMap<?> jointNameMap,
+                                                       SDFDescriptionMutator mutator, JointNameMap jointNameMap,
                                                        ContactPointDefinitionHolder contactPointHolder, boolean useCollisionMeshes)
    {
       GeneralizedSDFRobotModel generalizedSDFRobotModel = loadSDFFile(modelName, inputStream, resourceDirectories, mutator);
       return loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointNameMap, contactPointHolder, useCollisionMeshes);
    }
 
-   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap<?> jointNameMap,
+   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap jointNameMap,
                                                        ContactPointDefinitionHolder contactPointHolder, boolean useCollisionMeshes)
    {
-      this.resourceDirectories = generalizedSDFRobotModel.getResourceDirectories();
+      return loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointNameMap, contactPointHolder, useCollisionMeshes, Double.NaN);
+   }
 
-      RobotDescription robotDescription = loadModelFromSDF(generalizedSDFRobotModel, jointNameMap, useCollisionMeshes);
+   public RobotDescription loadRobotDescriptionFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap jointNameMap,
+                                                       ContactPointDefinitionHolder contactPointHolder, boolean useCollisionMeshes, double transparency)
+   {
+      this.resourceDirectories = generalizedSDFRobotModel.getResourceDirectories();
+      this.resourceClassLoader = generalizedSDFRobotModel.getResourceClassLoader();
+
+      RobotDescription robotDescription = loadModelFromSDF(generalizedSDFRobotModel, jointNameMap, useCollisionMeshes, transparency);
 
       if (jointNameMap != null && !Precision.equals(jointNameMap.getModelScale(), 1.0, 1))
       {
          System.out.println("Scaling " + jointNameMap.getModelName() + " with factor " + jointNameMap.getModelScale() + ", mass scale power "
                + jointNameMap.getMassScalePower());
          // Scale the robotDescription before adding points from the jointMap
-         robotDescription.scale(jointNameMap.getModelScale(), jointNameMap.getMassScalePower(),
+         robotDescription.scale(jointNameMap.getModelScale(),
+                                jointNameMap.getMassScalePower(),
                                 Arrays.asList(jointNameMap.getHighInertiaForStableSimulationJoints()));
          // Everything from here on will be done in "scaled robot coordinates"
       }
@@ -118,7 +108,8 @@ public class RobotDescriptionFromSDFLoader
          Vector3D gcOffset = jointContactPoint.getRight();
 
          GroundContactPointDescription groundContactPoint = new GroundContactPointDescription("gc_"
-               + ModelFileLoaderConversionsHelper.sanitizeJointName(jointName) + "_" + count++, gcOffset,
+               + ModelFileLoaderConversionsHelper.sanitizeJointName(jointName) + "_" + count++,
+                                                                                              gcOffset,
                                                                                               contactPointHolder.getGroupIdentifier(jointContactPoint));
          ExternalForcePointDescription externalForcePoint = new ExternalForcePointDescription("ef_"
                + ModelFileLoaderConversionsHelper.sanitizeJointName(jointName) + "_" + count++, gcOffset);
@@ -145,7 +136,8 @@ public class RobotDescriptionFromSDFLoader
       }
    }
 
-   private RobotDescription loadModelFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap<?> jointNameMap, boolean useCollisionMeshes)
+   private RobotDescription loadModelFromSDF(GeneralizedSDFRobotModel generalizedSDFRobotModel, JointNameMap jointNameMap, boolean useCollisionMeshes,
+                                             double transparency)
    {
       String name = generalizedSDFRobotModel.getName();
       RobotDescription robotDescription = new RobotDescription(name);
@@ -164,6 +156,8 @@ public class RobotDescriptionFromSDFLoader
       generalizedSDFRobotModel.getTransformToRoot().get(orientation, offset);
       FloatingJointDescription rootJointDescription = new FloatingJointDescription(rootLink.getName());
 
+      if (!Double.isNaN(transparency))
+         rootLink.getVisuals().forEach(visual -> visual.setTransparency(Double.toString(transparency)));
       LinkDescription rootLinkDescription = createLinkDescription(rootLink, new RigidBodyTransform(), useCollisionMeshes);
       rootJointDescription.setLink(rootLinkDescription);
       addSensors(rootJointDescription, rootLink);
@@ -185,7 +179,7 @@ public class RobotDescriptionFromSDFLoader
          {
             lastSimulatedJoints = new HashSet<>();
          }
-         addJointsRecursively(child, rootJointDescription, useCollisionMeshes, lastSimulatedJoints, false, jointNameMap);
+         addJointsRecursively(child, rootJointDescription, useCollisionMeshes, lastSimulatedJoints, false, jointNameMap, transparency);
       }
 
       // Ground contact points from model
@@ -213,12 +207,12 @@ public class RobotDescriptionFromSDFLoader
 
          try
          {
-            linkGraphicsDescription = new SDFGraphics3DObject(link.getVisuals(), resourceDirectories, rotationTransform);
+            linkGraphicsDescription = new SDFGraphics3DObject(link.getVisuals(), resourceDirectories, resourceClassLoader, rotationTransform);
          }
          catch (Throwable e)
          {
-            LogTools.warn(e.getMessage());
-            LogTools.warn("Could not load visuals for link " + link.getName() + "! Using an empty LinkGraphicsDescription.");
+            PrintTools.warn(this, e.getMessage());
+            PrintTools.warn(this, "Could not load visuals for link " + link.getName() + "! Using an empty LinkGraphicsDescription.");
 
             if (DEBUG)
             {
@@ -265,13 +259,19 @@ public class RobotDescriptionFromSDFLoader
    }
 
    protected void addJointsRecursively(SDFJointHolder joint, JointDescription scsParentJoint, boolean useCollisionMeshes, Set<String> lastSimulatedJoints,
-                                       boolean doNotSimulateJoint, JointNameMap<?> jointNameMap)
+                                       boolean doNotSimulateJoint, JointNameMap jointNameMap)
+   {
+      addJointsRecursively(joint, scsParentJoint, useCollisionMeshes, lastSimulatedJoints, doNotSimulateJoint, jointNameMap, Double.NaN);
+   }
+
+   protected void addJointsRecursively(SDFJointHolder joint, JointDescription scsParentJoint, boolean useCollisionMeshes, Set<String> lastSimulatedJoints,
+                                       boolean doNotSimulateJoint, JointNameMap jointNameMap, double transparency)
    {
       Vector3D jointAxis = new Vector3D(joint.getAxisInModelFrame());
       Vector3D offset = new Vector3D(joint.getOffsetFromParentJoint());
 
       RigidBodyTransform visualTransform = new RigidBodyTransform();
-      visualTransform.setRotation(joint.getLinkRotation());
+      visualTransform.getRotation().set(joint.getLinkRotation());
 
       String sanitizedJointName = ModelFileLoaderConversionsHelper.sanitizeJointName(joint.getName());
 
@@ -279,91 +279,93 @@ public class RobotDescriptionFromSDFLoader
 
       switch (joint.getType())
       {
-      case REVOLUTE:
-         PinJointDescription pinJoint = new PinJointDescription(sanitizedJointName, offset, jointAxis);
+         case REVOLUTE:
+            PinJointDescription pinJoint = new PinJointDescription(sanitizedJointName, offset, jointAxis);
 
-         if (joint.hasLimits() && jointNameMap != null)
-         {
-            if (isJointInNeedOfReducedGains(joint))
+            if (joint.hasLimits() && jointNameMap != null)
             {
-               pinJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 10.0, 2.5);
-            }
-            else
-            {
-               if ((joint.getContactKd() == 0.0) && (joint.getContactKp() == 0.0))
+               if (isJointInNeedOfReducedGains(joint))
                {
-                  double kLimit = jointNameMap.getDefaultKLimit();
-                  double bLimit = jointNameMap.getDefaultBLimit();
-                  pinJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), kLimit, bLimit);
+                  pinJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 10.0, 2.5);
                }
                else
                {
-                  pinJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 0.0001 * joint.getContactKp(), 0.1 * joint.getContactKd());
+                  if ((joint.getContactKd() == 0.0) && (joint.getContactKp() == 0.0))
+                  {
+                     double kLimit = jointNameMap.getDefaultKLimit();
+                     double bLimit = jointNameMap.getDefaultBLimit();
+                     pinJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), kLimit, bLimit);
+                  }
+                  else
+                  {
+                     pinJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 0.0001 * joint.getContactKp(), 0.1 * joint.getContactKd());
+                  }
+
+                  if (!Double.isNaN(joint.getVelocityLimit()) && joint.getVelocityLimit() >= 0.0)
+                  {
+                     pinJoint.setVelocityLimits(joint.getVelocityLimit(), 0.0);
+                  }
+                  //System.out.println("SDFRobot: joint.getVelocityLimit()=" + joint.getVelocityLimit());
+
+               }
+            }
+
+            pinJoint.setDamping(joint.getDamping());
+            pinJoint.setStiction(joint.getFriction());
+
+            if (!isJointInNeedOfReducedGains(joint))
+            {
+               if (!Double.isNaN(joint.getEffortLimit()) && joint.getEffortLimit() >= 0.0)
+               {
+                  pinJoint.setEffortLimit(joint.getEffortLimit());
                }
 
                if (!Double.isNaN(joint.getVelocityLimit()) && joint.getVelocityLimit() >= 0.0)
                {
-                  pinJoint.setVelocityLimits(joint.getVelocityLimit(), 0.0);
+                  if (!isJointInNeedOfReducedGains(joint))
+                  {
+                     pinJoint.setVelocityLimits(joint.getVelocityLimit(), 500.0);
+                  }
                }
-               //System.out.println("SDFRobot: joint.getVelocityLimit()=" + joint.getVelocityLimit());
-
-            }
-         }
-
-         pinJoint.setDamping(joint.getDamping());
-         pinJoint.setStiction(joint.getFriction());
-
-         if (!isJointInNeedOfReducedGains(joint))
-         {
-            if (!Double.isNaN(joint.getEffortLimit()) && joint.getEffortLimit() >= 0.0)
-            {
-               pinJoint.setEffortLimit(joint.getEffortLimit());
             }
 
-            if (!Double.isNaN(joint.getVelocityLimit()) && joint.getVelocityLimit() >= 0.0)
+            //               oneDoFJoints.put(joint.getName(), pinJoint);
+            scsJoint = pinJoint;
+
+            break;
+
+         case PRISMATIC:
+            SliderJointDescription sliderJoint = new SliderJointDescription(sanitizedJointName, offset, jointAxis);
+            if (joint.hasLimits())
             {
-               if (!isJointInNeedOfReducedGains(joint))
+               if ((joint.getContactKd() == 0.0) && (joint.getContactKp() == 0.0))
                {
-                  pinJoint.setVelocityLimits(joint.getVelocityLimit(), 500.0);
+                  sliderJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 100.0, 20.0);
+               }
+               else
+               {
+                  sliderJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 0.0001 * joint.getContactKp(), joint.getContactKd());
                }
             }
-         }
 
-         //               oneDoFJoints.put(joint.getName(), pinJoint);
-         scsJoint = pinJoint;
+            sliderJoint.setDamping(joint.getDamping());
+            sliderJoint.setStiction(joint.getFriction());
 
-         break;
+            //               oneDoFJoints.put(joint.getName(), sliderJoint);
 
-      case PRISMATIC:
-         SliderJointDescription sliderJoint = new SliderJointDescription(sanitizedJointName, offset, jointAxis);
-         if (joint.hasLimits())
-         {
-            if ((joint.getContactKd() == 0.0) && (joint.getContactKp() == 0.0))
-            {
-               sliderJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 100.0, 20.0);
-            }
-            else
-            {
-               sliderJoint.setLimitStops(joint.getLowerLimit(), joint.getUpperLimit(), 0.0001 * joint.getContactKp(), joint.getContactKd());
-            }
-         }
+            scsJoint = sliderJoint;
 
-         sliderJoint.setDamping(joint.getDamping());
-         sliderJoint.setStiction(joint.getFriction());
+            break;
 
-         //               oneDoFJoints.put(joint.getName(), sliderJoint);
-
-         scsJoint = sliderJoint;
-
-         break;
-
-      default:
-         throw new RuntimeException("Joint type not implemented: " + joint.getType());
+         default:
+            throw new RuntimeException("Joint type not implemented: " + joint.getType());
       }
 
       if (doNotSimulateJoint)
          scsJoint.setIsDynamic(false);
 
+      if (!Double.isNaN(transparency))
+         joint.getChildLinkHolder().getVisuals().forEach(visual -> visual.setTransparency(Double.toString(transparency)));
       scsJoint.setLink(createLinkDescription(joint.getChildLinkHolder(), visualTransform, useCollisionMeshes));
       scsParentJoint.addJoint(scsJoint);
 
@@ -377,7 +379,7 @@ public class RobotDescriptionFromSDFLoader
 
       for (SDFJointHolder child : joint.getChildLinkHolder().getChildren())
       {
-         addJointsRecursively(child, scsJoint, useCollisionMeshes, lastSimulatedJoints, doNotSimulateJoint, jointNameMap);
+         addJointsRecursively(child, scsJoint, useCollisionMeshes, lastSimulatedJoints, doNotSimulateJoint, jointNameMap, transparency);
       }
 
    }
@@ -435,18 +437,18 @@ public class RobotDescriptionFromSDFLoader
          {
             switch (sensor.getType())
             {
-            case "camera":
-            case "multicamera":
-            case "depth":
-               addCameraMounts(sensor, scsJoint, child);
-               break;
-            case "imu":
-               addIMUMounts(sensor, scsJoint, child);
-               break;
-            case "gpu_ray":
-            case "ray":
-               addLidarMounts(sensor, scsJoint, child);
-               break;
+               case "camera":
+               case "multicamera":
+               case "depth":
+                  addCameraMounts(sensor, scsJoint, child);
+                  break;
+               case "imu":
+                  addIMUMounts(sensor, scsJoint, child);
+                  break;
+               case "gpu_ray":
+               case "ray":
+                  addLidarMounts(sensor, scsJoint, child);
+                  break;
             }
          }
       }
@@ -463,7 +465,7 @@ public class RobotDescriptionFromSDFLoader
          {
             // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
             RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
-            linkRotation.setTranslation(0.0, 0.0, 0.0);
+            linkRotation.getTranslation().set(0.0, 0.0, 0.0);
             RigidBodyTransform linkToSensor = ModelFileLoaderConversionsHelper.poseToTransform(sensor.getPose());
             RigidBodyTransform sensorToCamera = ModelFileLoaderConversionsHelper.poseToTransform(camera.getPose());
             RigidBodyTransform linkToCamera = new RigidBodyTransform();
@@ -505,7 +507,7 @@ public class RobotDescriptionFromSDFLoader
       {
          // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
          RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
-         linkRotation.setTranslation(0.0, 0.0, 0.0);
+         linkRotation.getTranslation().set(0.0, 0.0, 0.0);
          RigidBodyTransform linkToSensorInZUp = new RigidBodyTransform();
          linkToSensorInZUp.set(linkRotation);
          linkToSensorInZUp.multiply(ModelFileLoaderConversionsHelper.poseToTransform(sdfSensor.getPose()));
@@ -596,7 +598,7 @@ public class RobotDescriptionFromSDFLoader
 
          // The linkRotation transform is to make sure that the linkToSensor is in a zUpFrame.
          RigidBodyTransform linkRotation = new RigidBodyTransform(child.getTransformFromModelReferenceFrame());
-         linkRotation.setTranslation(0.0, 0.0, 0.0);
+         linkRotation.getTranslation().set(0.0, 0.0, 0.0);
          RigidBodyTransform linkToSensorInZUp = new RigidBodyTransform();
          linkToSensorInZUp.set(linkRotation);
          linkToSensorInZUp.multiply(ModelFileLoaderConversionsHelper.poseToTransform(sensor.getPose()));
@@ -626,7 +628,7 @@ public class RobotDescriptionFromSDFLoader
       }
    }
 
-   private void addForceSensorsIncludingDescendants(SDFJointHolder joint, JointNameMap<?> jointNameMap)
+   private void addForceSensorsIncludingDescendants(SDFJointHolder joint, JointNameMap jointNameMap)
    {
       addForceSensor(joint, jointNameMap);
 
@@ -636,7 +638,7 @@ public class RobotDescriptionFromSDFLoader
       }
    }
 
-   private void addForceSensor(SDFJointHolder joint, JointNameMap<?> jointNameMap)
+   private void addForceSensor(SDFJointHolder joint, JointNameMap jointNameMap)
    {
       if (joint.getForceSensors().size() > 0)
       {
@@ -666,4 +668,3 @@ public class RobotDescriptionFromSDFLoader
       }
    }
 }
-

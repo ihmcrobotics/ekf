@@ -197,8 +197,8 @@ public class LinearAccelerationSensor extends Sensor
          gravityTerm.setIncludingFrame(ReferenceFrame.getWorldFrame(), 0.0, 0.0, -robotState.getGravity());
          gravityTerm.changeFrame(measurementFrame);
          gravityPart.setToTildeForm(gravityTerm);
-         gravityPart.multiply(rootToMeasurement.getRotationMatrix());
-         gravityPart.multiply(rootTransform.getRotationMatrix());
+         gravityPart.multiply(rootToMeasurement.getRotation());
+         gravityPart.multiply(rootTransform.getRotation());
          gravityPart.get(0, robotState.findOrientationIndex(), gravityTermLinearization);
       }
 

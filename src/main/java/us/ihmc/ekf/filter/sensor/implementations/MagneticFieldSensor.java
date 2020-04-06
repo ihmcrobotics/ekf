@@ -117,8 +117,8 @@ public class MagneticFieldSensor extends Sensor
       baseFrame.getTransformToDesiredFrame(rootTransform, rootFrame);
 
       orientationJacobian.setToTildeForm(expectedMeasurement);
-      orientationJacobian.multiply(rootToMeasurement.getRotationMatrix());
-      orientationJacobian.multiply(rootTransform.getRotationMatrix());
+      orientationJacobian.multiply(rootToMeasurement.getRotation());
+      orientationJacobian.multiply(rootTransform.getRotation());
       orientationJacobian.get(0, robotState.findOrientationIndex(), jacobianToPack);
    }
 

@@ -8,7 +8,7 @@ import javax.xml.bind.JAXBException;
 
 public class DRCRobotSDFLoader
 {
-
+     
    public static JaxbSDFLoader loadDRCRobot(String[] resourceDirectories, InputStream sdfFile, SDFDescriptionMutator descriptionMutator)
    {
       ArrayList<String> resources = new ArrayList<String>();

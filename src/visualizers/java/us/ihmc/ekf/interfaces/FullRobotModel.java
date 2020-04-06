@@ -148,7 +148,7 @@ public class FullRobotModel
          FloatingJoint robotRootJoint = floatingRobot.getRootJoint();
          RigidBodyTransform rootToWorld = new RigidBodyTransform();
          robotRootJoint.getTransformToWorld(rootToWorld);
-         rootToWorld.normalizeRotationPart();
+         rootToWorld.getRotation().normalize();
          rootJoint.setJointConfiguration(rootToWorld);
 
          rootJoint.getPredecessor().updateFramesRecursively();

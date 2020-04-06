@@ -4,11 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -23,7 +19,6 @@ public class JaxbSDFLoader
    private final LinkedHashMap<String, GeneralizedSDFRobotModel> generalizedSDFRobotModels = new LinkedHashMap<String, GeneralizedSDFRobotModel>();
    private final ArrayList<SDFWorld.Road> roads = new ArrayList<SDFWorld.Road>();
 
-
    public JaxbSDFLoader(File file, List<String> resourceDirectories) throws JAXBException, FileNotFoundException
    {
       this(new FileInputStream(file), resourceDirectories);
@@ -31,7 +26,12 @@ public class JaxbSDFLoader
 
    public JaxbSDFLoader(InputStream inputStream, List<String> resourceDirectories) throws JAXBException, FileNotFoundException
    {
-      this(inputStream, resourceDirectories, null);
+      this(inputStream, resourceDirectories, (SDFDescriptionMutator) null);
+   }
+
+   public JaxbSDFLoader(InputStream inputStream, List<String> resourceDirectories, ClassLoader resourceClassLoader) throws JAXBException, FileNotFoundException
+   {
+      this(inputStream, resourceDirectories, resourceClassLoader, null);
    }
 
    public JaxbSDFLoader(File file, String resourceDirectory, SDFDescriptionMutator mutator) throws JAXBException, FileNotFoundException
@@ -39,13 +39,19 @@ public class JaxbSDFLoader
       this(new FileInputStream(file), Arrays.asList(resourceDirectory), mutator);
    }
 
-   public JaxbSDFLoader(InputStream inputStream, String[] resourceDirectories, SDFDescriptionMutator mutator) throws JAXBException, FileNotFoundException
+   public JaxbSDFLoader(InputStream inputStream, String[] resourceDirectories, SDFDescriptionMutator mutator)
+         throws JAXBException, FileNotFoundException
    {
       this(inputStream, Arrays.asList(resourceDirectories), mutator);
    }
 
-   public JaxbSDFLoader(InputStream inputStream, List<String> resourceDirectories, SDFDescriptionMutator mutator)
-           throws JAXBException, FileNotFoundException
+   public JaxbSDFLoader(InputStream inputStream, List<String> resourceDirectories, SDFDescriptionMutator mutator) throws JAXBException, FileNotFoundException
+   {
+      this(inputStream, resourceDirectories, null, mutator);
+   }
+
+   public JaxbSDFLoader(InputStream inputStream, List<String> resourceDirectories, ClassLoader resourceClassLoader, SDFDescriptionMutator mutator)
+         throws JAXBException, FileNotFoundException
    {
       if (inputStream == null)
       {
@@ -71,17 +77,20 @@ public class JaxbSDFLoader
          models = sdfRoot.getModels();
       }
 
+      if (resourceClassLoader == null)
+         resourceClassLoader = getClass().getClassLoader();
+
       for (SDFModel modelInstance : models)
       {
          final String modelName = modelInstance.getName();
 
-         generalizedSDFRobotModels.put(modelName, new GeneralizedSDFRobotModel(modelName, modelInstance, resourceDirectories, mutator));
+         generalizedSDFRobotModels.put(modelName, new GeneralizedSDFRobotModel(modelName, modelInstance, resourceDirectories, resourceClassLoader, mutator));
       }
    }
 
    public JaxbSDFLoader(File file, List<String> resourceDirectories, SDFDescriptionMutator mutator) throws FileNotFoundException, JAXBException
    {
-      this(new FileInputStream(file), resourceDirectories, mutator);
+      this(new FileInputStream(file), resourceDirectories, null, mutator);
    }
 
    public Collection<GeneralizedSDFRobotModel> getGeneralizedSDFRobotModels()
@@ -109,51 +118,51 @@ public class JaxbSDFLoader
       return generalizedSDFRobotModels.get(name);
    }
 
-//   public FloatingRootJointRobot createRobot(JointNameMap jointNameMap, boolean useCollisionMeshes)
-//   {
-//      return createRobot(jointNameMap.getModelName(), jointNameMap, useCollisionMeshes);
-//   }
-//
-//   public FloatingRootJointRobot createRobot(String modelName, boolean useCollisionMeshes)
-//   {
-//      return createRobot(modelName, null, useCollisionMeshes);
-//   }
-//
-//   private FloatingRootJointRobot createRobot(String modelName, JointNameMap jointNameMap, boolean useCollisionMeshes)
-//   {
-//      return createRobot(modelName, jointNameMap, useCollisionMeshes, true, true);
-//   }
-//
-//   public FloatingRootJointRobot createRobot(String modelName, JointNameMap jointNameMap, boolean useCollisionMeshes, boolean enableTorqueVelocityLimits,
-//           boolean enableJointDamping)
-//   {
-//      checkModelName(modelName);
-//
-//      GeneralizedSDFRobotModel generalizedSDFRobotModel = generalizedSDFRobotModels.get(modelName);
-//      RobotDescriptionFromSDFLoader loader = new RobotDescriptionFromSDFLoader();
-//      RobotDescription description = loader.loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointNameMap, useCollisionMeshes, enableTorqueVelocityLimits, enableJointDamping);
-//
-//      return new FloatingRootJointRobot(description);
-//   }
+   //   public FloatingRootJointRobot createRobot(JointNameMap jointNameMap, boolean useCollisionMeshes)
+   //   {
+   //      return createRobot(jointNameMap.getModelName(), jointNameMap, useCollisionMeshes);
+   //   }
+   //
+   //   public FloatingRootJointRobot createRobot(String modelName, boolean useCollisionMeshes)
+   //   {
+   //      return createRobot(modelName, null, useCollisionMeshes);
+   //   }
+   //
+   //   private FloatingRootJointRobot createRobot(String modelName, JointNameMap jointNameMap, boolean useCollisionMeshes)
+   //   {
+   //      return createRobot(modelName, jointNameMap, useCollisionMeshes, true, true);
+   //   }
+   //
+   //   public FloatingRootJointRobot createRobot(String modelName, JointNameMap jointNameMap, boolean useCollisionMeshes, boolean enableTorqueVelocityLimits,
+   //           boolean enableJointDamping)
+   //   {
+   //      checkModelName(modelName);
+   //
+   //      GeneralizedSDFRobotModel generalizedSDFRobotModel = generalizedSDFRobotModels.get(modelName);
+   //      RobotDescriptionFromSDFLoader loader = new RobotDescriptionFromSDFLoader();
+   //      RobotDescription description = loader.loadRobotDescriptionFromSDF(generalizedSDFRobotModel, jointNameMap, useCollisionMeshes, enableTorqueVelocityLimits, enableJointDamping);
+   //
+   //      return new FloatingRootJointRobot(description);
+   //   }
 
-   public void addForceSensor(JointNameMap<?> jointMap, String sensorName, String parentJointName, RigidBodyTransform transformToParentJoint)
+   public void addForceSensor(JointNameMap jointMap, String sensorName, String parentJointName, RigidBodyTransform transformToParentJoint)
    {
       generalizedSDFRobotModels.get(jointMap.getModelName()).addForceSensor(sensorName, parentJointName, transformToParentJoint);
    }
 
-   public void addContactSensor(JointNameMap<?> jointMap, String sensorName, String parentJointName, ContactSensorType type)
+   public void addContactSensor(JointNameMap jointMap, String sensorName, String parentJointName, ContactSensorType type)
    {
       generalizedSDFRobotModels.get(jointMap.getModelName()).addContactSensor(sensorName, parentJointName, type);
    }
 
-   public RobotDescription createRobotDescription(JointNameMap<?> jointNameMap, ContactPointDefinitionHolder contactDefinition)
+   public RobotDescription createRobotDescription(JointNameMap jointNameMap, ContactPointDefinitionHolder contactDefinition)
    {
       boolean useCollisionMeshes = false;
 
       return createRobotDescription(jointNameMap, contactDefinition, useCollisionMeshes);
    }
 
-   public RobotDescription createRobotDescription(JointNameMap<?> jointNameMap, ContactPointDefinitionHolder contactDefinition, boolean useCollisionMeshes)
+   public RobotDescription createRobotDescription(JointNameMap jointNameMap, ContactPointDefinitionHolder contactDefinition, boolean useCollisionMeshes)
    {
       if (jointNameMap != null)
       {
@@ -161,8 +170,10 @@ public class JaxbSDFLoader
          checkModelName(modelName);
 
          RobotDescriptionFromSDFLoader loader = new RobotDescriptionFromSDFLoader();
-         RobotDescription description = loader.loadRobotDescriptionFromSDF(generalizedSDFRobotModels.get(modelName), jointNameMap, contactDefinition,
-               useCollisionMeshes);
+         RobotDescription description = loader.loadRobotDescriptionFromSDF(generalizedSDFRobotModels.get(modelName),
+                                                                           jointNameMap,
+                                                                           contactDefinition,
+                                                                           useCollisionMeshes);
 
          return description;
       }
