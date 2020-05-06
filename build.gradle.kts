@@ -22,7 +22,7 @@ mainDependencies {
    api("us.ihmc:euclid-geometry:0.14.0")
    api("us.ihmc:euclid-frame:0.14.0")
    api("us.ihmc:mecano:0.4.0")
-   api("us.ihmc:ihmc-commons:0.28.2")
+   api("us.ihmc:ihmc-commons:0.29.0")
    api("us.ihmc:ihmc-native-library-loader:1.2.1")
    api("us.ihmc:ihmc-yovariables:0.6.0")
 }
@@ -30,7 +30,7 @@ mainDependencies {
 testDependencies {
    api(ihmc.sourceSetProject("main"))
 
-   api("us.ihmc:ihmc-commons-testing:0.28.2")
+   api("us.ihmc:ihmc-commons-testing:0.29.0")
    api("org.ejml:simple:0.30")
    api("net.sf.trove4j:trove4j:3.0.3")
 }
