@@ -18,13 +18,13 @@ mainDependencies {
    api("org.ejml:dense64:0.30")
    api("org.ejml:core:0.30")
 
-   api("us.ihmc:euclid:0.13.1")
-   api("us.ihmc:euclid-geometry:0.13.1")
-   api("us.ihmc:euclid-frame:0.13.1")
-   api("us.ihmc:mecano:0.3.0")
+   api("us.ihmc:euclid:0.14.0")
+   api("us.ihmc:euclid-geometry:0.14.0")
+   api("us.ihmc:euclid-frame:0.14.0")
+   api("us.ihmc:mecano:0.4.0")
    api("us.ihmc:ihmc-commons:0.28.2")
    api("us.ihmc:ihmc-native-library-loader:1.2.1")
-   api("us.ihmc:ihmc-yovariables:0.5.0")
+   api("us.ihmc:ihmc-yovariables:0.6.0")
 }
 
 testDependencies {
@@ -38,5 +38,5 @@ testDependencies {
 visualizersDependencies {
    api(ihmc.sourceSetProject("main"))
 
-   api("us.ihmc:simulation-construction-set:0.15.0")
+   api("us.ihmc:simulation-construction-set:0.16.0")
 }
