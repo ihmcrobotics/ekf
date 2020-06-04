@@ -1,7 +1,8 @@
 package us.ihmc.ekf.filter.state.implementations;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.State;
@@ -14,15 +15,15 @@ public class JointState extends State
 
    private final String jointName;
 
-   private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
-   private final DenseMatrix64F tempStateVector = new DenseMatrix64F(size, 1);
-   private final DenseMatrix64F F = new DenseMatrix64F(size, size);
+   private final DMatrixRMaj stateVector = new DMatrixRMaj(size, 1);
+   private final DMatrixRMaj tempStateVector = new DMatrixRMaj(size, 1);
+   private final DMatrixRMaj F = new DMatrixRMaj(size, size);
 
    private final DoubleProvider accelerationVariance;
 
    private final double sqrtHz;
 
-   private final DenseMatrix64F Qref = new DenseMatrix64F(size, size);
+   private final DMatrixRMaj Qref = new DMatrixRMaj(size, size);
 
    public JointState(String jointName, double dt, YoVariableRegistry registry)
    {
@@ -34,7 +35,7 @@ public class JointState extends State
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
 
-      CommonOps.setIdentity(F);
+       CommonOps_DDRM.setIdentity(F);
       F.set(0, 1, dt);
       F.set(0, 2, 0.5 * dt * dt);
       F.set(1, 2, dt);
@@ -64,14 +65,14 @@ public class JointState extends State
    }
 
    @Override
-   public void setStateVector(DenseMatrix64F newState)
+   public void setStateVector(DMatrix1Row newState)
    {
       FilterTools.checkVectorDimensions(newState, stateVector);
       System.arraycopy(newState.data, 0, stateVector.data, 0, getSize());
    }
 
    @Override
-   public void getStateVector(DenseMatrix64F vectorToPack)
+   public void getStateVector(DMatrix1Row vectorToPack)
    {
       vectorToPack.set(stateVector);
    }
@@ -86,20 +87,20 @@ public class JointState extends State
    public void predict()
    {
       tempStateVector.set(stateVector);
-      CommonOps.mult(F, tempStateVector, stateVector);
+       CommonOps_DDRM.mult(F, tempStateVector, stateVector);
    }
 
    @Override
-   public void getFMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.set(F);
    }
 
    @Override
-   public void getQMatrix(DenseMatrix64F matrixToPack)
+   public void getQMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.set(Qref);
-      CommonOps.scale(accelerationVariance.getValue() * sqrtHz, matrixToPack);
+       CommonOps_DDRM.scale(accelerationVariance.getValue() * sqrtHz, matrixToPack);
    }
 
    public double getQ()

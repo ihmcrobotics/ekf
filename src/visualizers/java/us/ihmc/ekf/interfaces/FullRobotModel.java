@@ -1,6 +1,7 @@
 package us.ihmc.ekf.interfaces;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import us.ihmc.ekf.tempClasses.IMUDefinition;
 import us.ihmc.euclid.matrix.Matrix3D;
@@ -40,7 +41,7 @@ public class FullRobotModel
 
    public FullRobotModel(RobotDescription robotDescription)
    {
-      ArrayList<JointDescription> rootJoints = robotDescription.getRootJoints();
+      List<JointDescription> rootJoints = robotDescription.getRootJoints();
       if (rootJoints.size() != 1)
       {
          throw new RuntimeException("Expecting single root joint.");

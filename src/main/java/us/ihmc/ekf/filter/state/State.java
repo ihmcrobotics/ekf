@@ -1,6 +1,6 @@
 package us.ihmc.ekf.filter.state;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrix1Row;
 
 import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.ekf.filter.state.implementations.PoseState;
@@ -33,7 +33,7 @@ public abstract class State
     * @param newState
     *           the new state that should be stored inside this class.
     */
-   public abstract void setStateVector(DenseMatrix64F newState);
+   public abstract void setStateVector(DMatrix1Row newState);
 
    /**
     * Packs the state that is stored in this class. This will be called after the prediction to
@@ -43,7 +43,7 @@ public abstract class State
     * @param stateVectorToPack
     *           will be modified to contain the state stored in this class.
     */
-   public abstract void getStateVector(DenseMatrix64F stateVectorToPack);
+   public abstract void getStateVector(DMatrix1Row stateVectorToPack);
 
    /**
     * Provides the size of the state. E.g. a {@link JointState} has size 3 (position, velocity, and
@@ -69,7 +69,7 @@ public abstract class State
     * @param fMatrixToPack
     *           packs the matrix describing the linearized state evolution.
     */
-   public abstract void getFMatrix(DenseMatrix64F fMatrixToPack);
+   public abstract void getFMatrix(DMatrix1Row fMatrixToPack);
 
    /**
     * This method packs the covariance of the process noise {@code w}. As this value might not be
@@ -78,7 +78,7 @@ public abstract class State
     * @param noiseCovarianceToPack
     *           the covariance of the process noise.
     */
-   public abstract void getQMatrix(DenseMatrix64F noiseCovarianceToPack);
+   public abstract void getQMatrix(DMatrix1Row noiseCovarianceToPack);
 
    @Override
    public int hashCode()

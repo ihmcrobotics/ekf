@@ -1,6 +1,6 @@
 package us.ihmc.ekf.filter.sensor;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrix1Row;
 
 import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.sensor.implementations.AngularVelocitySensor;
@@ -58,7 +58,7 @@ public abstract class Sensor
     * @param robotState
     *           is the up to date state of the robot.
     */
-   public abstract void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState);
+   public abstract void getMeasurementJacobian(DMatrix1Row jacobianToPack, RobotState robotState);
 
    /**
     * Provides the estimator with the measurement residual.
@@ -72,7 +72,7 @@ public abstract class Sensor
     * @param robotState
     *           is the up to date state of the robot.
     */
-   public abstract void getResidual(DenseMatrix64F residualToPack, RobotState robotState);
+   public abstract void getResidual(DMatrix1Row residualToPack, RobotState robotState);
 
    /**
     * This method packs the covariance of the observation noise {@code v}. As this value might not
@@ -81,7 +81,7 @@ public abstract class Sensor
     * @param noiseCovarianceToPack
     *           the covariance of the measurement noise.
     */
-   public abstract void getRMatrix(DenseMatrix64F noiseCovarianceToPack);
+   public abstract void getRMatrix(DMatrix1Row noiseCovarianceToPack);
 
    @Override
    public int hashCode()

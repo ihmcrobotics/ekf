@@ -1,6 +1,6 @@
 package us.ihmc.ekf.filter;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrix1Row;
 
 import us.ihmc.tools.nativelibraries.NativeLibraryLoader;
 
@@ -18,7 +18,7 @@ public class NativeFilterMatrixOps
    /**
     * Computes {@code A * B * A'} and stores the result in the provided matrix.
     */
-   public static void computeABAt(DenseMatrix64F result, DenseMatrix64F A, DenseMatrix64F B)
+   public static void computeABAt(DMatrix1Row result, DMatrix1Row A, DMatrix1Row B)
    {
       if (A.numCols != B.numRows || B.numRows != B.numCols)
       {
@@ -31,7 +31,7 @@ public class NativeFilterMatrixOps
    /**
     * Computes {@code F * P * F' + Q} and stores the result in the provided matrix.
     */
-   public static void predictErrorCovariance(DenseMatrix64F result, DenseMatrix64F F, DenseMatrix64F P, DenseMatrix64F Q)
+   public static void predictErrorCovariance(DMatrix1Row result, DMatrix1Row F, DMatrix1Row P, DMatrix1Row Q)
    {
       if (F.numCols != P.numRows || P.numRows != P.numCols || F.numRows != Q.numRows || Q.numRows != Q.numCols || F.numCols != F.numRows)
       {
@@ -44,7 +44,7 @@ public class NativeFilterMatrixOps
    /**
     * Computes {@code (identity - K * H) * P} and stores the result in the provided matrix.
     */
-   public static void updateErrorCovariance(DenseMatrix64F result, DenseMatrix64F K, DenseMatrix64F H, DenseMatrix64F P)
+   public static void updateErrorCovariance(DMatrix1Row result, DMatrix1Row K, DMatrix1Row H, DMatrix1Row P)
    {
       if (K.numCols != H.numRows || P.numRows != P.numCols || K.numRows != H.numCols || P.numRows != H.numCols)
       {
@@ -57,7 +57,7 @@ public class NativeFilterMatrixOps
    /**
     * Computes {@code P * H' * inverse(H * P * H' + R)} and stores the result in the provided matrix.
     */
-   public static void computeKalmanGain(DenseMatrix64F result, DenseMatrix64F P, DenseMatrix64F H, DenseMatrix64F R)
+   public static void computeKalmanGain(DMatrix1Row result, DMatrix1Row P, DMatrix1Row H, DMatrix1Row R)
    {
       if (H.numCols != P.numRows || P.numRows != P.numCols || H.numRows != R.numRows || R.numRows != R.numRows)
       {
@@ -70,7 +70,7 @@ public class NativeFilterMatrixOps
    /**
     * Computes {@code x + K * r} and stores the result in the provided matrix.
     */
-   public static void updateState(DenseMatrix64F result, DenseMatrix64F x, DenseMatrix64F K, DenseMatrix64F r)
+   public static void updateState(DMatrix1Row result, DMatrix1Row x, DMatrix1Row K, DMatrix1Row r)
    {
       if (x.numRows != K.numRows || r.numRows != K.numCols || x.numCols != 1 || r.numCols != 1)
       {

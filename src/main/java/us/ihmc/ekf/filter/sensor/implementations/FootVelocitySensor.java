@@ -1,7 +1,7 @@
 package us.ihmc.ekf.filter.sensor.implementations;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.commons.MathTools;
 import us.ihmc.ekf.filter.FilterTools;
@@ -74,17 +74,17 @@ public class FootVelocitySensor extends LinearVelocitySensor
    }
 
    @Override
-   public void getRMatrix(DenseMatrix64F matrixToPack)
+   public void getRMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(getMeasurementSize(), getMeasurementSize());
-      CommonOps.setIdentity(matrixToPack);
+       CommonOps_DDRM.setIdentity(matrixToPack);
 
       double percent = (loadPercentage.getValue() - weightFractionForNoTrust.getValue())
             / (weightFractionForFullTrust.getValue() - weightFractionForNoTrust.getValue());
       percent = MathTools.clamp(percent, 0.0, 1.0);
       variance.set(maxVariance.getValue() - percent * (maxVariance.getValue() - minVariance.getValue()));
 
-      CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
+       CommonOps_DDRM.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
 }

@@ -7,14 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.TestTools;
-import us.ihmc.ekf.filter.state.ComposedState;
-import us.ihmc.ekf.filter.state.State;
 
 public class ComposedStateTest
 {
@@ -50,9 +49,9 @@ public class ComposedStateTest
       List<State> subStates = new ArrayList<State>();
       ComposedState state = createComposedState(random, maxStates, maxSubStateSize, "Test", subStates);
 
-      DenseMatrix64F F = new DenseMatrix64F(0, 0);
-      DenseMatrix64F Q = new DenseMatrix64F(0, 0);
-      DenseMatrix64F x = new DenseMatrix64F(0, 0);
+      DMatrixRMaj F = new DMatrixRMaj(0, 0);
+      DMatrixRMaj Q = new DMatrixRMaj(0, 0);
+      DMatrixRMaj x = new DMatrixRMaj(0, 0);
       state.getFMatrix(F);
       state.getQMatrix(Q);
       state.getStateVector(x);
@@ -64,26 +63,26 @@ public class ComposedStateTest
          int startIndex = state.getStartIndex(subState);
          Assertions.assertEquals(combinedSize, startIndex);
 
-         DenseMatrix64F subF = new DenseMatrix64F(0, 0);
+         DMatrixRMaj subF = new DMatrixRMaj(0, 0);
          subState.getFMatrix(subF);
          TestTools.assertBlockEquals(startIndex, startIndex, subF, F);
          TestTools.assertBlockZero(startIndex, 0, F, subState.getSize(), startIndex);
          TestTools.assertBlockZero(0, startIndex, F, startIndex, subState.getSize());
 
-         DenseMatrix64F subQ = new DenseMatrix64F(0, 0);
+         DMatrixRMaj subQ = new DMatrixRMaj(0, 0);
          subState.getQMatrix(subQ);
          TestTools.assertBlockEquals(startIndex, startIndex, subQ, Q);
          TestTools.assertBlockZero(startIndex, 0, Q, subState.getSize(), startIndex);
          TestTools.assertBlockZero(0, startIndex, Q, startIndex, subState.getSize());
 
-         DenseMatrix64F subx = new DenseMatrix64F(0, 0);
+         DMatrixRMaj subx = new DMatrixRMaj(0, 0);
          subState.getStateVector(subx);
          TestTools.assertBlockEquals(startIndex, 0, subx, x);
 
          combinedSize += subState.getSize();
       }
 
-      DenseMatrix64F xNew = TestTools.nextMatrix(combinedSize, 1, random, -1.0, 1.0);
+      DMatrixRMaj xNew = TestTools.nextMatrix(combinedSize, 1, random, -1.0, 1.0);
       state.setStateVector(xNew);
       state.getStateVector(x);
       TestTools.assertEquals(xNew, x);
@@ -115,14 +114,14 @@ public class ComposedStateTest
    private static State nextState(Random random, int maxSize, String name)
    {
       int size = random.nextInt(maxSize);
-      DenseMatrix64F F = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
-      DenseMatrix64F Q = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
-      DenseMatrix64F x = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DMatrixRMaj F = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
+      DMatrixRMaj Q = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
+      DMatrixRMaj x = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
 
       return new State()
       {
          @Override
-         public void setStateVector(DenseMatrix64F newState)
+         public void setStateVector(DMatrix1Row newState)
          {
             if (newState.getNumRows() != x.getNumRows())
             {
@@ -138,11 +137,11 @@ public class ComposedStateTest
          @Override
          public void predict()
          {
-            CommonOps.fill(x, Double.NaN);
+             CommonOps_DDRM.fill(x, Double.NaN);
          }
 
          @Override
-         public void getStateVector(DenseMatrix64F stateVectorToPack)
+         public void getStateVector(DMatrix1Row stateVectorToPack)
          {
             stateVectorToPack.set(x);
          }
@@ -154,13 +153,13 @@ public class ComposedStateTest
          }
 
          @Override
-         public void getQMatrix(DenseMatrix64F noiseCovarianceToPack)
+         public void getQMatrix(DMatrix1Row noiseCovarianceToPack)
          {
             noiseCovarianceToPack.set(Q);
          }
 
          @Override
-         public void getFMatrix(DenseMatrix64F fMatrixToPack)
+         public void getFMatrix(DMatrix1Row fMatrixToPack)
          {
             fMatrixToPack.set(F);
          }
