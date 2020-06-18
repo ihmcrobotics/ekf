@@ -24,7 +24,7 @@ mainDependencies {
    api("us.ihmc:mecano:0.5.0-ejml-0.39-beta-1")
    api("us.ihmc:ihmc-commons:0.30.0")
    api("us.ihmc:ihmc-native-library-loader:1.2.1")
-   api("us.ihmc:ihmc-yovariables:0.7.0-ejml-0.39-beta-1")
+   api("us.ihmc:ihmc-yovariables:0.8.0")
 }
 
 testDependencies {
