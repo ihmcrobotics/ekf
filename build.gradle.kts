@@ -18,9 +18,9 @@ mainDependencies {
    api("org.ejml:ejml-core:0.39")
    api("org.ejml:ejml-ddense:0.39")
 
-   api("us.ihmc:euclid:0.14.2-ejml-0.39-beta-1")
-   api("us.ihmc:euclid-geometry:0.14.2-ejml-0.39-beta-1")
-   api("us.ihmc:euclid-frame:0.14.2-ejml-0.39-beta-1")
+   api("us.ihmc:euclid:0.15.0")
+   api("us.ihmc:euclid-geometry:0.15.0")
+   api("us.ihmc:euclid-frame:0.15.0")
    api("us.ihmc:mecano:0.5.0-ejml-0.39-beta-1")
    api("us.ihmc:ihmc-commons:0.30.0")
    api("us.ihmc:ihmc-native-library-loader:1.2.1")
