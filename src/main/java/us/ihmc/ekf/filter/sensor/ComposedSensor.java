@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.state.ComposedState;
@@ -20,7 +21,7 @@ public class ComposedSensor extends Sensor
 
    private final ComposedState sensorState;
 
-   private final DenseMatrix64F tempMatrix = new DenseMatrix64F(0, 0);
+   private final DMatrixRMaj tempMatrix = new DMatrixRMaj(0, 0);
 
    private final String name;
 
@@ -91,10 +92,10 @@ public class ComposedSensor extends Sensor
    }
 
    @Override
-   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
+   public void getMeasurementJacobian(DMatrix1Row jacobianToPack, RobotState robotState)
    {
       jacobianToPack.reshape(getMeasurementSize(), robotState.getSize());
-      CommonOps.fill(jacobianToPack, 0.0);
+       CommonOps_DDRM.fill(jacobianToPack, 0.0);
 
       for (int i = 0; i < subSensors.size(); i++)
       {
@@ -102,15 +103,15 @@ public class ComposedSensor extends Sensor
          int startIndex = getStartIndex(subSensor);
 
          subSensor.getMeasurementJacobian(tempMatrix, robotState);
-         CommonOps.insert(tempMatrix, jacobianToPack, startIndex, 0);
+          CommonOps_DDRM.insert(tempMatrix, jacobianToPack, startIndex, 0);
       }
    }
 
    @Override
-   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   public void getResidual(DMatrix1Row residualToPack, RobotState robotState)
    {
       residualToPack.reshape(getMeasurementSize(), 1);
-      CommonOps.fill(residualToPack, 0.0);
+       CommonOps_DDRM.fill(residualToPack, 0.0);
 
       for (int i = 0; i < subSensors.size(); i++)
       {
@@ -118,15 +119,15 @@ public class ComposedSensor extends Sensor
          int startIndex = getStartIndex(subSensor);
 
          subSensor.getResidual(tempMatrix, robotState);
-         CommonOps.insert(tempMatrix, residualToPack, startIndex, 0);
+          CommonOps_DDRM.insert(tempMatrix, residualToPack, startIndex, 0);
       }
    }
 
    @Override
-   public void getRMatrix(DenseMatrix64F matrixToPack)
+   public void getRMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(getMeasurementSize(), getMeasurementSize());
-      CommonOps.fill(matrixToPack, 0.0);
+       CommonOps_DDRM.fill(matrixToPack, 0.0);
 
       for (int i = 0; i < subSensors.size(); i++)
       {
@@ -134,7 +135,7 @@ public class ComposedSensor extends Sensor
          int startIndex = getStartIndex(subSensor);
 
          subSensor.getRMatrix(tempMatrix);
-         CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
+          CommonOps_DDRM.insert(tempMatrix, matrixToPack, startIndex, startIndex);
       }
    }
 }

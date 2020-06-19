@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 public class ComposedState extends State
 {
@@ -16,7 +17,7 @@ public class ComposedState extends State
 
    private final String name;
 
-   private final DenseMatrix64F tempMatrix = new DenseMatrix64F(0, 0);
+   private final DMatrixRMaj tempMatrix = new DMatrixRMaj(0, 0);
 
    public ComposedState(String name)
    {
@@ -64,7 +65,7 @@ public class ComposedState extends State
    }
 
    @Override
-   public void getStateVector(DenseMatrix64F vectorToPack)
+   public void getStateVector(DMatrix1Row vectorToPack)
    {
       vectorToPack.reshape(getSize(), 1);
 
@@ -79,7 +80,7 @@ public class ComposedState extends State
    }
 
    @Override
-   public void setStateVector(DenseMatrix64F newState)
+   public void setStateVector(DMatrix1Row newState)
    {
       for (int i = 0; i < subStates.size(); i++)
       {
@@ -114,10 +115,10 @@ public class ComposedState extends State
    }
 
    @Override
-   public void getFMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(getSize(), getSize());
-      CommonOps.fill(matrixToPack, 0.0);
+       CommonOps_DDRM.fill(matrixToPack, 0.0);
 
       for (int i = 0; i < subStates.size(); i++)
       {
@@ -125,15 +126,15 @@ public class ComposedState extends State
          int startIndex = getStartIndex(subState);
 
          subState.getFMatrix(tempMatrix);
-         CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
+          CommonOps_DDRM.insert(tempMatrix, matrixToPack, startIndex, startIndex);
       }
    }
 
    @Override
-   public void getQMatrix(DenseMatrix64F matrixToPack)
+   public void getQMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(getSize(), getSize());
-      CommonOps.fill(matrixToPack, 0.0);
+       CommonOps_DDRM.fill(matrixToPack, 0.0);
 
       for (int i = 0; i < subStates.size(); i++)
       {
@@ -141,7 +142,7 @@ public class ComposedState extends State
          int startIndex = getStartIndex(subState);
 
          subState.getQMatrix(tempMatrix);
-         CommonOps.insert(tempMatrix, matrixToPack, startIndex, startIndex);
+          CommonOps_DDRM.insert(tempMatrix, matrixToPack, startIndex, startIndex);
       }
    }
 }

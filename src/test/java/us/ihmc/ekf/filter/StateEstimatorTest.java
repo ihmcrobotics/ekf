@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
@@ -41,8 +41,8 @@ public class StateEstimatorTest
       jointNames.add("Joint2");
 
       List<Sensor> sensors = new ArrayList<>();
-      DenseMatrix64F expectedState = new DenseMatrix64F(jointNames.size() * 3, 1);
-      CommonOps.fill(expectedState, 0.0);
+      DMatrixRMaj expectedState = new DMatrixRMaj(jointNames.size() * 3, 1);
+       CommonOps_DDRM.fill(expectedState, 0.0);
       for (int jointIdx = 0; jointIdx < jointNames.size(); jointIdx++)
       {
          String jointName = jointNames.get(jointIdx);
@@ -68,19 +68,19 @@ public class StateEstimatorTest
       }
 
       // Make sure the estimated state is accurate.
-      DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
+      DMatrixRMaj actualState = new DMatrixRMaj(0, 0);
       robotState.getStateVector(actualState);
       TestTools.assertEquals(expectedState, actualState, EPSILON);
 
       // The covariance should have converged to a steady state.
-      DenseMatrix64F actualCovariance = new DenseMatrix64F(0, 0);
+      DMatrixRMaj actualCovariance = new DMatrixRMaj(0, 0);
       stateEstimator.getCovariance(actualCovariance);
 
-      DenseMatrix64F F = new DenseMatrix64F(0, 0);
-      DenseMatrix64F Q = new DenseMatrix64F(0, 0);
-      DenseMatrix64F H = new DenseMatrix64F(0, 0);
-      DenseMatrix64F R = new DenseMatrix64F(0, 0);
-      DenseMatrix64F residual = new DenseMatrix64F(0, 0);
+      DMatrixRMaj F = new DMatrixRMaj(0, 0);
+      DMatrixRMaj Q = new DMatrixRMaj(0, 0);
+      DMatrixRMaj H = new DMatrixRMaj(0, 0);
+      DMatrixRMaj R = new DMatrixRMaj(0, 0);
+      DMatrixRMaj residual = new DMatrixRMaj(0, 0);
 
       // This setup matches the filter constructor:
       ComposedState state = new ComposedState("ReferenceState");
@@ -96,17 +96,17 @@ public class StateEstimatorTest
 
       // Now assert that the covariance matches the steady state as the matrixes are not
       // changing for this simple filtering problem.
-      DenseMatrix64F P = new DenseMatrix64F(actualCovariance.getNumRows(), actualCovariance.getNumCols());
-      DenseMatrix64F Htranspose = new DenseMatrix64F(H.getNumCols(), H.getNumRows());
-      DenseMatrix64F inverse = new DenseMatrix64F(0, 0);
+      DMatrixRMaj P = new DMatrixRMaj(actualCovariance.getNumRows(), actualCovariance.getNumCols());
+      DMatrixRMaj Htranspose = new DMatrixRMaj(H.getNumCols(), H.getNumRows());
+      DMatrixRMaj inverse = new DMatrixRMaj(0, 0);
 
-      DenseMatrix64F Rinv = invert(R);
-      CommonOps.transpose(H, Htranspose);
+      DMatrixRMaj Rinv = invert(R);
+       CommonOps_DDRM.transpose(H, Htranspose);
 
       // Iterate the Ricatti Equation
       // P = Q + A * inv(inv(P) + H' * inv(R) * H )) * A'
-      DenseMatrix64F Pinv;
-      CommonOps.setIdentity(P);
+      DMatrixRMaj Pinv;
+       CommonOps_DDRM.setIdentity(P);
       for (int i = 0; i < 10000; i++)
       {
          Pinv = invert(P);
@@ -119,12 +119,12 @@ public class StateEstimatorTest
       TestTools.assertEquals(P, actualCovariance, EPSILON);
    }
 
-   private static DenseMatrix64F invert(DenseMatrix64F matrix)
+   private static DMatrixRMaj invert(DMatrixRMaj matrix)
    {
       return new SimpleMatrix(matrix).invert().getMatrix();
    }
 
-   private static DenseMatrix64F computeABAtPlusC(DenseMatrix64F A, DenseMatrix64F B, DenseMatrix64F C)
+   private static DMatrixRMaj computeABAtPlusC(DMatrixRMaj A, DMatrixRMaj B, DMatrixRMaj C)
    {
       SimpleMatrix aSimple = new SimpleMatrix(A);
       SimpleMatrix bSimple = new SimpleMatrix(B);

@@ -5,11 +5,10 @@ import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.Random;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.ekf.filter.state.State;
 import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
@@ -25,7 +24,7 @@ public class JointStateTest
       Random random = new Random(4922L);
       State state = createState(random, new YoVariableRegistry("Test"));
 
-      DenseMatrix64F matrix = new DenseMatrix64F(0, 0);
+      DMatrixRMaj matrix = new DMatrixRMaj(0, 0);
 
       state.getFMatrix(matrix);
       assertEquals(state.getSize(), matrix.getNumRows());
@@ -59,7 +58,7 @@ public class JointStateTest
       for (int test = 0; test < ITERATIONS; test++)
       {
          State state = createState(random, new YoVariableRegistry("Test"));
-         DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
+         DMatrixRMaj expectedState = new DMatrixRMaj(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
          {
             expectedState.set(i, random.nextDouble());
@@ -67,7 +66,7 @@ public class JointStateTest
 
          state.setStateVector(expectedState);
 
-         DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
+         DMatrixRMaj actualState = new DMatrixRMaj(0, 0);
          state.getStateVector(actualState);
          for (int i = 0; i < state.getSize(); i++)
          {
@@ -81,7 +80,7 @@ public class JointStateTest
    {
       Random random = new Random(4922L);
       JointState state = new JointState("TestJoint", Double.NaN, new YoVariableRegistry("TestRegistry"));
-      DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
+      DMatrixRMaj expectedState = new DMatrixRMaj(state.getSize(), 1);
       for (int i = 0; i < state.getSize(); i++)
       {
          expectedState.set(i, random.nextDouble());
@@ -114,7 +113,7 @@ public class JointStateTest
 
          JointState state = new JointState("TestJoint", dt, new YoVariableRegistry("TestRegistry"));
 
-         DenseMatrix64F stateVector = new DenseMatrix64F(state.getSize(), 1);
+         DMatrixRMaj stateVector = new DMatrixRMaj(state.getSize(), 1);
          stateVector.set(0, c0 * t0 * t0 + c1 * t0 + c2);
          stateVector.set(1, 2.0 * c0 * t0 + c1);
          stateVector.set(2, 2.0 * c0);
@@ -139,21 +138,21 @@ public class JointStateTest
       {
          State state = createState(random, new YoVariableRegistry("Test"));
 
-         DenseMatrix64F initialState = new DenseMatrix64F(state.getSize(), 1);
+         DMatrixRMaj initialState = new DMatrixRMaj(state.getSize(), 1);
          initialState.set(0, EuclidCoreRandomTools.nextDouble(random, 10.0));
          initialState.set(1, EuclidCoreRandomTools.nextDouble(random, 10.0));
          initialState.set(2, EuclidCoreRandomTools.nextDouble(random, 10.0));
 
          state.setStateVector(initialState);
-         DenseMatrix64F A = new DenseMatrix64F(0, 0);
+         DMatrixRMaj A = new DMatrixRMaj(0, 0);
          state.getFMatrix(A);
 
-         DenseMatrix64F predicted = new DenseMatrix64F(state.getSize(), 1);
+         DMatrixRMaj predicted = new DMatrixRMaj(state.getSize(), 1);
          state.predict();
          state.getStateVector(predicted);
 
-         DenseMatrix64F linearized = new DenseMatrix64F(state.getSize(), 1);
-         CommonOps.mult(A, initialState, linearized);
+         DMatrixRMaj linearized = new DMatrixRMaj(state.getSize(), 1);
+          CommonOps_DDRM.mult(A, initialState, linearized);
 
          for (int i = 0; i < state.getSize(); i++)
          {

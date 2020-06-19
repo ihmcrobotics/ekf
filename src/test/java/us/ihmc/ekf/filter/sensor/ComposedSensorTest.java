@@ -6,14 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.TestTools;
 import us.ihmc.ekf.filter.RobotState;
-import us.ihmc.ekf.filter.sensor.ComposedSensor;
-import us.ihmc.ekf.filter.sensor.Sensor;
 
 public class ComposedSensorTest
 {
@@ -61,9 +60,9 @@ public class ComposedSensorTest
          }
       };
 
-      DenseMatrix64F H = new DenseMatrix64F(0, 0);
-      DenseMatrix64F r = new DenseMatrix64F(0, 0);
-      DenseMatrix64F R = new DenseMatrix64F(0, 0);
+      DMatrixRMaj H = new DMatrixRMaj(0, 0);
+      DMatrixRMaj r = new DMatrixRMaj(0, 0);
+      DMatrixRMaj R = new DMatrixRMaj(0, 0);
       sensor.getMeasurementJacobian(H, dummyState);
       sensor.getResidual(r, dummyState);
       sensor.getRMatrix(R);
@@ -75,15 +74,15 @@ public class ComposedSensorTest
          int startIndex = sensor.getStartIndex(subSensor);
          Assertions.assertEquals(combinedSize, startIndex);
 
-         DenseMatrix64F subH = new DenseMatrix64F(0, 0);
-         DenseMatrix64F subr = new DenseMatrix64F(0, 0);
+         DMatrixRMaj subH = new DMatrixRMaj(0, 0);
+         DMatrixRMaj subr = new DMatrixRMaj(0, 0);
          subSensor.getMeasurementJacobian(subH, dummyState);
          subSensor.getResidual(subr, dummyState);
 
          TestTools.assertBlockEquals(startIndex, 0, subH, H);
          TestTools.assertBlockEquals(startIndex, 0, subr, r);
 
-         DenseMatrix64F subR = new DenseMatrix64F(0, 0);
+         DMatrixRMaj subR = new DMatrixRMaj(0, 0);
          subSensor.getRMatrix(subR);
          TestTools.assertBlockEquals(startIndex, startIndex, subR, R);
          TestTools.assertBlockZero(startIndex, 0, R, subSensor.getMeasurementSize(), startIndex);
@@ -116,26 +115,26 @@ public class ComposedSensorTest
    private static Sensor nextSensor(Random random, int maxSize, int stateSize, String name)
    {
       int size = random.nextInt(maxSize);
-      DenseMatrix64F H = TestTools.nextMatrix(size, stateSize, random, -1.0, 1.0);
-      DenseMatrix64F r = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
-      DenseMatrix64F R = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
+      DMatrixRMaj H = TestTools.nextMatrix(size, stateSize, random, -1.0, 1.0);
+      DMatrixRMaj r = TestTools.nextMatrix(size, 1, random, -1.0, 1.0);
+      DMatrixRMaj R = TestTools.nextMatrix(size, size, random, -1.0, 1.0);
 
       return new Sensor()
       {
          @Override
-         public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
+         public void getMeasurementJacobian(DMatrix1Row jacobianToPack, RobotState robotState)
          {
             jacobianToPack.set(H);
          }
 
          @Override
-         public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+         public void getResidual(DMatrix1Row residualToPack, RobotState robotState)
          {
             residualToPack.set(r);
          }
 
          @Override
-         public void getRMatrix(DenseMatrix64F noiseCovarianceToPack)
+         public void getRMatrix(DMatrix1Row noiseCovarianceToPack)
          {
             noiseCovarianceToPack.set(R);
          }

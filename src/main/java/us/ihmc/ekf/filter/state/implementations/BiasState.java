@@ -3,8 +3,9 @@ package us.ihmc.ekf.filter.state.implementations;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.State;
@@ -16,7 +17,7 @@ public class BiasState extends State
 {
    private static final int size = 3;
 
-   private final DenseMatrix64F bias = new DenseMatrix64F(size, 1);
+   private final DMatrixRMaj bias = new DMatrixRMaj(size, 1);
    private final List<YoDouble> yoState = new ArrayList<>();
    private final DoubleProvider variance;
 
@@ -48,7 +49,7 @@ public class BiasState extends State
    }
 
    @Override
-   public void setStateVector(DenseMatrix64F newState)
+   public void setStateVector(DMatrix1Row newState)
    {
       FilterTools.checkVectorDimensions(newState, bias);
       bias.set(newState);
@@ -60,7 +61,7 @@ public class BiasState extends State
    }
 
    @Override
-   public void getStateVector(DenseMatrix64F vectorToPack)
+   public void getStateVector(DMatrix1Row vectorToPack)
    {
       vectorToPack.set(bias);
    }
@@ -77,18 +78,18 @@ public class BiasState extends State
    }
 
    @Override
-   public void getFMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(size, size);
-      CommonOps.setIdentity(matrixToPack);
+       CommonOps_DDRM.setIdentity(matrixToPack);
    }
 
    @Override
-   public void getQMatrix(DenseMatrix64F matrixToPack)
+   public void getQMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(size, size);
-      CommonOps.setIdentity(matrixToPack);
-      CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
+       CommonOps_DDRM.setIdentity(matrixToPack);
+       CommonOps_DDRM.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
    public void reset()
