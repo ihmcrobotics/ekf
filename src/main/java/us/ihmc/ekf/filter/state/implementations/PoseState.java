@@ -1,7 +1,8 @@
 package us.ihmc.ekf.filter.state.implementations;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.State;
@@ -84,11 +85,11 @@ public class PoseState extends State
    private final Matrix3D term1 = new Matrix3D();
    private final Matrix3D term2 = new Matrix3D();
 
-   private final DenseMatrix64F stateVector = new DenseMatrix64F(size, 1);
+   private final DMatrixRMaj stateVector = new DMatrixRMaj(size, 1);
 
    private final DoubleProvider angularAccelerationVariance;
    private final DoubleProvider linearAccelerationVariance;
-   private final DenseMatrix64F Qref = new DenseMatrix64F(9, 9);
+   private final DMatrixRMaj Qref = new DMatrixRMaj(9, 9);
 
    private final double dt;
    private final double sqrtHz;
@@ -141,7 +142,7 @@ public class PoseState extends State
    }
 
    @Override
-   public void setStateVector(DenseMatrix64F newState)
+   public void setStateVector(DMatrix1Row newState)
    {
       FilterTools.checkVectorDimensions(newState, stateVector);
       stateVector.set(newState);
@@ -155,7 +156,7 @@ public class PoseState extends State
    }
 
    @Override
-   public void getStateVector(DenseMatrix64F vectorToPack)
+   public void getStateVector(DMatrix1Row vectorToPack)
    {
       vectorToPack.set(stateVector);
    }
@@ -193,13 +194,13 @@ public class PoseState extends State
       stateVector.add(linearVelocityStart + 2, 0, dt * stateVector.get(linearAccelerationStart + 2));
    }
 
-   private final DenseMatrix64F tempBlock = new DenseMatrix64F(3, 3);
+   private final DMatrixRMaj tempBlock = new DMatrixRMaj(3, 3);
 
    @Override
-   public void getFMatrix(DenseMatrix64F matrixToPack)
+   public void getFMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(size, size);
-      CommonOps.setIdentity(matrixToPack);
+       CommonOps_DDRM.setIdentity(matrixToPack);
 
       matrixToPack.set(angularVelocityStart + 0, angularAccelerationStart + 0, dt);
       matrixToPack.set(angularVelocityStart + 1, angularAccelerationStart + 1, dt);
@@ -210,30 +211,30 @@ public class PoseState extends State
       matrixToPack.set(linearVelocityStart + 2, linearAccelerationStart + 2, dt);
 
       packLinearVelocityTermForPosition(tempBlock, orientation, dt);
-      CommonOps.insert(tempBlock, matrixToPack, positionStart, linearVelocityStart);
+       CommonOps_DDRM.insert(tempBlock, matrixToPack, positionStart, linearVelocityStart);
 
       linearVelocity.set(linearVelocityStart, stateVector);
       packOrientatonTermForPosition(tempBlock, orientation, linearVelocity, dt);
-      CommonOps.insert(tempBlock, matrixToPack, positionStart, orientationStart);
+       CommonOps_DDRM.insert(tempBlock, matrixToPack, positionStart, orientationStart);
 
       angularVelocity.set(angularVelocityStart, stateVector);
       packAngularVelocityTermForOrientation(tempBlock, orientation, angularVelocity, dt);
-      CommonOps.insert(tempBlock, matrixToPack, orientationStart, angularVelocityStart);
+       CommonOps_DDRM.insert(tempBlock, matrixToPack, orientationStart, angularVelocityStart);
    }
 
    @Override
-   public void getQMatrix(DenseMatrix64F matrixToPack)
+   public void getQMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(size, size);
-      CommonOps.fill(matrixToPack, 0.0);
+       CommonOps_DDRM.fill(matrixToPack, 0.0);
 
       FilterTools.packQref(dt, Qref, 3);
-      CommonOps.scale(angularAccelerationVariance.getValue() * sqrtHz, Qref);
-      CommonOps.insert(Qref, matrixToPack, 0, 0);
+       CommonOps_DDRM.scale(angularAccelerationVariance.getValue() * sqrtHz, Qref);
+       CommonOps_DDRM.insert(Qref, matrixToPack, 0, 0);
 
       FilterTools.packQref(dt, Qref, 3);
-      CommonOps.scale(linearAccelerationVariance.getValue() * sqrtHz, Qref);
-      CommonOps.insert(Qref, matrixToPack, 9, 9);
+       CommonOps_DDRM.scale(linearAccelerationVariance.getValue() * sqrtHz, Qref);
+       CommonOps_DDRM.insert(Qref, matrixToPack, 9, 9);
    }
 
    public void getOrientation(FrameQuaternion orientationToPack)
@@ -298,7 +299,7 @@ public class PoseState extends State
    }
 
    // TODO: extract to tools class
-   public void packAngularVelocityTermForOrientation(DenseMatrix64F block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
+   public void packAngularVelocityTermForOrientation(DMatrix1Row block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
    {
       orientation.get(rotationMatrix);
       tempLinearVelocity1.set(linearVelocity);
@@ -310,21 +311,21 @@ public class PoseState extends State
    }
 
    // TODO: extract to tools class
-   public void packOrientatonTermForPosition(DenseMatrix64F block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
+   public void packOrientatonTermForPosition(DMatrix1Row block, QuaternionReadOnly orientation, Vector3DReadOnly linearVelocity, double dt)
    {
       tempLinearVelocity2.set(linearVelocity);
       orientation.transform(tempLinearVelocity2);
       matrix.setToTildeForm(tempLinearVelocity2);
       matrix.get(block);
-      CommonOps.scale(-dt, block);
+       CommonOps_DDRM.scale(-dt, block);
    }
 
    // TODO: extract to tools class
-   public void packLinearVelocityTermForPosition(DenseMatrix64F block, QuaternionReadOnly orientation, double dt)
+   public void packLinearVelocityTermForPosition(DMatrix1Row block, QuaternionReadOnly orientation, double dt)
    {
       orientation.get(tempRotationMatrix);
       tempRotationMatrix.get(block);
-      CommonOps.scale(dt, block);
+       CommonOps_DDRM.scale(dt, block);
    }
 
    // TODO: extract to tools class

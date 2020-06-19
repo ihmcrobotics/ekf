@@ -1,7 +1,7 @@
 package us.ihmc.ekf.filter.sensor.implementations;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
@@ -23,9 +23,9 @@ public class LinearVelocitySensor extends BodyVelocitySensor
    }
 
    @Override
-   protected void packRelevantJacobianPart(DenseMatrix64F relevantPartToPack, DenseMatrix64F fullJacobian)
+   protected void packRelevantJacobianPart(DMatrix1Row relevantPartToPack, DMatrix1Row fullJacobian)
    {
-      CommonOps.extract(fullJacobian, 3, 6, 0, fullJacobian.getNumCols(), relevantPartToPack, 0, 0);
+      CommonOps_DDRM.extract(fullJacobian, 3, 6, 0, fullJacobian.getNumCols(), relevantPartToPack, 0, 0);
    }
 
    @Override

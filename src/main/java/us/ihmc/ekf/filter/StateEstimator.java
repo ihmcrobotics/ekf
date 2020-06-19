@@ -2,7 +2,8 @@ package us.ihmc.ekf.filter;
 
 import java.util.List;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
@@ -18,16 +19,16 @@ public class StateEstimator
    private final YoDouble predictionTime;
    private final YoDouble correctionTime;
 
-   private final DenseMatrix64F F = new DenseMatrix64F(0);
-   private final DenseMatrix64F Q = new DenseMatrix64F(0);
-   private final DenseMatrix64F H = new DenseMatrix64F(0);
-   private final DenseMatrix64F R = new DenseMatrix64F(0);
-   private final DenseMatrix64F K = new DenseMatrix64F(0);
-   private final DenseMatrix64F residual = new DenseMatrix64F(0);
-   private final DenseMatrix64F Xprior = new DenseMatrix64F(0);
-   private final DenseMatrix64F Pprior = new DenseMatrix64F(0);
-   private final DenseMatrix64F Xposterior = new DenseMatrix64F(0);
-   private final DenseMatrix64F Pposterior = new DenseMatrix64F(0);
+   private final DMatrixRMaj F = new DMatrixRMaj(0);
+   private final DMatrixRMaj Q = new DMatrixRMaj(0);
+   private final DMatrixRMaj H = new DMatrixRMaj(0);
+   private final DMatrixRMaj R = new DMatrixRMaj(0);
+   private final DMatrixRMaj K = new DMatrixRMaj(0);
+   private final DMatrixRMaj residual = new DMatrixRMaj(0);
+   private final DMatrixRMaj Xprior = new DMatrixRMaj(0);
+   private final DMatrixRMaj Pprior = new DMatrixRMaj(0);
+   private final DMatrixRMaj Xposterior = new DMatrixRMaj(0);
+   private final DMatrixRMaj Pposterior = new DMatrixRMaj(0);
 
    public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
    {
@@ -86,7 +87,7 @@ public class StateEstimator
       correctionTime.set(Conversions.nanosecondsToMilliseconds((double) (System.nanoTime() - startTime)));
    }
 
-   public void getCovariance(DenseMatrix64F covarianceToPack)
+   public void getCovariance(DMatrix1Row covarianceToPack)
    {
       covarianceToPack.set(Pposterior);
    }

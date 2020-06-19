@@ -1,7 +1,7 @@
 package us.ihmc.ekf.filter.sensor.implementations;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.RobotState;
@@ -62,15 +62,15 @@ public class JointPositionSensor extends Sensor
    }
 
    @Override
-   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
+   public void getMeasurementJacobian(DMatrix1Row jacobianToPack, RobotState robotState)
    {
       jacobianToPack.reshape(measurementSize, robotState.getSize());
-      CommonOps.fill(jacobianToPack, 0.0);
+       CommonOps_DDRM.fill(jacobianToPack, 0.0);
       jacobianToPack.set(0, robotState.findJointPositionIndex(jointName), 1.0);
    }
 
    @Override
-   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   public void getResidual(DMatrix1Row residualToPack, RobotState robotState)
    {
       residualToPack.reshape(measurementSize, 1);
       JointState jointState = robotState.getJointState(jointName);
@@ -78,7 +78,7 @@ public class JointPositionSensor extends Sensor
    }
 
    @Override
-   public void getRMatrix(DenseMatrix64F matrixToPack)
+   public void getRMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(measurementSize, measurementSize);
       matrixToPack.set(0, 0, jointPositionVariance.getValue() * sqrtHz);

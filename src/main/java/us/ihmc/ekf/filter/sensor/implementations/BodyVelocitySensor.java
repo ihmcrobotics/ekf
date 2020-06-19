@@ -3,8 +3,9 @@ package us.ihmc.ekf.filter.sensor.implementations;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix1Row;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.RobotState;
@@ -41,15 +42,15 @@ public abstract class BodyVelocitySensor extends Sensor
    private final BiasState biasState;
    private final DoubleProvider variance;
 
-   private final DenseMatrix64F jacobianMatrix = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F jacobianRelevantPart = new DenseMatrix64F(0, 0);
+   private final DMatrixRMaj jacobianMatrix = new DMatrixRMaj(0, 0);
+   private final DMatrixRMaj jacobianRelevantPart = new DMatrixRMaj(0, 0);
    private final GeometricJacobianCalculator robotJacobian = new GeometricJacobianCalculator();
    private final List<String> oneDofJointNames = new ArrayList<>();
 
-   private final DenseMatrix64F jacobian = new DenseMatrix64F(0, 0);
-   private final DenseMatrix64F stateVector = new DenseMatrix64F(0, 0);
+   private final DMatrixRMaj jacobian = new DMatrixRMaj(0, 0);
+   private final DMatrixRMaj stateVector = new DMatrixRMaj(0, 0);
 
-   private final DenseMatrix64F biasStateJacobian = new DenseMatrix64F(0, 0);
+   private final DMatrixRMaj biasStateJacobian = new DMatrixRMaj(0, 0);
 
    private final double sqrtHz;
 
@@ -100,7 +101,7 @@ public abstract class BodyVelocitySensor extends Sensor
       return name;
    }
 
-   protected abstract void packRelevantJacobianPart(DenseMatrix64F relevantPartToPack, DenseMatrix64F fullJacobian);
+   protected abstract void packRelevantJacobianPart(DMatrix1Row relevantPartToPack, DMatrix1Row fullJacobian);
 
    @Override
    public State getSensorState()
@@ -109,7 +110,7 @@ public abstract class BodyVelocitySensor extends Sensor
    }
 
    @Override
-   public void getMeasurementJacobian(DenseMatrix64F jacobianToPack, RobotState robotState)
+   public void getMeasurementJacobian(DMatrix1Row jacobianToPack, RobotState robotState)
    {
       jacobianToPack.reshape(getMeasurementSize(), robotState.getSize());
       jacobianToPack.zero();
@@ -123,19 +124,19 @@ public abstract class BodyVelocitySensor extends Sensor
       if (biasState != null)
       {
          int biasStartIndex = robotState.getStartIndex(biasState);
-         CommonOps.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
+         CommonOps_DDRM.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
       }
    }
 
    @Override
-   public void getResidual(DenseMatrix64F residualToPack, RobotState robotState)
+   public void getResidual(DMatrix1Row residualToPack, RobotState robotState)
    {
       getMeasurementJacobian(jacobian, robotState);
 
       // Compute the sensor measurement based on the robot state:
       residualToPack.reshape(getMeasurementSize(), 1);
       robotState.getStateVector(stateVector);
-      CommonOps.mult(jacobian, stateVector, residualToPack);
+       CommonOps_DDRM.mult(jacobian, stateVector, residualToPack);
 
       // Compute the residual considering the sensor bias and the current measurement:
       residualToPack.set(0, measurement.getX() - residualToPack.get(0));
@@ -144,11 +145,11 @@ public abstract class BodyVelocitySensor extends Sensor
    }
 
    @Override
-   public void getRMatrix(DenseMatrix64F matrixToPack)
+   public void getRMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(getMeasurementSize(), getMeasurementSize());
-      CommonOps.setIdentity(matrixToPack);
-      CommonOps.scale(variance.getValue() * sqrtHz, matrixToPack);
+       CommonOps_DDRM.setIdentity(matrixToPack);
+       CommonOps_DDRM.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
    public void setMeasurement(Vector3DReadOnly measurement)

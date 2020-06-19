@@ -58,7 +58,7 @@ public class RobotTools
 
    public static void recursivelyModyfyGraphics(JointDescription joint, AppearanceDefinition apperance)
    {
-      ArrayList<Graphics3DPrimitiveInstruction> graphics3dInstructions = joint.getLink().getLinkGraphics().getGraphics3DInstructions();
+      List<Graphics3DPrimitiveInstruction> graphics3dInstructions = joint.getLink().getLinkGraphics().getGraphics3DInstructions();
       for (Graphics3DPrimitiveInstruction primitive : graphics3dInstructions)
       {
          if (primitive instanceof Graphics3DInstruction)
@@ -114,7 +114,7 @@ public class RobotTools
       }
    }
 
-   public static HashSet<Link> getAllLinks(ArrayList<Joint> joints, HashSet<Link> links)
+   public static HashSet<Link> getAllLinks(List<Joint> joints, HashSet<Link> links)
    {
       for (Joint joint : joints)
       {

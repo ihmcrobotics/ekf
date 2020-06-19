@@ -4,7 +4,7 @@ import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.Random;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrixRMaj;
 import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
@@ -40,27 +40,27 @@ public class LinearAccelerationSensorTest
       LinearAccelerationSensor sensor = new LinearAccelerationSensor("TestSensor", 0.01, imuBody, ReferenceFrame.getWorldFrame(), false,
                                                                      new YoVariableRegistry("TestRegistry"));
 
-      DenseMatrix64F crossProductLinearization = new DenseMatrix64F(0, 0);
+      DMatrixRMaj crossProductLinearization = new DMatrixRMaj(0, 0);
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         DenseMatrix64F qd0 = TestTools.nextMatrix(n, 1, random, -5.0, 5.0);
-         DenseMatrix64F A = TestTools.nextMatrix(3, n, random, -5.0, 5.0);
-         DenseMatrix64F L = TestTools.nextMatrix(3, n, random, -5.0, 5.0);
+         DMatrixRMaj qd0 = TestTools.nextMatrix(n, 1, random, -5.0, 5.0);
+         DMatrixRMaj A = TestTools.nextMatrix(3, n, random, -5.0, 5.0);
+         DMatrixRMaj L = TestTools.nextMatrix(3, n, random, -5.0, 5.0);
          crossProductLinearization.reshape(3, n);
 
          // we would like to linearize "w x v = A*qd x L qd"
-         DenseMatrix64F qd_pertubation = TestTools.nextMatrix(n, 1, random, MAX_PERTUBATION, MAX_PERTUBATION);
-         DenseMatrix64F qd1 = simple(qd0).plus(simple(qd_pertubation)).getMatrix();
+         DMatrixRMaj qd_pertubation = TestTools.nextMatrix(n, 1, random, MAX_PERTUBATION, MAX_PERTUBATION);
+         DMatrixRMaj qd1 = simple(qd0).plus(simple(qd_pertubation)).getMatrix();
 
          // compute the nominal and expected result
-         DenseMatrix64F nominal = computeAqdxLqd(A, L, qd0);
-         DenseMatrix64F expected = computeAqdxLqd(A, L, qd1);
+         DMatrixRMaj nominal = computeAqdxLqd(A, L, qd0);
+         DMatrixRMaj expected = computeAqdxLqd(A, L, qd1);
 
          // linearize to do a first order approximation of the expected result
          sensor.linearizeCrossProduct(A, L, qd0, crossProductLinearization);
-         DenseMatrix64F result_pertubation = simple(crossProductLinearization).mult(simple(qd_pertubation)).getMatrix();
-         DenseMatrix64F actual = simple(nominal).plus(simple(result_pertubation)).getMatrix();
+         DMatrixRMaj result_pertubation = simple(crossProductLinearization).mult(simple(qd_pertubation)).getMatrix();
+         DMatrixRMaj actual = simple(nominal).plus(simple(result_pertubation)).getMatrix();
 
          try
          {
@@ -77,26 +77,26 @@ public class LinearAccelerationSensorTest
       }
    }
 
-   private static SimpleMatrix simple(DenseMatrix64F matrix)
+   private static SimpleMatrix simple(DMatrixRMaj matrix)
    {
       return new SimpleMatrix(matrix);
    }
 
-   private static DenseMatrix64F computeAqdxLqd(DenseMatrix64F A, DenseMatrix64F L, DenseMatrix64F qd)
+   private static DMatrixRMaj computeAqdxLqd(DMatrixRMaj A, DMatrixRMaj L, DMatrixRMaj qd)
    {
       SimpleMatrix qd_simple = new SimpleMatrix(qd);
       SimpleMatrix A_simple = new SimpleMatrix(A);
       SimpleMatrix L_simple = new SimpleMatrix(L);
 
       Vector3D Aqd = new Vector3D();
-      Aqd.set(A_simple.mult(qd_simple).getMatrix());
+      Aqd.set(A_simple.mult(qd_simple).getDDRM());
       Vector3D Lqd = new Vector3D();
-      Lqd.set(L_simple.mult(qd_simple).getMatrix());
+      Lqd.set(L_simple.mult(qd_simple).getDDRM());
 
       Vector3D result = new Vector3D();
       result.cross(Aqd, Lqd);
 
-      DenseMatrix64F ret = new DenseMatrix64F(3, 1);
+      DMatrixRMaj ret = new DMatrixRMaj(3, 1);
       result.get(ret);
       return ret;
    }

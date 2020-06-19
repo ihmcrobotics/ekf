@@ -6,11 +6,10 @@ import static us.ihmc.ekf.TestTools.ITERATIONS;
 
 import java.util.Random;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.ekf.filter.state.State;
 import us.ihmc.ekf.filter.state.implementations.PoseState;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
@@ -35,7 +34,7 @@ public class PoseStateTest
       Random random = new Random(4922L);
       State state = createState(random, new YoVariableRegistry("Test"));
 
-      DenseMatrix64F matrix = new DenseMatrix64F(0, 0);
+      DMatrixRMaj matrix = new DMatrixRMaj(0, 0);
 
       state.getFMatrix(matrix);
       assertEquals(state.getSize(), matrix.getNumRows());
@@ -92,7 +91,7 @@ public class PoseStateTest
       for (int test = 0; test < ITERATIONS; test++)
       {
          State state = createState(random, new YoVariableRegistry("Test"));
-         DenseMatrix64F expectedState = new DenseMatrix64F(state.getSize(), 1);
+         DMatrixRMaj expectedState = new DMatrixRMaj(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
          {
             expectedState.set(i, random.nextDouble());
@@ -100,7 +99,7 @@ public class PoseStateTest
 
          state.setStateVector(expectedState);
 
-         DenseMatrix64F actualState = new DenseMatrix64F(0, 0);
+         DMatrixRMaj actualState = new DMatrixRMaj(0, 0);
          state.getStateVector(actualState);
 
          // Skip error state as it will be zero
@@ -129,7 +128,7 @@ public class PoseStateTest
       {
          PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, new YoVariableRegistry("Test"));
 
-         DenseMatrix64F initialState = new DenseMatrix64F(state.getSize(), 1);
+         DMatrixRMaj initialState = new DMatrixRMaj(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
          {
             initialState.set(i, EuclidCoreRandomTools.nextDouble(random, 10.0));
@@ -145,15 +144,15 @@ public class PoseStateTest
             initialState.set(i, 0.0);
          }
 
-         DenseMatrix64F A = new DenseMatrix64F(0, 0);
+         DMatrixRMaj A = new DMatrixRMaj(0, 0);
          state.getFMatrix(A);
 
-         DenseMatrix64F predicted = new DenseMatrix64F(state.getSize(), 1);
+         DMatrixRMaj predicted = new DMatrixRMaj(state.getSize(), 1);
          state.predict();
          state.getStateVector(predicted);
 
-         DenseMatrix64F linearized = new DenseMatrix64F(state.getSize(), 1);
-         CommonOps.mult(A, initialState, linearized);
+         DMatrixRMaj linearized = new DMatrixRMaj(state.getSize(), 1);
+          CommonOps_DDRM.mult(A, initialState, linearized);
 
          // Skip error state as it will be zero
          for (int i = 0; i < PoseState.orientationStart; i++)
