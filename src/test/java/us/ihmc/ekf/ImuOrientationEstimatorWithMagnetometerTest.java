@@ -31,7 +31,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.SixDoFJointBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.tools.MecanoRandomTools;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class ImuOrientationEstimatorWithMagnetometerTest
 {
@@ -50,7 +50,7 @@ public class ImuOrientationEstimatorWithMagnetometerTest
 
    public void testOnce()
    {
-      YoVariableRegistry registry = new YoVariableRegistry("TestRegistry");
+      YoRegistry registry = new YoRegistry("TestRegistry");
 
       // Create ID structure with a single floating joint and a IMU attached to it.
       RigidBodyBasics elevator = new RigidBody("elevator", worldFrame);
@@ -125,7 +125,7 @@ public class ImuOrientationEstimatorWithMagnetometerTest
       joint.updateFramesRecursively();
    }
 
-   private static void loadParameters(YoVariableRegistry registry)
+   private static void loadParameters(YoRegistry registry)
    {
       new DefaultParameterReader().readParametersInRegistry(registry);
    }

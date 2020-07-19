@@ -11,8 +11,8 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoFrameVector3D;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class MeasurementCorruptor
 {
@@ -59,14 +59,14 @@ public class MeasurementCorruptor
       simulatedJoints.add(simulatedJoint);
    }
 
-   public void addAngularVelocitySensor(AngularVelocitySensor sensor, IMUMount simulatedImu, YoVariableRegistry registry)
+   public void addAngularVelocitySensor(AngularVelocitySensor sensor, IMUMount simulatedImu, YoRegistry registry)
    {
       angularVelocitySensors.add(sensor);
       angularVelocityBias.add(new YoFrameVector3D("TrueBias" + angularVelocityBias.size() + "AngularVelocity", null, registry));
       simulatedIMUsForAngularVelocity.add(simulatedImu);
    }
 
-   public void addLinearAccelerationSensor(LinearAccelerationSensor sensor, IMUMount simulatedImu, YoVariableRegistry registry)
+   public void addLinearAccelerationSensor(LinearAccelerationSensor sensor, IMUMount simulatedImu, YoRegistry registry)
    {
       linearAccelerationSensors.add(sensor);
       linearAccelerationBias.add(new YoFrameVector3D("TrueBias" + linearAccelerationBias.size() + "LinearAcceleration", null, registry));

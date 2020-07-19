@@ -11,7 +11,7 @@ import com.google.common.base.CaseFormat;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.parameters.YoParameter;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 /**
  * A set of static convenience methods used throughout the filter.
@@ -306,9 +306,9 @@ public class FilterTools
       return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, string);
    }
 
-   public static DoubleParameter findOrCreate(String name, YoVariableRegistry registry, double initialValue)
+   public static DoubleParameter findOrCreate(String name, YoRegistry registry, double initialValue)
    {
-      Optional<YoParameter<?>> parameter = registry.getParametersInThisRegistry().stream().filter(p -> p.getName().equals(name)).findFirst();
+      Optional<YoParameter> parameter = registry.getParameters().stream().filter(p -> p.getName().equals(name)).findFirst();
       if (parameter.isPresent())
       {
          return (DoubleParameter) parameter.get();

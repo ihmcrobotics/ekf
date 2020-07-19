@@ -27,7 +27,7 @@ import us.ihmc.simulationconstructionset.Link;
 import us.ihmc.simulationconstructionset.OneDegreeOfFreedomJoint;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.util.LinearGroundContactModel;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class RobotTools
 {
@@ -46,7 +46,7 @@ public class RobotTools
 
    public static void setupGroundContactModel(Robot robot, double zStiffness, double zDamping, double xyStiffness, double xyDamping)
    {
-      YoVariableRegistry robotRegistry = robot.getRobotsYoVariableRegistry();
+      YoRegistry robotRegistry = robot.getRobotsYoRegistry();
       LinearGroundContactModel groundContactModel = new LinearGroundContactModel(robot, robotRegistry);
       groundContactModel.setZStiffness(zStiffness);
       groundContactModel.setZDamping(zDamping);

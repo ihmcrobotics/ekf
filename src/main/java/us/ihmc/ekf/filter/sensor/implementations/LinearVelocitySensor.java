@@ -6,18 +6,18 @@ import org.ejml.dense.row.CommonOps_DDRM;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class LinearVelocitySensor extends BodyVelocitySensor
 {
    public LinearVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias,
-                               YoVariableRegistry registry)
+                               YoRegistry registry)
    {
       super(prefix, dt, body, measurementFrame, estimateBias, registry);
    }
 
    public LinearVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, DoubleProvider variance,
-                               YoVariableRegistry registry)
+                               YoRegistry registry)
    {
       super(prefix, dt, body, measurementFrame, estimateBias, variance, registry);
    }

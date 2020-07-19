@@ -9,7 +9,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 /**
@@ -41,12 +41,12 @@ public class FootVelocitySensor extends LinearVelocitySensor
    private final YoDouble loadPercentage;
    private final YoDouble variance;
 
-   public FootVelocitySensor(double dt, RigidBodyBasics foot, ReferenceFrame measurementFrame, YoVariableRegistry registry)
+   public FootVelocitySensor(double dt, RigidBodyBasics foot, ReferenceFrame measurementFrame, YoRegistry registry)
    {
       this(dt, foot, measurementFrame, FilterTools.stringToPrefix(foot.getName()), registry);
    }
 
-   public FootVelocitySensor(double dt, RigidBodyBasics foot, ReferenceFrame measurementFrame, String parameterGroup, YoVariableRegistry registry)
+   public FootVelocitySensor(double dt, RigidBodyBasics foot, ReferenceFrame measurementFrame, String parameterGroup, YoRegistry registry)
    {
       super(FilterTools.stringToPrefix(foot.getName()) + "Velocity", dt, foot, measurementFrame, false, null, registry);
 

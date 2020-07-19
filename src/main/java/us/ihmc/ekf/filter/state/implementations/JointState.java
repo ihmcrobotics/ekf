@@ -7,7 +7,7 @@ import org.ejml.dense.row.CommonOps_DDRM;
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class JointState extends State
 {
@@ -25,12 +25,12 @@ public class JointState extends State
 
    private final DMatrixRMaj Qref = new DMatrixRMaj(size, size);
 
-   public JointState(String jointName, double dt, YoVariableRegistry registry)
+   public JointState(String jointName, double dt, YoRegistry registry)
    {
       this(jointName, FilterTools.stringToPrefix(jointName), dt, registry);
    }
 
-   public JointState(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
+   public JointState(String jointName, String parameterGroup, double dt, YoRegistry registry)
    {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);

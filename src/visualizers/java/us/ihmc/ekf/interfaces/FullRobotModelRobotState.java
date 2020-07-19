@@ -13,7 +13,7 @@ import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class FullRobotModelRobotState
 {
@@ -26,7 +26,7 @@ public class FullRobotModelRobotState
 
    private final FullRobotModel fullRobotModel;
 
-   public FullRobotModelRobotState(double dt, FullRobotModel fullRobotModel, YoVariableRegistry registry)
+   public FullRobotModelRobotState(double dt, FullRobotModel fullRobotModel, YoRegistry registry)
    {
       this.fullRobotModel = fullRobotModel;
 

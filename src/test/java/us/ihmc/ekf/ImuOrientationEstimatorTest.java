@@ -12,7 +12,7 @@ import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class ImuOrientationEstimatorTest
 {
@@ -38,7 +38,7 @@ public class ImuOrientationEstimatorTest
 
    public void testImuBasedOrientationEstimationOnce()
    {
-      YoVariableRegistry registry = new YoVariableRegistry("TestRegistry");
+      YoRegistry registry = new YoRegistry("TestRegistry");
       ImuOrientationEstimator orientationEstimator = new ImuOrientationEstimator(ESTIMATOR_DT, registry);
       loadParameters(registry);
 
@@ -67,7 +67,7 @@ public class ImuOrientationEstimatorTest
       assertEquals(expectedRoll, actualRoll, BODY_ORIENTATION_EPSILON);
    }
 
-   private static void loadParameters(YoVariableRegistry registry)
+   private static void loadParameters(YoRegistry registry)
    {
       new DefaultParameterReader().readParametersInRegistry(registry);
    }
