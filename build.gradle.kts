@@ -21,10 +21,10 @@ mainDependencies {
    api("us.ihmc:euclid:0.15.0")
    api("us.ihmc:euclid-geometry:0.15.0")
    api("us.ihmc:euclid-frame:0.15.0")
-   api("us.ihmc:mecano:0.6.0-yovariables-0.9.0-alpha-1")
+   api("us.ihmc:mecano:0.7.0")
    api("us.ihmc:ihmc-commons:0.30.0")
    api("us.ihmc:ihmc-native-library-loader:1.2.1")
-   api("us.ihmc:ihmc-yovariables:0.9.0-alpha-1")
+   api("us.ihmc:ihmc-yovariables:0.9.0")
 }
 
 testDependencies {
