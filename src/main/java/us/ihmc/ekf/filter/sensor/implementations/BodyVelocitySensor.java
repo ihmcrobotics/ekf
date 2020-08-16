@@ -20,7 +20,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 /**
  * Provides the common functionality used in the {@link LinearVelocitySensor} and {@link AngularVelocitySensor}. Both
@@ -56,19 +56,19 @@ public abstract class BodyVelocitySensor extends Sensor
 
    private final String name;
 
-   public BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoVariableRegistry registry)
+   public BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoRegistry registry)
    {
       this(prefix, dt, body, measurementFrame, estimateBias, prefix, registry);
    }
 
    public BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, String parameterGroup,
-                             YoVariableRegistry registry)
+                             YoRegistry registry)
    {
       this(prefix, dt, body, measurementFrame, estimateBias, FilterTools.findOrCreate(parameterGroup + "Variance", registry, 1.0), registry);
    }
 
    protected BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, DoubleProvider variance,
-                                YoVariableRegistry registry)
+                                YoRegistry registry)
    {
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.variance = variance;

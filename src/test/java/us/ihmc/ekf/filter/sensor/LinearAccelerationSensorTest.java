@@ -16,7 +16,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class LinearAccelerationSensorTest
 {
@@ -38,7 +38,7 @@ public class LinearAccelerationSensorTest
       }
 
       LinearAccelerationSensor sensor = new LinearAccelerationSensor("TestSensor", 0.01, imuBody, ReferenceFrame.getWorldFrame(), false,
-                                                                     new YoVariableRegistry("TestRegistry"));
+                                                                     new YoRegistry("TestRegistry"));
 
       DMatrixRMaj crossProductLinearization = new DMatrixRMaj(0, 0);
 

@@ -22,7 +22,7 @@ import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class PoseStateTest
 {
@@ -32,7 +32,7 @@ public class PoseStateTest
    public void testSize()
    {
       Random random = new Random(4922L);
-      State state = createState(random, new YoVariableRegistry("Test"));
+      State state = createState(random, new YoRegistry("Test"));
 
       DMatrixRMaj matrix = new DMatrixRMaj(0, 0);
 
@@ -54,7 +54,7 @@ public class PoseStateTest
       Twist expectedTwist = new Twist(bodyFrame, bodyFrame.getParent(), bodyFrame);
       expectedTwist.getAngularPart().set(EuclidCoreRandomTools.nextVector3D(random));
       expectedTwist.getLinearPart().set(EuclidCoreRandomTools.nextVector3D(random));
-      YoVariableRegistry registry = new YoVariableRegistry("Test");
+      YoRegistry registry = new YoRegistry("Test");
 
       PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, registry);
       state.initialize(expectedTransform, expectedTwist);
@@ -90,7 +90,7 @@ public class PoseStateTest
 
       for (int test = 0; test < ITERATIONS; test++)
       {
-         State state = createState(random, new YoVariableRegistry("Test"));
+         State state = createState(random, new YoRegistry("Test"));
          DMatrixRMaj expectedState = new DMatrixRMaj(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
          {
@@ -126,7 +126,7 @@ public class PoseStateTest
 
       for (int test = 0; test < ITERATIONS; test++)
       {
-         PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, new YoVariableRegistry("Test"));
+         PoseState state = new PoseState("root", random.nextDouble(), bodyFrame, new YoRegistry("Test"));
 
          DMatrixRMaj initialState = new DMatrixRMaj(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
@@ -182,7 +182,7 @@ public class PoseStateTest
       }
    }
 
-   private static State createState(Random random, YoVariableRegistry registry)
+   private static State createState(Random random, YoRegistry registry)
    {
       ReferenceFrame bodyFrame = EuclidFrameRandomTools.nextReferenceFrame(random);
       PoseState poseState = new PoseState("root", random.nextDouble(), bodyFrame, registry);

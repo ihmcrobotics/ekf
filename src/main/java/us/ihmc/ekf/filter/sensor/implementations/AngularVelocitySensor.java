@@ -5,12 +5,12 @@ import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class AngularVelocitySensor extends BodyVelocitySensor
 {
    public AngularVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias,
-                                YoVariableRegistry registry)
+                                YoRegistry registry)
    {
       super(prefix, dt, body, measurementFrame, estimateBias, registry);
    }

@@ -22,7 +22,7 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 /**
  * An implementation of the {@link State} interface for an EKF.
@@ -96,7 +96,7 @@ public class PoseState extends State
    private final ReferenceFrame bodyFrame;
    private final String name;
 
-   public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, YoVariableRegistry registry)
+   public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, YoRegistry registry)
    {
       this.dt = dt;
       this.sqrtHz = 1.0 / Math.sqrt(dt);

@@ -18,7 +18,7 @@ import us.ihmc.ekf.filter.state.ComposedState;
 import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class StateEstimatorTest
 {
@@ -29,7 +29,7 @@ public class StateEstimatorTest
    {
       FilterTools.proccessNoiseModel = ProccessNoiseModel.ONLY_ACCELERATION_VARIANCE;
 
-      YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+      YoRegistry registry = new YoRegistry(getClass().getSimpleName());
       Random random = new Random(358L);
       double dt = 0.001;
 

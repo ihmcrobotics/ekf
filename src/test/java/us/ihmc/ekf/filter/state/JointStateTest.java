@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.yoVariables.parameters.DefaultParameterReader;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class JointStateTest
 {
@@ -22,7 +22,7 @@ public class JointStateTest
    public void testSize()
    {
       Random random = new Random(4922L);
-      State state = createState(random, new YoVariableRegistry("Test"));
+      State state = createState(random, new YoRegistry("Test"));
 
       DMatrixRMaj matrix = new DMatrixRMaj(0, 0);
 
@@ -42,7 +42,7 @@ public class JointStateTest
       double qExpected = random.nextDouble();
       double qdExpected = random.nextDouble();
 
-      JointState state = new JointState("TestJoint", Double.NaN, new YoVariableRegistry("TestRegistry"));
+      JointState state = new JointState("TestJoint", Double.NaN, new YoRegistry("TestRegistry"));
       state.initialize(qExpected, qdExpected);
 
       assertEquals(qExpected, state.getQ(), Double.MIN_VALUE);
@@ -57,7 +57,7 @@ public class JointStateTest
 
       for (int test = 0; test < ITERATIONS; test++)
       {
-         State state = createState(random, new YoVariableRegistry("Test"));
+         State state = createState(random, new YoRegistry("Test"));
          DMatrixRMaj expectedState = new DMatrixRMaj(state.getSize(), 1);
          for (int i = 0; i < state.getSize(); i++)
          {
@@ -79,7 +79,7 @@ public class JointStateTest
    public void testGetters()
    {
       Random random = new Random(4922L);
-      JointState state = new JointState("TestJoint", Double.NaN, new YoVariableRegistry("TestRegistry"));
+      JointState state = new JointState("TestJoint", Double.NaN, new YoRegistry("TestRegistry"));
       DMatrixRMaj expectedState = new DMatrixRMaj(state.getSize(), 1);
       for (int i = 0; i < state.getSize(); i++)
       {
@@ -111,7 +111,7 @@ public class JointStateTest
          double t0 = EuclidCoreRandomTools.nextDouble(random, 10.0);
          double dt = EuclidCoreRandomTools.nextDouble(random, 1.0);
 
-         JointState state = new JointState("TestJoint", dt, new YoVariableRegistry("TestRegistry"));
+         JointState state = new JointState("TestJoint", dt, new YoRegistry("TestRegistry"));
 
          DMatrixRMaj stateVector = new DMatrixRMaj(state.getSize(), 1);
          stateVector.set(0, c0 * t0 * t0 + c1 * t0 + c2);
@@ -136,7 +136,7 @@ public class JointStateTest
 
       for (int test = 0; test < ITERATIONS; test++)
       {
-         State state = createState(random, new YoVariableRegistry("Test"));
+         State state = createState(random, new YoRegistry("Test"));
 
          DMatrixRMaj initialState = new DMatrixRMaj(state.getSize(), 1);
          initialState.set(0, EuclidCoreRandomTools.nextDouble(random, 10.0));
@@ -161,7 +161,7 @@ public class JointStateTest
       }
    }
 
-   private static State createState(Random random, YoVariableRegistry registry)
+   private static State createState(Random random, YoRegistry registry)
    {
       JointState jointState = new JointState("Joint", random.nextDouble(), registry);
       new DefaultParameterReader().readParametersInRegistry(registry);

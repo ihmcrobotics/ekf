@@ -26,10 +26,10 @@ import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameYawPitchRoll;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoFrameVector3D;
-import us.ihmc.yoVariables.variable.YoFrameYawPitchRoll;
 
 /**
  * This class provides the functionality to estimate an IMU orientation given it's rate and acceleration measurements.
@@ -44,7 +44,7 @@ import us.ihmc.yoVariables.variable.YoFrameYawPitchRoll;
  */
 public class ImuOrientationEstimator
 {
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
 
    private final PoseState poseState;
    private final LinearAccelerationSensor linearAccelerationSensor;
@@ -72,9 +72,9 @@ public class ImuOrientationEstimator
     * Create a new {@link #ImuOrientationEstimator} without sensor bias estimation.
     *
     * @param dt the timestep for prediction and measurement sampling period.
-    * @param parentRegistry the {@link YoVariableRegistry} that this estimator should be attached to.
+    * @param parentRegistry the {@link YoRegistry} that this estimator should be attached to.
     */
-   public ImuOrientationEstimator(double dt, YoVariableRegistry parentRegistry)
+   public ImuOrientationEstimator(double dt, YoRegistry parentRegistry)
    {
       this(dt, false, false, parentRegistry);
    }
@@ -87,9 +87,9 @@ public class ImuOrientationEstimator
     *    assume the bias is zero.
     * @param estimateLiearAccelerationBias specifies whether to estimate the linear acceleration sensor bias. If
     *    {@code false} assume the bias is zero.
-    * @param parentRegistry the {@link YoVariableRegistry} that this estimator should be attached to.
+    * @param parentRegistry the {@link YoRegistry} that this estimator should be attached to.
     */
-   public ImuOrientationEstimator(double dt, boolean estimateAngularVelocityBias, boolean estimateLiearAccelerationBias, YoVariableRegistry parentRegistry)
+   public ImuOrientationEstimator(double dt, boolean estimateAngularVelocityBias, boolean estimateLiearAccelerationBias, YoRegistry parentRegistry)
    {
       // Create a "dummy" inverse dynamics structure for the estimator consisting of an IMU body and a floating joint
       // connecting it to the world:
