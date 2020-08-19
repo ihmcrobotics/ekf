@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 project(NativeFilterMatrixOps)
 
@@ -7,9 +7,10 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 include_directories(${JNI_INCLUDE_DIRS})
 
-set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+# This requires the build to be in release mode: Eigen does allocate on the heap unless optimized.
+add_definitions(-DEIGEN_NO_MALLOC)
+
+set(CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES NativeFilterMatrixOps.cpp)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../src/main/resources)
 

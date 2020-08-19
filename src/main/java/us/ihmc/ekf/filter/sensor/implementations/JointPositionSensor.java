@@ -8,7 +8,7 @@ import us.ihmc.ekf.filter.RobotState;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.state.implementations.JointState;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class JointPositionSensor extends Sensor
@@ -27,12 +27,12 @@ public class JointPositionSensor extends Sensor
 
    private final YoDouble rawMeasurement;
 
-   public JointPositionSensor(String jointName, double dt, YoVariableRegistry registry)
+   public JointPositionSensor(String jointName, double dt, YoRegistry registry)
    {
       this(jointName, FilterTools.stringToPrefix(jointName), dt, registry);
    }
 
-   public JointPositionSensor(String jointName, String parameterGroup, double dt, YoVariableRegistry registry)
+   public JointPositionSensor(String jointName, String parameterGroup, double dt, YoRegistry registry)
    {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);

@@ -10,7 +10,7 @@ import org.ejml.dense.row.CommonOps_DDRM;
 import us.ihmc.ekf.filter.FilterTools;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class BiasState extends State
@@ -25,7 +25,7 @@ public class BiasState extends State
 
    private final String name;
 
-   public BiasState(String prefix, double dt, YoVariableRegistry registry)
+   public BiasState(String prefix, double dt, YoRegistry registry)
    {
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.name = prefix + "Bias";

@@ -25,7 +25,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class LinearAccelerationSensor extends Sensor
 {
@@ -87,7 +87,7 @@ public class LinearAccelerationSensor extends Sensor
    private final String name;
 
    public LinearAccelerationSensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias,
-                                   YoVariableRegistry registry)
+                                   YoRegistry registry)
    {
       this.dt = dt;
       this.sqrtHz = 1.0 / Math.sqrt(dt);

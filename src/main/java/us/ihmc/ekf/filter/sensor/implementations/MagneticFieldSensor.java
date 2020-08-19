@@ -16,7 +16,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 /**
  * A {@link Sensor} implementation for a magnetic field sensor. This is a sensor commonly found in
@@ -50,7 +50,7 @@ public class MagneticFieldSensor extends Sensor
    private final RigidBodyTransform rootToMeasurement = new RigidBodyTransform();
    private final RigidBodyTransform rootTransform = new RigidBodyTransform();
 
-   public MagneticFieldSensor(String sensorName, double dt, RigidBodyBasics measurementBody, ReferenceFrame measurementFrame, YoVariableRegistry registry)
+   public MagneticFieldSensor(String sensorName, double dt, RigidBodyBasics measurementBody, ReferenceFrame measurementFrame, YoRegistry registry)
    {
       this.sensorName = sensorName;
       this.measurementFrame = measurementFrame;

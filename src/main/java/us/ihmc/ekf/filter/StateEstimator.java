@@ -8,7 +8,7 @@ import org.ejml.data.DMatrixRMaj;
 import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class StateEstimator
@@ -30,7 +30,7 @@ public class StateEstimator
    private final DMatrixRMaj Xposterior = new DMatrixRMaj(0);
    private final DMatrixRMaj Pposterior = new DMatrixRMaj(0);
 
-   public StateEstimator(List<Sensor> sensors, RobotState robotState, YoVariableRegistry registry)
+   public StateEstimator(List<Sensor> sensors, RobotState robotState, YoRegistry registry)
    {
       this.robotState = robotState;
 

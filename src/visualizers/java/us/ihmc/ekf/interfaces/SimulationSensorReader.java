@@ -20,14 +20,14 @@ import us.ihmc.simulationconstructionset.IMUMount;
 import us.ihmc.simulationconstructionset.Joint;
 import us.ihmc.simulationconstructionset.PinJoint;
 import us.ihmc.simulationconstructionset.RobotFromDescription;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimulationSensorReader implements RobotSensorReader
 {
    private static final boolean estimateBiases = true;
    private static final boolean addSimulatedNoise = true;
 
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
 
    private final List<Sensor> allSensors = new ArrayList<>();
    private final List<ImmutablePair<PinJoint, JointPositionSensor>> jointPositionSensors = new ArrayList<>();
@@ -68,7 +68,7 @@ public class SimulationSensorReader implements RobotSensorReader
 
    private static void addIMUSensor(double dt, IMUDefinition imu, RobotFromDescription robot,
                                     List<ImmutablePair<IMUMount, AngularVelocitySensor>> angularVelocitySensors,
-                                    List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors, YoVariableRegistry registry)
+                                    List<ImmutablePair<IMUMount, LinearAccelerationSensor>> linearAccelerationSensors, YoRegistry registry)
    {
       String imuName = imu.getName();
       IMUMount imuMount = robot.getIMUMount(imuName);
@@ -93,7 +93,7 @@ public class SimulationSensorReader implements RobotSensorReader
    }
 
    private static void addJointPositionSensorsRecursive(double dt, Joint joint, List<ImmutablePair<PinJoint, JointPositionSensor>> sensors,
-                                                        YoVariableRegistry registry)
+                                                        YoRegistry registry)
    {
       if (joint instanceof PinJoint)
       {
@@ -156,7 +156,7 @@ public class SimulationSensorReader implements RobotSensorReader
       return allSensors;
    }
 
-   public YoVariableRegistry getRegistry()
+   public YoRegistry getRegistry()
    {
       return registry;
    }
