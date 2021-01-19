@@ -32,6 +32,11 @@ public class JointState extends State
 
    public JointState(String jointName, String parameterGroup, double dt, YoRegistry registry)
    {
+      this(jointName, dt, FilterTools.findOrCreate(parameterGroup + "AccelerationVariance", registry, 1.0));
+   }
+   
+   public JointState(String jointName, double dt, DoubleProvider accelerationVariance)
+   {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
 
@@ -42,7 +47,7 @@ public class JointState extends State
 
       FilterTools.packQref(dt, Qref, 1);
 
-      accelerationVariance = FilterTools.findOrCreate(parameterGroup + "AccelerationVariance", registry, 1.0);
+      this.accelerationVariance = accelerationVariance;
    }
 
    public void initialize(double initialPosition, double initialVelocity)

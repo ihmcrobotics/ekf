@@ -36,9 +36,9 @@ import us.ihmc.yoVariables.registry.YoRegistry;
  * - The linear acceleration of the body w.r.t. world in the body frame.</br>
  * </p>
  * <p>
- * The PoseState uses a minimal error state representation for the orientation. When obtaining the state vector this
- * will always result in a zero rotation state. To get the current orientation of the body use
- * {@link PoseState#getOrientation(FrameQuaternion)}.
+ * The PoseState uses a minimal error state representation for the orientation. When obtaining the
+ * state vector this will always result in a zero rotation state. To get the current orientation of
+ * the body use {@link PoseState#getOrientation(FrameQuaternion)}.
  * </p>
  * <p>
  * The state vector of this class is</br>
@@ -53,8 +53,8 @@ import us.ihmc.yoVariables.registry.YoRegistry;
  * </pre>
  * </p>
  * <p>
- * The derivation of the equations used in this state is based on the paper "A Primer on the Differential Calculus of 3D
- * Orientations" by M. Bloesch et al.
+ * The derivation of the equations used in this state is based on the paper "A Primer on the
+ * Differential Calculus of 3D Orientations" by M. Bloesch et al.
  * </p>
  */
 public class PoseState extends State
@@ -98,13 +98,19 @@ public class PoseState extends State
 
    public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, YoRegistry registry)
    {
+      this(bodyName, dt, bodyFrame, FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationVariance", registry, 1.0),
+           FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0));
+   }
+
+   public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, DoubleProvider angularAccelerationVariance, DoubleProvider linearAccelerationVariance)
+   {
       this.dt = dt;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.bodyFrame = bodyFrame;
       this.name = FilterTools.stringToPrefix(bodyName);
 
-      angularAccelerationVariance = FilterTools.findOrCreate(name + "AngularAccelerationVariance", registry, 1.0);
-      linearAccelerationVariance = FilterTools.findOrCreate(name + "LinearAccelerationVariance", registry, 1.0);
+      this.angularAccelerationVariance = angularAccelerationVariance;
+      this.linearAccelerationVariance = linearAccelerationVariance;
    }
 
    @Override
@@ -200,7 +206,7 @@ public class PoseState extends State
    public void getFMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(size, size);
-       CommonOps_DDRM.setIdentity(matrixToPack);
+      CommonOps_DDRM.setIdentity(matrixToPack);
 
       matrixToPack.set(angularVelocityStart + 0, angularAccelerationStart + 0, dt);
       matrixToPack.set(angularVelocityStart + 1, angularAccelerationStart + 1, dt);
@@ -211,30 +217,30 @@ public class PoseState extends State
       matrixToPack.set(linearVelocityStart + 2, linearAccelerationStart + 2, dt);
 
       packLinearVelocityTermForPosition(tempBlock, orientation, dt);
-       CommonOps_DDRM.insert(tempBlock, matrixToPack, positionStart, linearVelocityStart);
+      CommonOps_DDRM.insert(tempBlock, matrixToPack, positionStart, linearVelocityStart);
 
       linearVelocity.set(linearVelocityStart, stateVector);
       packOrientatonTermForPosition(tempBlock, orientation, linearVelocity, dt);
-       CommonOps_DDRM.insert(tempBlock, matrixToPack, positionStart, orientationStart);
+      CommonOps_DDRM.insert(tempBlock, matrixToPack, positionStart, orientationStart);
 
       angularVelocity.set(angularVelocityStart, stateVector);
       packAngularVelocityTermForOrientation(tempBlock, orientation, angularVelocity, dt);
-       CommonOps_DDRM.insert(tempBlock, matrixToPack, orientationStart, angularVelocityStart);
+      CommonOps_DDRM.insert(tempBlock, matrixToPack, orientationStart, angularVelocityStart);
    }
 
    @Override
    public void getQMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(size, size);
-       CommonOps_DDRM.fill(matrixToPack, 0.0);
+      CommonOps_DDRM.fill(matrixToPack, 0.0);
 
       FilterTools.packQref(dt, Qref, 3);
-       CommonOps_DDRM.scale(angularAccelerationVariance.getValue() * sqrtHz, Qref);
-       CommonOps_DDRM.insert(Qref, matrixToPack, 0, 0);
+      CommonOps_DDRM.scale(angularAccelerationVariance.getValue() * sqrtHz, Qref);
+      CommonOps_DDRM.insert(Qref, matrixToPack, 0, 0);
 
       FilterTools.packQref(dt, Qref, 3);
-       CommonOps_DDRM.scale(linearAccelerationVariance.getValue() * sqrtHz, Qref);
-       CommonOps_DDRM.insert(Qref, matrixToPack, 9, 9);
+      CommonOps_DDRM.scale(linearAccelerationVariance.getValue() * sqrtHz, Qref);
+      CommonOps_DDRM.insert(Qref, matrixToPack, 9, 9);
    }
 
    public void getOrientation(FrameQuaternion orientationToPack)
@@ -317,7 +323,7 @@ public class PoseState extends State
       orientation.transform(tempLinearVelocity2);
       matrix.setToTildeForm(tempLinearVelocity2);
       matrix.get(block);
-       CommonOps_DDRM.scale(-dt, block);
+      CommonOps_DDRM.scale(-dt, block);
    }
 
    // TODO: extract to tools class
@@ -325,7 +331,7 @@ public class PoseState extends State
    {
       orientation.get(tempRotationMatrix);
       tempRotationMatrix.get(block);
-       CommonOps_DDRM.scale(dt, block);
+      CommonOps_DDRM.scale(dt, block);
    }
 
    // TODO: extract to tools class
