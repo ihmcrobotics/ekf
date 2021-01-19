@@ -34,11 +34,16 @@ public class JointPositionSensor extends Sensor
 
    public JointPositionSensor(String jointName, String parameterGroup, double dt, YoRegistry registry)
    {
+      this(jointName, FilterTools.findOrCreate(parameterGroup + "JointPositionVariance", registry, 1.0), dt, registry);
+   }
+   
+   public JointPositionSensor(String jointName, DoubleProvider jointPositionVariance, double dt, YoRegistry registry)
+   {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.name = FilterTools.stringToPrefix(jointName + "Position");
 
-      jointPositionVariance = FilterTools.findOrCreate(parameterGroup + "JointPositionVariance", registry, 1.0);
+      this.jointPositionVariance = jointPositionVariance;
 
       rawMeasurement = new YoDouble(name + "raw", registry);
    }

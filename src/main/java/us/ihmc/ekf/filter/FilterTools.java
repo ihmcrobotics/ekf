@@ -8,6 +8,7 @@ import org.ejml.dense.row.CommonOps_DDRM;
 
 import com.google.common.base.CaseFormat;
 
+import us.ihmc.ekf.filter.state.implementations.BiasState;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.parameters.YoParameter;
@@ -314,5 +315,27 @@ public class FilterTools
          return (DoubleParameter) parameter.get();
       }
       return new DoubleParameter(name, registry, initialValue);
+   }
+   
+   /**
+    * Helper function to create an optional bias state from a constructor
+    * 
+    * @param estimateBias
+    * @param prefix
+    * @param dt
+    * @param registry
+    * 
+    * @return BiasState if estimateBias is true, null otherwise
+    */
+   public static BiasState createBiasState(boolean estimateBias, String prefix, double dt, YoRegistry registry)
+   {
+      if (estimateBias)
+      {
+         return new BiasState(prefix, dt, registry);
+      }
+      else
+      {
+         return null;
+      }
    }
 }

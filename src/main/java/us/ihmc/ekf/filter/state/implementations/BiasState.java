@@ -15,6 +15,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class BiasState extends State
 {
+  
    private static final int size = 3;
 
    private final DMatrixRMaj bias = new DMatrixRMaj(size, 1);
@@ -39,7 +40,8 @@ public class BiasState extends State
       {
          yoState.add(new YoDouble(prefix + "Bias" + i, registry));
       }
-      this.variance = FilterTools.findOrCreate(prefix + "BiasVariance", registry, 1.0); 
+      
+      this.variance = variance; 
    }
 
    @Override

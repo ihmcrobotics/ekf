@@ -48,7 +48,7 @@ public class FootVelocitySensor extends LinearVelocitySensor
 
    public FootVelocitySensor(double dt, RigidBodyBasics foot, ReferenceFrame measurementFrame, String parameterGroup, YoRegistry registry)
    {
-      super(FilterTools.stringToPrefix(foot.getName()) + "Velocity", dt, foot, measurementFrame, false, null, registry);
+      super(FilterTools.stringToPrefix(foot.getName()) + "Velocity", dt, foot, measurementFrame, null, null, registry);
 
       this.sqrtHz = 1.0 / Math.sqrt(dt);
 

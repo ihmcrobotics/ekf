@@ -23,15 +23,17 @@ import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 /**
- * Provides the common functionality used in the {@link LinearVelocitySensor} and {@link AngularVelocitySensor}. Both
- * those sensors work extremely similar as they both use the robot Jacobian to fill the measurement matrix {@code H}
- * that relates the measurement to the robot state via {@code z = H * x + v} where {@code z} is the measurement,
- * {@code x} is the robot state, and {@code v} is the measurement noise with covariance matrix {@code R}.
+ * Provides the common functionality used in the {@link LinearVelocitySensor} and
+ * {@link AngularVelocitySensor}. Both those sensors work extremely similar as they both use the
+ * robot Jacobian to fill the measurement matrix {@code H} that relates the measurement to the robot
+ * state via {@code z = H * x + v} where {@code z} is the measurement, {@code x} is the robot state,
+ * and {@code v} is the measurement noise with covariance matrix {@code R}.
  * <p>
- * The only difference between the {@link LinearVelocitySensor} and {@link AngularVelocitySensor} is that one uses the
- * linear part of the robot Jacobian matrix (rows 3-6) and the other one uses the angular part (rows 0-3). As a result
- * both those sensors implement a method that packs the relevant part of the full jacobian matrix
- * {@link #packRelevantJacobianPart} and a method that provides the measurement size.
+ * The only difference between the {@link LinearVelocitySensor} and {@link AngularVelocitySensor} is
+ * that one uses the linear part of the robot Jacobian matrix (rows 3-6) and the other one uses the
+ * angular part (rows 0-3). As a result both those sensors implement a method that packs the
+ * relevant part of the full jacobian matrix {@link #packRelevantJacobianPart} and a method that
+ * provides the measurement size.
  * </p>
  *
  * @author Georg Wiedebach
@@ -56,6 +58,7 @@ public abstract class BodyVelocitySensor extends Sensor
 
    private final String name;
 
+
    public BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, YoRegistry registry)
    {
       this(prefix, dt, body, measurementFrame, estimateBias, prefix, registry);
@@ -64,10 +67,11 @@ public abstract class BodyVelocitySensor extends Sensor
    public BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, String parameterGroup,
                              YoRegistry registry)
    {
-      this(prefix, dt, body, measurementFrame, estimateBias, FilterTools.findOrCreate(parameterGroup + "Variance", registry, 1.0), registry);
+      this(prefix, dt, body, measurementFrame, FilterTools.findOrCreate(parameterGroup + "Variance", registry, 1.0),
+           FilterTools.createBiasState(estimateBias, prefix, dt, registry), registry);
    }
 
-   protected BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias, DoubleProvider variance,
+   protected BodyVelocitySensor(String prefix, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, DoubleProvider variance, BiasState biasState,
                                 YoRegistry registry)
    {
       this.sqrtHz = 1.0 / Math.sqrt(dt);
@@ -81,14 +85,14 @@ public abstract class BodyVelocitySensor extends Sensor
       List<OneDoFJointBasics> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJointBasics.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
 
-      if (estimateBias)
+      if (biasState != null)
       {
-         biasState = new BiasState(prefix, dt, registry);
+         this.biasState = biasState;
          FilterTools.setIdentity(biasStateJacobian, 3);
       }
       else
       {
-         biasState = null;
+         this.biasState = null;
       }
 
       int degreesOfFreedom = robotJacobian.getNumberOfDegreesOfFreedom();
@@ -136,7 +140,7 @@ public abstract class BodyVelocitySensor extends Sensor
       // Compute the sensor measurement based on the robot state:
       residualToPack.reshape(getMeasurementSize(), 1);
       robotState.getStateVector(stateVector);
-       CommonOps_DDRM.mult(jacobian, stateVector, residualToPack);
+      CommonOps_DDRM.mult(jacobian, stateVector, residualToPack);
 
       // Compute the residual considering the sensor bias and the current measurement:
       residualToPack.set(0, measurement.getX() - residualToPack.get(0));
@@ -148,8 +152,8 @@ public abstract class BodyVelocitySensor extends Sensor
    public void getRMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(getMeasurementSize(), getMeasurementSize());
-       CommonOps_DDRM.setIdentity(matrixToPack);
-       CommonOps_DDRM.scale(variance.getValue() * sqrtHz, matrixToPack);
+      CommonOps_DDRM.setIdentity(matrixToPack);
+      CommonOps_DDRM.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
    public void setMeasurement(Vector3DReadOnly measurement)

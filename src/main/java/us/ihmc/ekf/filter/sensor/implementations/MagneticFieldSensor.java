@@ -52,11 +52,16 @@ public class MagneticFieldSensor extends Sensor
 
    public MagneticFieldSensor(String sensorName, double dt, RigidBodyBasics measurementBody, ReferenceFrame measurementFrame, YoRegistry registry)
    {
+      this(sensorName, dt, measurementBody, measurementFrame, FilterTools.findOrCreate(sensorName + "Variance", registry, 1.0), registry);
+   }
+   
+   public MagneticFieldSensor(String sensorName, double dt, RigidBodyBasics measurementBody, ReferenceFrame measurementFrame, DoubleProvider variance, YoRegistry registry)
+   {
       this.sensorName = sensorName;
       this.measurementFrame = measurementFrame;
       this.measurementBody = measurementBody;
       sqrtHz = 1.0 / Math.sqrt(dt);
-      variance = FilterTools.findOrCreate(sensorName + "Variance", registry, 1.0);
+      this.variance = variance;
    }
 
    /**

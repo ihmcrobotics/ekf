@@ -89,6 +89,13 @@ public class LinearAccelerationSensor extends Sensor
    public LinearAccelerationSensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, boolean estimateBias,
                                    YoRegistry registry)
    {
+      this(sensorName, dt, body, measurementFrame, FilterTools.findOrCreate(sensorName + "Variance", registry, 1.0),
+           FilterTools.createBiasState(estimateBias, sensorName, dt, registry), registry);
+   }
+
+   public LinearAccelerationSensor(String sensorName, double dt, RigidBodyBasics body, ReferenceFrame measurementFrame, DoubleProvider variance, BiasState biasState,
+                                   YoRegistry registry)
+   {
       this.dt = dt;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.measurementFrame = measurementFrame;
@@ -98,16 +105,16 @@ public class LinearAccelerationSensor extends Sensor
       robotJacobian.setJacobianFrame(measurementFrame);
       List<OneDoFJointBasics> oneDofJoints = MultiBodySystemTools.filterJoints(robotJacobian.getJointsFromBaseToEndEffector(), OneDoFJointBasics.class);
       oneDofJoints.stream().forEach(joint -> oneDofJointNames.add(joint.getName()));
-      variance = FilterTools.findOrCreate(sensorName + "Variance", registry, 1.0);
+      this.variance = variance;
 
-      if (estimateBias)
+      if (biasState != null)
       {
-         biasState = new BiasState(sensorName, dt, registry);
+         this.biasState = biasState;
          FilterTools.setIdentity(biasStateJacobian, 3);
       }
       else
       {
-         biasState = null;
+         this.biasState = null;
       }
 
       int degreesOfFreedom = robotJacobian.getNumberOfDegreesOfFreedom();
@@ -153,8 +160,8 @@ public class LinearAccelerationSensor extends Sensor
       robotJacobian.reset();
       jacobianMatrix.set(robotJacobian.getJacobianMatrix());
 
-       CommonOps_DDRM.extract(jacobianMatrix, 0, 3, 0, jacobianMatrix.getNumCols(), jacobianAngularPart, 0, 0);
-       CommonOps_DDRM.extract(jacobianMatrix, 3, 6, 0, jacobianMatrix.getNumCols(), jacobianLinearPart, 0, 0);
+      CommonOps_DDRM.extract(jacobianMatrix, 0, 3, 0, jacobianMatrix.getNumCols(), jacobianAngularPart, 0, 0);
+      CommonOps_DDRM.extract(jacobianMatrix, 3, 6, 0, jacobianMatrix.getNumCols(), jacobianLinearPart, 0, 0);
 
       // Now for assembling the linearized measurement model:
       // J * qdd
@@ -170,8 +177,8 @@ public class LinearAccelerationSensor extends Sensor
       }
       else
       {
-          CommonOps_DDRM.subtract(jacobianLinearPart, previousJacobianMatrixLinearPart, jacobianDotLinearPart);
-          CommonOps_DDRM.scale(1.0 / dt, jacobianDotLinearPart);
+         CommonOps_DDRM.subtract(jacobianLinearPart, previousJacobianMatrixLinearPart, jacobianDotLinearPart);
+         CommonOps_DDRM.scale(1.0 / dt, jacobianDotLinearPart);
       }
       convectiveTermLinearization.reshape(jacobianDotLinearPart.getNumRows(), robotState.getSize());
       convectiveTermLinearization.zero();
@@ -205,14 +212,14 @@ public class LinearAccelerationSensor extends Sensor
 
       // Add all linearizations together:
       jacobianToPack.set(linearJointTermLinearization);
-       CommonOps_DDRM.add(jacobianToPack, convectiveTermLinearization, jacobianToPack);
-       CommonOps_DDRM.add(jacobianToPack, centrifugalTermLinearization, jacobianToPack);
-       CommonOps_DDRM.add(jacobianToPack, gravityTermLinearization, jacobianToPack);
+      CommonOps_DDRM.add(jacobianToPack, convectiveTermLinearization, jacobianToPack);
+      CommonOps_DDRM.add(jacobianToPack, centrifugalTermLinearization, jacobianToPack);
+      CommonOps_DDRM.add(jacobianToPack, gravityTermLinearization, jacobianToPack);
 
       if (biasState != null)
       {
          int biasStartIndex = robotState.getStartIndex(biasState);
-          CommonOps_DDRM.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
+         CommonOps_DDRM.insert(biasStateJacobian, jacobianToPack, 0, biasStartIndex);
       }
    }
 
@@ -227,7 +234,7 @@ public class LinearAccelerationSensor extends Sensor
       // Compute the residual (non-linear)
       // J * qdd
       FilterTools.packQdd(qdd, oneDofJointNames, tempRobotState, robotState);
-       CommonOps_DDRM.mult(jacobianMatrix, qdd, jointAccelerationTerm);
+      CommonOps_DDRM.mult(jacobianMatrix, qdd, jointAccelerationTerm);
       linearJointTerm.setIncludingFrame(measurementFrame, 3, jointAccelerationTerm);
 
       // Jd * qd
@@ -264,8 +271,8 @@ public class LinearAccelerationSensor extends Sensor
    public void getRMatrix(DMatrix1Row matrixToPack)
    {
       matrixToPack.reshape(measurementSize, measurementSize);
-       CommonOps_DDRM.setIdentity(matrixToPack);
-       CommonOps_DDRM.scale(variance.getValue() * sqrtHz, matrixToPack);
+      CommonOps_DDRM.setIdentity(matrixToPack);
+      CommonOps_DDRM.scale(variance.getValue() * sqrtHz, matrixToPack);
    }
 
    public void setMeasurement(Vector3DReadOnly measurement)
@@ -274,24 +281,21 @@ public class LinearAccelerationSensor extends Sensor
    }
 
    /**
-    * This linearizes the cross product {@code f(qd)=[A*qd]x[L*qd]} around {@code qd0}. This allows
-    * a first order approximation of: <br>
+    * This linearizes the cross product {@code f(qd)=[A*qd]x[L*qd]} around {@code qd0}. This allows a
+    * first order approximation of: <br>
     * {@code f(qd1) = f(qd0) + J * [qd1 - qd0]}</br>
     * This approximation will be accurate for small values of {@code dqd = [qd1 - qd0]}.
     *
-    * @param A
-    *           matrix in the above equation
-    * @param L
-    *           matrix in the above equation
-    * @param qd0
-    *           the point to linearize about
+    * @param A   matrix in the above equation
+    * @param L   matrix in the above equation
+    * @param qd0 the point to linearize about
     * @return {@code J} is the Jacobian of the above cross product w.r.t. {@code qd}
     */
    public void linearizeCrossProduct(DMatrix1Row A, DMatrix1Row L, DMatrix1Row qd0, DMatrix1Row matrixToPack)
    {
-       CommonOps_DDRM.mult(A, qd0, tempResult);
+      CommonOps_DDRM.mult(A, qd0, tempResult);
       Aqd.set(tempResult);
-       CommonOps_DDRM.mult(L, qd0, tempResult);
+      CommonOps_DDRM.mult(L, qd0, tempResult);
       Lqd.set(tempResult);
 
       Aqdx_matrix.setToTildeForm(Aqd);
@@ -300,9 +304,9 @@ public class LinearAccelerationSensor extends Sensor
       Aqdx_matrix.get(Aqdx);
       Lqdx_matrix.get(Lqdx);
 
-       CommonOps_DDRM.mult(Aqdx, L, AqdxL);
-       CommonOps_DDRM.mult(Lqdx, A, LqdxA);
-       CommonOps_DDRM.subtract(AqdxL, LqdxA, matrixToPack);
+      CommonOps_DDRM.mult(Aqdx, L, AqdxL);
+      CommonOps_DDRM.mult(Lqdx, A, LqdxA);
+      CommonOps_DDRM.subtract(AqdxL, LqdxA, matrixToPack);
    }
 
    public void resetBias()

@@ -34,11 +34,16 @@ public class JointVelocitySensor extends Sensor
 
    public JointVelocitySensor(String jointName, String parameterGroup, double dt, YoRegistry registry)
    {
+      this(jointName, FilterTools.findOrCreate(parameterGroup + "JointVelocityVariance", registry, 1.0), dt, registry);
+   }
+   
+   public JointVelocitySensor(String jointName, DoubleProvider jointVelocityVariance, double dt, YoRegistry registry)
+   {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.name = FilterTools.stringToPrefix(jointName + "Velocity");
 
-      jointVelocityVariance = FilterTools.findOrCreate(parameterGroup + "JointVelocityVariance", registry, 1.0);
+      this.jointVelocityVariance = jointVelocityVariance;
 
       rawMeasurement = new YoDouble(name + "raw", registry);
    }
