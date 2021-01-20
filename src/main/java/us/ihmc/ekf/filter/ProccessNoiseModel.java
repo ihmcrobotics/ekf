@@ -1,0 +1,6 @@
+package us.ihmc.ekf.filter;
+
+public enum ProccessNoiseModel
+{
+   CONTINUOUS_ACCELERATION, PIECEWISE_CONTINUOUS_ACCELERATION, ONLY_ACCELERATION_VARIANCE
+}

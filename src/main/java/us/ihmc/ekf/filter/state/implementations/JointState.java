@@ -5,6 +5,7 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.FilterTools;
+import us.ihmc.ekf.filter.ProccessNoiseModel;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -32,10 +33,10 @@ public class JointState extends State
 
    public JointState(String jointName, String parameterGroup, double dt, YoRegistry registry)
    {
-      this(jointName, dt, FilterTools.findOrCreate(parameterGroup + "AccelerationVariance", registry, 1.0));
+      this(jointName, dt, FilterTools.findOrCreate(parameterGroup + "AccelerationVariance", registry, 1.0), FilterTools.proccessNoiseModel);
    }
    
-   public JointState(String jointName, double dt, DoubleProvider accelerationVariance)
+   public JointState(String jointName, double dt, DoubleProvider accelerationVariance, ProccessNoiseModel processNoiseModel)
    {
       this.jointName = jointName;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
@@ -45,7 +46,7 @@ public class JointState extends State
       F.set(0, 2, 0.5 * dt * dt);
       F.set(1, 2, dt);
 
-      FilterTools.packQref(dt, Qref, 1);
+      FilterTools.packQref(processNoiseModel, dt, Qref, 1);
 
       this.accelerationVariance = accelerationVariance;
    }

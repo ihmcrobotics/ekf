@@ -21,11 +21,6 @@ import us.ihmc.yoVariables.registry.YoRegistry;
  */
 public class FilterTools
 {
-   public static enum ProccessNoiseModel
-   {
-      CONTINUOUS_ACCELERATION, PIECEWISE_CONTINUOUS_ACCELERATION, ONLY_ACCELERATION_VARIANCE
-   }
-
    public static ProccessNoiseModel proccessNoiseModel = ProccessNoiseModel.ONLY_ACCELERATION_VARIANCE;
 
    /**
@@ -213,7 +208,7 @@ public class FilterTools
       CommonOps_DDRM.setIdentity(matrix);
    }
 
-   public static void packQref(double dt, DMatrix1Row Qref, int dim)
+   public static void packQref(ProccessNoiseModel proccessNoiseModel, double dt, DMatrix1Row Qref, int dim)
    {
       switch (proccessNoiseModel)
       {

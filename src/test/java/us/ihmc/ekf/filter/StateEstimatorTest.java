@@ -10,7 +10,6 @@ import org.ejml.simple.SimpleMatrix;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.ekf.TestTools;
-import us.ihmc.ekf.filter.FilterTools.ProccessNoiseModel;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
 import us.ihmc.ekf.filter.sensor.Sensor;
 import us.ihmc.ekf.filter.sensor.implementations.JointPositionSensor;

@@ -5,6 +5,7 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.ekf.filter.FilterTools;
+import us.ihmc.ekf.filter.ProccessNoiseModel;
 import us.ihmc.ekf.filter.state.State;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.RotationMatrix;
@@ -95,19 +96,22 @@ public class PoseState extends State
    private final double sqrtHz;
    private final ReferenceFrame bodyFrame;
    private final String name;
+   
+   private final ProccessNoiseModel proccessNoiseModel;
 
    public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, YoRegistry registry)
    {
       this(bodyName, dt, bodyFrame, FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "AngularAccelerationVariance", registry, 1.0),
-           FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0));
+           FilterTools.findOrCreate(FilterTools.stringToPrefix(bodyName) + "LinearAccelerationVariance", registry, 1.0), FilterTools.proccessNoiseModel);
    }
 
-   public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, DoubleProvider angularAccelerationVariance, DoubleProvider linearAccelerationVariance)
+   public PoseState(String bodyName, double dt, ReferenceFrame bodyFrame, DoubleProvider angularAccelerationVariance, DoubleProvider linearAccelerationVariance, ProccessNoiseModel proccessNoiseModel)
    {
       this.dt = dt;
       this.sqrtHz = 1.0 / Math.sqrt(dt);
       this.bodyFrame = bodyFrame;
       this.name = FilterTools.stringToPrefix(bodyName);
+      this.proccessNoiseModel = proccessNoiseModel;
 
       this.angularAccelerationVariance = angularAccelerationVariance;
       this.linearAccelerationVariance = linearAccelerationVariance;
@@ -234,11 +238,11 @@ public class PoseState extends State
       matrixToPack.reshape(size, size);
       CommonOps_DDRM.fill(matrixToPack, 0.0);
 
-      FilterTools.packQref(dt, Qref, 3);
+      FilterTools.packQref(proccessNoiseModel, dt, Qref, 3);
       CommonOps_DDRM.scale(angularAccelerationVariance.getValue() * sqrtHz, Qref);
       CommonOps_DDRM.insert(Qref, matrixToPack, 0, 0);
 
-      FilterTools.packQref(dt, Qref, 3);
+      FilterTools.packQref(proccessNoiseModel, dt, Qref, 3);
       CommonOps_DDRM.scale(linearAccelerationVariance.getValue() * sqrtHz, Qref);
       CommonOps_DDRM.insert(Qref, matrixToPack, 9, 9);
    }
