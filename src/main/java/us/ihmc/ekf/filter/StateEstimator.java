@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.ejml.data.DMatrix1Row;
 import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.ekf.filter.sensor.ComposedSensor;
@@ -47,6 +48,18 @@ public class StateEstimator
    public void reset()
    {
       Pposterior.zero();
+   }
+   
+   /**
+    * Initialize Pposterior to factor * Q
+    * 
+    * @param factor
+    */
+   public void initializePposterior(int factor)
+   {
+      robotState.getQMatrix(Q);
+      Pposterior.set(Q);
+      CommonOps_DDRM.scale(factor, Pposterior);
    }
 
    public void predict()
