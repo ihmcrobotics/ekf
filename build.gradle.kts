@@ -6,7 +6,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "0.7.2"
+   version = "0.7.3"
    openSource = true
 
    configureDependencyResolution()
@@ -40,5 +40,5 @@ testDependencies {
 visualizersDependencies {
    api(ihmc.sourceSetProject("main"))
 
-   api("us.ihmc:simulation-construction-set:0.21.8")
+   api("us.ihmc:simulation-construction-set:0.21.9")
 }
