@@ -156,7 +156,6 @@ public class GeneralizedSDFRobotModel implements GraphicsObjectsHolder
       return resourceClassLoader;
    }
 
-   @Override
    public ArrayList<CollisionMeshDescription> getCollisionObjects(String name)
    {
       // TODO: SDF collision stuff to RobotDescription collision stuff.
