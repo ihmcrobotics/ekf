@@ -32,7 +32,7 @@ testDependencies {
 
    api("org.ejml:ejml-simple:0.39")
    api("net.sf.trove4j:trove4j:3.0.3")
-   api("org.apache.commons:commons-math3:3.3")
+   api("org.apache.commons:commons-math3:3.6.1")
 
    api("us.ihmc:ihmc-commons-testing:0.30.5")
 }
