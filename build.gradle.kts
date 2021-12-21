@@ -22,7 +22,7 @@ mainDependencies {
    api("us.ihmc:euclid-geometry:0.17.0")
    api("us.ihmc:euclid-frame:0.17.0")
    api("us.ihmc:mecano:0.8.3")
-   api("us.ihmc:ihmc-commons:0.30.4")
+   api("us.ihmc:ihmc-commons:0.30.5")
    api("us.ihmc:ihmc-native-library-loader:1.3.1")
    api("us.ihmc:ihmc-yovariables:0.9.11")
 }
@@ -34,7 +34,7 @@ testDependencies {
    api("net.sf.trove4j:trove4j:3.0.3")
    api("org.apache.commons:commons-math3:3.3")
 
-   api("us.ihmc:ihmc-commons-testing:0.30.4")
+   api("us.ihmc:ihmc-commons-testing:0.30.5")
 }
 
 visualizersDependencies {
