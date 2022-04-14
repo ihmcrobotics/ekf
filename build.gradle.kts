@@ -21,7 +21,7 @@ mainDependencies {
    api("us.ihmc:euclid:0.17.2")
    api("us.ihmc:euclid-geometry:0.17.2")
    api("us.ihmc:euclid-frame:0.17.2")
-   api("us.ihmc:mecano:0.8.3")
+   api("us.ihmc:mecano:0.10.0")
    api("us.ihmc:ihmc-commons:0.30.5")
    api("us.ihmc:ihmc-native-library-loader:1.3.1")
    api("us.ihmc:ihmc-yovariables:0.9.12")
