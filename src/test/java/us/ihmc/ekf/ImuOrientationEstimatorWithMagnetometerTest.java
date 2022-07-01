@@ -109,7 +109,7 @@ public class ImuOrientationEstimatorWithMagnetometerTest
          poseState.getOrientation(actualOrientation);
       }
 
-      EuclidCoreTestTools.assertQuaternionGeometricallyEquals(expectedOrientation, actualOrientation, 1.0e-4);
+      EuclidCoreTestTools.assertOrientation3DGeometricallyEquals(expectedOrientation, actualOrientation, 1.0e-4);
    }
 
    private static void updateJoint(SixDoFJointBasics joint, PoseState poseState)

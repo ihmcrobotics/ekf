@@ -61,7 +61,7 @@ public class PoseStateTest
 
       RigidBodyTransform actualTransform = new RigidBodyTransform();
       state.getTransform(actualTransform);
-      EuclidCoreTestTools.assertRigidBodyTransformEquals(expectedTransform, actualTransform, EPSILON);
+      EuclidCoreTestTools.assertEquals(expectedTransform, actualTransform, EPSILON);
 
       Twist actualTwist = new Twist();
       state.getTwist(actualTwist);
@@ -71,16 +71,16 @@ public class PoseStateTest
       FrameVector3D actualLinearVelocity = new FrameVector3D();
       state.getAngularVelocity(actualAngularVelocity);
       state.getLinearVelocity(actualLinearVelocity);
-      EuclidCoreTestTools.assertTuple3DEquals(new Vector3D(expectedTwist.getAngularPart()), actualAngularVelocity, EPSILON);
-      EuclidCoreTestTools.assertTuple3DEquals(new Vector3D(expectedTwist.getLinearPart()), actualLinearVelocity, EPSILON);
+      EuclidCoreTestTools.assertEquals(new Vector3D(expectedTwist.getAngularPart()), actualAngularVelocity, EPSILON);
+      EuclidCoreTestTools.assertEquals(new Vector3D(expectedTwist.getLinearPart()), actualLinearVelocity, EPSILON);
 
       FrameVector3D zero = new FrameVector3D(bodyFrame);
       FrameVector3D actualAngularAcceleration = new FrameVector3D();
       FrameVector3D actualLinearAcceleration = new FrameVector3D();
       state.getAngularAcceleration(actualAngularAcceleration);
       state.getLinearAcceleration(actualLinearAcceleration);
-      EuclidFrameTestTools.assertFrameTuple3DEquals(zero, actualAngularAcceleration, EPSILON);
-      EuclidFrameTestTools.assertFrameTuple3DEquals(zero, actualLinearAcceleration, EPSILON);
+      EuclidFrameTestTools.assertEquals(zero, actualAngularAcceleration, EPSILON);
+      EuclidFrameTestTools.assertEquals(zero, actualLinearAcceleration, EPSILON);
    }
 
    @Test
@@ -178,7 +178,7 @@ public class PoseStateTest
          state.add(orientationFromLinearization, rotationVectorFromLinearization);
          FrameQuaternion orientationFromPrediction = new FrameQuaternion();
          state.getOrientation(orientationFromPrediction);
-         EuclidCoreTestTools.assertQuaternionEquals(orientationFromPrediction, orientationFromLinearization, EPSILON);
+         EuclidCoreTestTools.assertEquals(orientationFromPrediction, orientationFromLinearization, EPSILON);
       }
    }
 
