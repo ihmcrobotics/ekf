@@ -1,7 +1,7 @@
 package us.ihmc.ekf.tempClasses;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
 
 public class SDFJoint
 {
