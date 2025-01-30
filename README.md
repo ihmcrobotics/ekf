@@ -3,6 +3,7 @@
 This package provides an implementation of an Extended Kalman Filter (EKF) for state estimation in robotics. It depends on the [Mecano](https://stash.ihmc.us/projects/LIBS/repos/mecano/browse) package that provides a rigid-body and multi-body tools to compute Jacobians and other useful quantities related to rigid body systems. The visualization in this package relies on the [Simulation Construction Set](https://stash.ihmc.us/projects/LIBS/repos/simulation-construction-set/browse) package by IHMC.
 
 ![Build Status](https://bamboo.ihmc.us/plugins/servlet/wittified/build-status/LIBS-EKF)
+![develop, fast](https://github.com/ihmcrobotics/ekf/actions/workflows/gradle-test-fast.yml/badge.svg?branch=develop)
 
 The test coverage for the package `us.ihmc.ekf.filter`
 
@@ -14,11 +15,11 @@ The test coverage for the package `us.ihmc.ekf.filter`
 
 To use the release of this package add the following to your gradle dependencies:
 
-`compile group: "us.ihmc", name: "ekf", version: "0.2.10"`
+`compile group: "us.ihmc", name: "ekf", version: "0.7.9"`
 
-`compile group: "us.ihmc", name: "ekf-test", version: "0.2.10"`
+`compile group: "us.ihmc", name: "ekf-test", version: "0.7.9"`
 
-`compile group: "us.ihmc", name: "ekf-visualizers", version: "0.2.10"`
+`compile group: "us.ihmc", name: "ekf-visualizers", version: "0.7.9"`
 
 Note, that usually you will only need the main dependency. The others will provide you with tests and some example simulations.
 
