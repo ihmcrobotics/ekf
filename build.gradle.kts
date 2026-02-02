@@ -22,7 +22,7 @@ mainDependencies {
    api("us.ihmc:mecano:17-0.19.2")
    api("us.ihmc:ihmc-commons:0.35.1")
    api("us.ihmc:ihmc-native-library-loader:2.0.6")
-   api("us.ihmc:ihmc-yovariables:0.13.6")
+   api("us.ihmc:ihmc-yovariables:0.13.7")
 }
 
 testDependencies {
